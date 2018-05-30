@@ -1,0 +1,3 @@
+# exclude binaries and object files
+bin/
+build/
