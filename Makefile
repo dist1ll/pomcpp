@@ -1,23 +1,33 @@
 CC := g++
+STD := c++11
 SRCDIR := src
 BUILDDIR := build
-TARGET := bin/exec
+TARGET := ./bin/exec
 
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 SWITCH := $(addprefix build/,$(notdir $(SOURCES:.cpp=.o)))
 OBJECTS := $(SWITCH)
-INC := -I include
+
+MODULE1 := bboard
 
 $(TARGET): $(OBJECTS)
 	@echo "Linking..."
 	@mkdir -p bin
-	$(CC) $^ -o $(TARGET)
+	$(CC) -std=$(STD) $^ -o $(TARGET)
 
-build/%.o: $(SOURCES)
+
+# build main files
+build/%.o: $(SRCDIR)/%.$(SRCEXT)
+	@echo "Build main..."
+	@mkdir -p $(BUILDDIR)
+	$(CC) -std=$(STD) -I $(SRCDIR)/$(MODULE1) -c -o $@ $<
+
+# build modules
+build/%.o: src/$(MODULE1)/%.$(SRCEXT)
 	@echo "Build..."
 	@mkdir -p $(BUILDDIR)
-	$(CC) $(INC) -c $< -o $@
+	$(CC) -std=$(STD) -c -o $@ $<
 
 clean:
 	@echo " Cleaning..."; 
