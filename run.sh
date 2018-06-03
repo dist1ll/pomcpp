@@ -1,2 +1,2 @@
 #! /bin/sh
-(cd bin/ && ./mcts)
+(cd bin/ && ./exec)

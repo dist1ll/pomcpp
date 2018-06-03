@@ -1,8 +1,9 @@
 #include <iostream>
+#include "mcts.h"
 
 using std::cout;
 
 int main(){
-
-    cout << "abc\n";
+    int a = 2;
+    cout << a;
 }

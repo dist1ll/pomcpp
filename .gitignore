@@ -1,3 +1,6 @@
 # exclude binaries and object files
 bin/
 build/
+
+# exclude personal IDE project files
+.qtcreator.*
