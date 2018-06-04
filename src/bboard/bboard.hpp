@@ -1,6 +1,8 @@
 ﻿#ifndef BBOARD_H_
 #define BBOARD_H_
 
+#include <string>
+
 namespace bboard
 {
 
@@ -23,7 +25,7 @@ enum class Move
     BOMB
 };
 
-enum class Item
+enum Item
 {
     PASSAGE = 0,
     RIGID,
@@ -64,23 +66,32 @@ struct Position
 
 
 /**
- * @brief InitState
- * @return Returns an instance of State
+ * @brief InitState Returns an meaningfully initialized state
+ * @param a0 Agent no. that should be at top left
+ * @param a1 Agent no. that should be top right
+ * @param a2 Agent no. that should be bottom right
+ * @param a3 Agent no. that should be bottom left
  */
-State* InitState(Position* positions);
+State* InitState(int a0, int a1, int a2, int a3);
 
 /**
  * @brief Applies given moves to the given board state.
- * @param s The state of the board
- * @param m Array of 4 moves
+ * @param state The state of the board
+ * @param moves Array of 4 moves
  */
-void Step(State* s, Move* m);
+void Step(State* state, Move* moves);
 
 /**
  * @brief Prints the state into the standard output stream.
- * @param s The state to print
+ * @param state The state to print
  */
-void PrintState(State* s);
+void PrintState(State* state);
+
+/**
+ * @brief Returns a string, corresponding to the given item
+ * @return A 3-character long string
+ */
+std::string PrintItem(int item);
 
 }
 

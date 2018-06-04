@@ -5,6 +5,9 @@ using std::cout;
 
 int main()
 {
-    bboard::State* init = new bboard::State;
+    //Init
+    bboard::State* init = bboard::InitState(0,1,2,3);
     bboard::PrintState(init);
+
+    delete init;
 }
