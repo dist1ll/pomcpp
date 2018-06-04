@@ -14,12 +14,12 @@ State* InitState(int a0, int a1, int a2, int a3)
 
     // Randomly put obstacles
     std::mt19937_64 rng(0x1337);
-    std::uniform_int_distribution<int> intDist(0,2);
+    std::uniform_int_distribution<int> intDist(0,6);
     for(int i = 0; i < BOARD_SIZE; i++)
     {
         for(int  j = 0; j < BOARD_SIZE; j++)
         {
-            result->board[i][j] = intDist(rng);
+            result->board[i][j] = intDist(rng) < 5 ? 0 : 2;
         }
     }
 
@@ -35,6 +35,23 @@ State* InitState(int a0, int a1, int a2, int a3)
 void Step(State* state, Move* moves)
 {
     //TODO: calculate step transition
+    for(int i = 0; i < AGENT_COUNT; i++)
+    {
+        Move m = moves[i];
+        if(m == Move::RIGHT)
+        {
+            int x = state->agentX[i];
+            int y = state->agentY[i];
+
+            if(x == BOARD_SIZE - 1 || state->board[y][x + 1] != 0)
+            {
+                continue;
+            }
+            state->board[y][x] = 0;
+            state->board[y][x + 1] = Item::AGENT0 + i;
+            state->agentX[i]++;
+        }
+    }
 }
 
 void PrintState(State* state)

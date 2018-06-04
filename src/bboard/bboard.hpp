@@ -7,6 +7,7 @@ namespace bboard
 {
 
 
+const int AGENT_COUNT = 4;
 const int BOARD_SIZE = 11;
 
 /**
@@ -53,6 +54,16 @@ enum Item
 struct State
 {
     int board[11][11];
+
+    /**
+     * @brief agentX The x-positions of all 4 agents
+     */
+    int agentX[4];
+
+    /**
+     * @brief agentY The y-positions of all 4 agents
+     */
+    int agentY[4];
 };
 
 /**
