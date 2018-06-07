@@ -67,6 +67,25 @@ struct State
 };
 
 /**
+ * @brief The Agent struct defines a behaviour
+ */
+struct Agent
+{
+    virtual ~Agent() {}
+
+    /**
+     * This method defines the behaviour of the Agent.
+     * Classes that implement Agent can be used to participate
+     * in a game and run.
+     *
+     * @brief For a given state, return a Move
+     * @param state The (potentially fogged) board state
+     * @return A Move (integer, 0-..)
+     */
+    virtual Move act(State* state) = 0;
+};
+
+/**
  * @brief Represents any position on a board of a state
  */
 struct Position

@@ -10,6 +10,10 @@ SWITCH := $(addprefix build/,$(notdir $(SOURCES:.cpp=.o)))
 OBJECTS := $(SWITCH)
 
 MODULE1 := bboard
+MODULE2 := agents
+
+INCL1 := $(SRCDIR)/$(MODULE1)
+INCL2 := $(SRCDIR)/$(MODULE2)
 
 $(TARGET): $(OBJECTS)
 	@echo "Linking..."
@@ -21,13 +25,19 @@ $(TARGET): $(OBJECTS)
 build/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@echo "Build main..."
 	@mkdir -p $(BUILDDIR)
-	$(CC) -std=$(STD) -I $(SRCDIR)/$(MODULE1) -c -o $@ $<
+	$(CC) -std=$(STD) -c -o $@ $< -I $(INCL2) -I $(INCL1)
 
 # build modules
 build/%.o: src/$(MODULE1)/%.$(SRCEXT)
-	@echo "Build..."
+	@echo "Building bboard"
 	@mkdir -p $(BUILDDIR)
 	$(CC) -std=$(STD) -c -o $@ $<
+
+build/%.o: src/$(MODULE2)/%.$(SRCEXT)
+	@echo "Building agents"
+	@mkdir -p $(BUILDDIR)
+	$(CC) -std=$(STD) -c -o $@ $< -I $(INCL1)
+
 
 clean:
 	@echo " Cleaning..."; 

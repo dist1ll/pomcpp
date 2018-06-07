@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include "bboard.hpp"
+#include "agents.hpp"
 
 using std::cout;
 
@@ -10,7 +11,6 @@ int main()
     bboard::PrintState(init);
 
     bboard::Move moves[4];
-
     // loop this
     moves[0] = bboard::Move::RIGHT;
     moves[1] = bboard::Move::IDLE;
