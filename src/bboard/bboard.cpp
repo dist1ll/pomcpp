@@ -1,5 +1,6 @@
 #include <iostream>
 #include <random>
+#include <stack>
 
 #include "bboard.hpp"
 
@@ -38,55 +39,62 @@ State* InitState(int a0, int a1, int a2, int a3)
 
 void Step(State* state, Move* moves)
 {
+
+
     //TODO: calculate step transition
     for(int i = 0; i < AGENT_COUNT; i++)
     {
         Move m = moves[i];
+
+        if(state->dead[i] || m == Move::IDLE)
+        {
+            continue;
+        }
+
         int x = state->agentX[i];
         int y = state->agentY[i];
 
-        if(m == Move::RIGHT)
-        {
-            if(x == BOARD_SIZE - 1 || state->board[y][x + 1] != 0)
-            {
-                continue;
-            }
+        Position desired = DesiredPosition(x, y, m);
 
-            state->board[y][x] = 0;
-            state->board[y][x + 1] = Item::AGENT0 + i;
-            state->agentX[i]++;
-        }
-        else if(m == Move::LEFT)
+        //check out of bounds
+        if(desired.x < 0 || desired.y < 0 ||
+                desired.x >= BOARD_SIZE ||
+                desired.y >= BOARD_SIZE)
         {
-            if(x == 0  || state->board[y][x - 1] != 0)
-            {
-                continue;
-            }
-            state->board[y][x] = 0;
-            state->board[y][x - 1] = Item::AGENT0 + i;
-            state->agentX[i]--;
+            continue;
         }
-        else if(m == Move::UP)
+        else if(state->board[desired.y][desired.x] == 0)
         {
-            if(y == 0 || state->board[y - 1][x] != 0)
-            {
-                continue;
-            }
             state->board[y][x] = 0;
-            state->board[y - 1][x] = Item::AGENT0 + i;
-            state->agentY[i]--;
-        }
-        else if(m == Move::DOWN)
-        {
-            if(y == BOARD_SIZE - 1 || state->board[y + 1][x] != 0)
-            {
-                continue;
-            }
-            state->board[y][x] = 0;
-            state->board[y + 1][x] = Item::AGENT0 + i;
-            state->agentY[i]++;
+            state->board[desired.y][desired.x] = Item::AGENT0 + i;
+            state->agentX[i] = desired.x;
+            state->agentY[i] = desired.y;
         }
     }
+}
+
+Position DesiredPosition(int x, int y, Move move)
+{
+    Position p;
+    p.x = x;
+    p.y = y;
+    if(move == Move::UP)
+    {
+        p.y -= 1;
+    }
+    else if(move == Move::DOWN)
+    {
+        p.y += 1;
+    }
+    else if(move == Move::LEFT)
+    {
+        p.x -= 1;
+    }
+    else if(move == Move::RIGHT)
+    {
+        p.x += 1;
+    }
+    return p;
 }
 
 void PrintState(State* state)

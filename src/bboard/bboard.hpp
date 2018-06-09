@@ -58,12 +58,17 @@ struct State
     /**
      * @brief agentX The x-positions of all 4 agents
      */
-    int agentX[4];
+    int agentX[AGENT_COUNT];
 
     /**
      * @brief agentY The y-positions of all 4 agents
      */
-    int agentY[4];
+    int agentY[AGENT_COUNT];
+
+    /**
+     * @brief dead dead[i] = Agent i is dead
+     */
+    bool dead[AGENT_COUNT];
 };
 
 /**
@@ -110,6 +115,16 @@ State* InitState(int a0, int a1, int a2, int a3);
  * @param moves Array of 4 moves
  */
 void Step(State* state, Move* moves);
+
+
+/**
+ * @brief DesiredPosition returns the x and y values of the agents
+ * destination
+ * @param x Current agents x position
+ * @param y Current agents y position
+ * @param m The desired move
+ */
+Position DesiredPosition(int x, int y, Move m);
 
 /**
  * @brief Prints the state into the standard output stream.

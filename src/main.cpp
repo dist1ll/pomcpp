@@ -17,9 +17,9 @@ void Run(bboard::State* state)
         cout << "\033c"; // clear console on linux
 
         moves[0] = agent1.act(state);
-        moves[1] = bboard::Move::IDLE;
-        moves[2] = bboard::Move::IDLE;
-        moves[3] = bboard::Move::IDLE;
+        moves[1] = agent1.act(state);
+        moves[2] = agent1.act(state);
+        moves[3] = agent1.act(state);
 
         bboard::Step(state, moves);
         bboard::PrintState(state);
@@ -32,7 +32,7 @@ int main()
 {
     // Init
     bboard::State* init = bboard::InitState(0,1,2,3);
-
+    Run(init);
     delete init;
 }
 
