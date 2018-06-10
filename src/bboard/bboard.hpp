@@ -99,6 +99,11 @@ struct Position
     int y;
 };
 
+bool operator==(const Position& lhs, const Position& rhs)
+{
+    return lhs.x == rhs.x && lhs.y == rhs.y;
+}
+
 
 /**
  * @brief InitState Returns an meaningfully initialized state

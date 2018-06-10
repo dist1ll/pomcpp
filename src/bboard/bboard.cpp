@@ -40,8 +40,14 @@ State* InitState(int a0, int a1, int a2, int a3)
 void Step(State* state, Move* moves)
 {
 
+    Position destPos[AGENT_COUNT];
+    int dependency[AGENT_COUNT][2];
 
-    //TODO: calculate step transition
+    for(int i = 0; i < AGENT_COUNT; i++)
+    {
+        destPos[i] = DesiredPosition(state->agentX[i], state->agentY[i], moves[i]);
+    }
+
     for(int i = 0; i < AGENT_COUNT; i++)
     {
         Move m = moves[i];
@@ -53,23 +59,62 @@ void Step(State* state, Move* moves)
 
         int x = state->agentX[i];
         int y = state->agentY[i];
+        dependency[i][0] = i;
+        dependency[i][1] = -1;
 
-        Position desired = DesiredPosition(x, y, m);
+        Position desired = destPos[i];
 
-        //check out of bounds
+        // check out of bounds
         if(desired.x < 0 || desired.y < 0 ||
                 desired.x >= BOARD_SIZE ||
                 desired.y >= BOARD_SIZE)
         {
             continue;
         }
-        else if(state->board[desired.y][desired.x] == 0)
+
+        // check for destination position collision
+        for(int j = 0; j < AGENT_COUNT; j++)
+        {
+            if(j == i) continue;
+
+            if(destPos[j] == desired)
+            {
+                continue;
+            }
+        }
+
+        // check for immediate agent collision
+        for(int j = 0; j < AGENT_COUNT; j++)
+        {
+            if(j == i) continue;
+
+            if(state->agentX[j] == desired.x &&
+                    state->agentY[j] == desired.y)
+            {
+                // don't execute a swap movement
+                if(destPos[j].x == x && destPos[j].y == y)
+                {
+                    goto end_this_agent_move;
+                }
+                else
+                {
+                    dependency[i][1] = j;
+                    goto end_this_agent_move;
+                }
+            }
+        }
+
+        // execute move if no obstacle
+        if(state->board[desired.y][desired.x] == 0)
         {
             state->board[y][x] = 0;
             state->board[desired.y][desired.x] = Item::AGENT0 + i;
             state->agentX[i] = desired.x;
             state->agentY[i] = desired.y;
         }
+
+end_this_agent_move:
+        ;
     }
 }
 
