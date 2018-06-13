@@ -97,12 +97,12 @@ struct Position
 {
     int x;
     int y;
-};
 
-bool operator==(const Position& lhs, const Position& rhs)
-{
-    return lhs.x == rhs.x && lhs.y == rhs.y;
-}
+    bool operator==(const Position& other)
+    {
+        return x == other.x && y == other.y;
+    }
+};
 
 
 /**

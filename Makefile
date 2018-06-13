@@ -1,12 +1,12 @@
 CC := g++
 STD := c++11
 SRCDIR := src
-BUILDDIR := build
+BUILDDIR := build/src
 TARGET := ./bin/exec
 
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
-SWITCH := $(addprefix build/,$(notdir $(SOURCES:.cpp=.o)))
+SWITCH := $(addprefix build/src/,$(notdir $(SOURCES:.cpp=.o)))
 OBJECTS := $(SWITCH)
 
 MODULE1 := bboard
@@ -22,18 +22,18 @@ $(TARGET): $(OBJECTS)
 
 
 # build main files
-build/%.o: $(SRCDIR)/%.$(SRCEXT)
+build/src/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@echo "Build main..."
 	@mkdir -p $(BUILDDIR)
 	$(CC) -std=$(STD) -c -o $@ $< -I $(INCL2) -I $(INCL1)
 
 # build modules
-build/%.o: src/$(MODULE1)/%.$(SRCEXT)
+build/src/%.o: src/$(MODULE1)/%.$(SRCEXT)
 	@echo "Building bboard"
 	@mkdir -p $(BUILDDIR)
 	$(CC) -std=$(STD) -c -o $@ $<
 
-build/%.o: src/$(MODULE2)/%.$(SRCEXT)
+build/src/%.o: src/$(MODULE2)/%.$(SRCEXT)
 	@echo "Building agents"
 	@mkdir -p $(BUILDDIR)
 	$(CC) -std=$(STD) -c -o $@ $< -I $(INCL1)

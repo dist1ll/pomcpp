@@ -20,7 +20,8 @@ State* InitState(int a0, int a1, int a2, int a3)
     {
         for(int  j = 0; j < BOARD_SIZE; j++)
         {
-            result->board[i][j] = intDist(rng) < 5 ? 0 : 2;
+            int tmp = intDist(rng);
+            result->board[i][j] = tmp > 2 ? 0 : tmp;
         }
     }
 
@@ -41,6 +42,9 @@ void Step(State* state, Move* moves)
 {
 
     Position destPos[AGENT_COUNT];
+
+    //dependency[i][j] <==> Agent i wants j's spot,
+    //and j wants to move somewhere else
     int dependency[AGENT_COUNT][2];
 
     for(int i = 0; i < AGENT_COUNT; i++)
