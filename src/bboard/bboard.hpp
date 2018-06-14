@@ -69,6 +69,20 @@ struct State
      * @brief dead dead[i] = Agent i is dead
      */
     bool dead[AGENT_COUNT];
+
+    /**
+     * @brief PutItem Places an item on the board
+     */
+    inline void PutItem(int x, int y, Item item)
+    {
+        board[x][y] = item;
+    }
+
+    /**
+     * @brief PutAgents Places agents with given IDs
+     * clockwise on the board, starting from top left.
+     */
+    void PutAgents(int a0, int a1, int a2, int a3);
 };
 
 /**
@@ -104,6 +118,12 @@ struct Position
     }
 };
 
+
+/**
+ * @brief Same as init state but without obstacles
+ * @see bboard::InitState
+ */
+State* InitEmpty(int a0, int a1, int a2, int a3);
 
 /**
  * @brief InitState Returns an meaningfully initialized state

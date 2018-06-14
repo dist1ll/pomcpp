@@ -1,13 +1,22 @@
 CC := g++
 STD := c++11
-SRCDIR := src
-BUILDDIR := build/src
-TARGET := ./bin/exec
-
 SRCEXT := cpp
-SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
-SWITCH := $(addprefix build/src/,$(notdir $(SOURCES:.cpp=.o)))
-OBJECTS := $(SWITCH)
+SRCDIR := src
+TESTDIR := unit_test
+BUILDDIR := build/src
+TESTBUILD := build/unit_test
+MAIN_TARGET := ./bin/exec
+TEST_TARGET := ./bin/test
+
+MAIN_SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+TEST_SOURCES := $(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
+
+SWITCH  := $(addprefix build/,$(MAIN_SOURCES:.cpp=.o))
+TWITCH  := $(addprefix build/,$(TEST_SOURCES:.cpp=.o))
+
+MAIN_OBJECTS := $(SWITCH)
+MAIN_OBJS_NOMAIN := $(filter-out $(BUILDDIR)/main.o, $(MAIN_OBJECTS))
+TEST_OBJECTS := $(TWITCH)
 
 MODULE1 := bboard
 MODULE2 := agents
@@ -15,31 +24,53 @@ MODULE2 := agents
 INCL1 := $(SRCDIR)/$(MODULE1)
 INCL2 := $(SRCDIR)/$(MODULE2)
 
-$(TARGET): $(OBJECTS)
-	@echo "Linking..."
-	@mkdir -p bin
-	$(CC) -std=$(STD) $^ -o $(TARGET)
+INC := -I src/bboard -I src/agents
 
+all: main test
+	
+main: $(MAIN_OBJECTS)
+	@mkdir -p bin
+	$(CC) -std=$(STD) $^ -o $(MAIN_TARGET)
+
+test: $(TEST_OBJECTS)
+	make main -s
+	@mkdir -p bin
+	$(CC) -std=$(STD) $^ -o $(TEST_TARGET) $(MAIN_OBJS_NOMAIN)
+
+
+# build main test files
+build/$(TESTDIR)/%.o: $(TESTDIR)/%.$(SRCEXT)
+	@echo "Building test"
+	@mkdir -p $(TESTBUILD)
+	$(CC) -std=$(STD) -c -o $@ $< $(INC) -I $(TESTDIR)
+
+# build test files
+build/$(TESTDIR)/$(MODULE1)/%.o: $(TESTDIR)/$(MODULE1)/%.$(SRCEXT)
+	@echo "Building bboard test"
+	@mkdir -p $(TESTBUILD) -p $(TESTBUILD)/$(MODULE1)
+	$(CC) -std=$(STD) -c -o $@ $< $(INC) -I $(TESTDIR)
 
 # build main files
 build/src/%.o: $(SRCDIR)/%.$(SRCEXT)
-	@echo "Build main..."
+	@echo "Building main"
 	@mkdir -p $(BUILDDIR)
-	$(CC) -std=$(STD) -c -o $@ $< -I $(INCL2) -I $(INCL1)
-
-# build modules
-build/src/%.o: src/$(MODULE1)/%.$(SRCEXT)
+	$(CC) -std=$(STD) -c -o $@ $< $(INC)
+build/src/$(MODULE1)/%.o: src/$(MODULE1)/%.$(SRCEXT)
 	@echo "Building bboard"
-	@mkdir -p $(BUILDDIR)
-	$(CC) -std=$(STD) -c -o $@ $<
-
-build/src/%.o: src/$(MODULE2)/%.$(SRCEXT)
+	@mkdir -p $(BUILDDIR) -p $(BUILDDIR)/$(MODULE1)
+	$(CC) -std=$(STD) -c -o $@ $< $(INC)
+build/src/$(MODULE2)/%.o: src/$(MODULE2)/%.$(SRCEXT)
 	@echo "Building agents"
-	@mkdir -p $(BUILDDIR)
-	$(CC) -std=$(STD) -c -o $@ $< -I $(INCL1)
-
+	@mkdir -p $(BUILDDIR) -p $(BUILDDIR)/$(MODULE2)
+	$(CC) -std=$(STD) -c -o $@ $< $(INC)
 
 clean:
 	@echo " Cleaning..."; 
-	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
+	@echo " $(RM) -r $(BUILDDIR) $(MAIN_TARGET)"; $(RM) -r $(BUILDDIR) $(MAIN_TARGET)
+	@echo " $(RM) -r $(TESTBUILD) $(TEST_TARGET)"; $(RM) -r $(TESTBUILD) $(TEST_TARGET)
+	@echo
+# only cleans main
+mclean:
+	@echo " Cleaning..."; 
+	@echo " $(RM) -r $(BUILDDIR) $(MAIN_TARGET)"; $(RM) -r $(BUILDDIR) $(MAIN_TARGET)
 	@echo

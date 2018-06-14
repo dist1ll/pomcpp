@@ -8,10 +8,29 @@ namespace bboard
 {
 
 
+void State::PutAgents(int a0, int a1, int a2, int a3)
+{
+    int b = Item::AGENT0;
+
+    board[0][0] = b + a0;
+    board[0][BOARD_SIZE - 1] = b + a1;
+    board[BOARD_SIZE - 1][BOARD_SIZE - 1] = b + a2;
+    board[BOARD_SIZE - 1][0] = b + a3;
+
+    // note: the rest of the vals can remain 0
+    agentX[a1] = agentX[a2] = BOARD_SIZE - 1;
+    agentY[a2] = agentY[a3] = BOARD_SIZE - 1;
+}
+
+State* InitEmpty(int a0, int a1, int a2, int a3)
+{
+    State* result = new State();
+    result->PutAgents(a0, a1, a2, a3);
+    return result;
+}
 State* InitState(int a0, int a1, int a2, int a3)
 {
     State* result = new State();
-    int b = Item::AGENT0; // agent no. offset
 
     // Randomly put obstacles
     std::mt19937_64 rng(0x1337);
@@ -25,16 +44,7 @@ State* InitState(int a0, int a1, int a2, int a3)
         }
     }
 
-    // Put agents
-    result->board[0][0] = b + a0;
-    result->board[0][BOARD_SIZE - 1] = b + a1;
-    result->board[BOARD_SIZE - 1][BOARD_SIZE - 1] = b + a2;
-    result->board[BOARD_SIZE - 1][0] = b + a3;
-
-    // note: the rest of the vals can remain 0
-    result->agentX[a1] = result->agentX[a2] = BOARD_SIZE - 1;
-    result->agentY[a2] = result->agentY[a3] = BOARD_SIZE - 1;
-
+    result->PutAgents(a0, a1, a2, a3);
     return result;
 }
 
