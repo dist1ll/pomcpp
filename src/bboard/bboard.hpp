@@ -82,7 +82,16 @@ struct State
      * @brief PutAgents Places agents with given IDs
      * clockwise on the board, starting from top left.
      */
-    void PutAgents(int a0, int a1, int a2, int a3);
+    void PutAgentsInCorners(int a0, int a1, int a2, int a3);
+
+    /**
+     * @brief PutAgentsInCorners Places a specified agent
+     * on the specified location and updates agent positions
+     * @param a0 The agent ID (from 0 to AGENT_COUNT)
+     * @param x x-position of the agent.
+     * @param y y-position of the agent.
+     */
+    void PutAgent(int agentID, int x, int y);
 };
 
 /**

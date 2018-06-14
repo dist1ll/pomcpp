@@ -1,6 +1,19 @@
+#include <iostream>
+
 #include "catch.hpp"
 #include "bboard.hpp"
 
+/**
+ * @brief REQUIRE_AGENT Proxy REQUIRE-Assertion to test
+ * valid position on board AND agent arrays.
+ */
+void REQUIRE_AGENT(bboard::State* state, int agent, int x, int y)
+{
+    int o = bboard::Item::AGENT0 + agent;
+    REQUIRE(state->agentX[agent] == x);
+    REQUIRE(state->agentY[agent] == y);
+    REQUIRE(state->board[y][x] == o);
+}
 
 bool IsAgentPos(bboard::State* state, int agent, int x, int y)
 {
@@ -8,43 +21,92 @@ bool IsAgentPos(bboard::State* state, int agent, int x, int y)
     return  state->agentX[agent] == x &&
             state->agentY[agent] == y && state->board[y][x] == o;
 }
-TEST_CASE( "Basic Non-Obstacle Movement", "[step function]" )
+
+void PlaceBrick(bboard::State* state, int x, int y)
+{
+    state->board[y][x] = bboard::Item::RIGID;
+}
+
+TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
 {
     bboard::State* s = bboard::InitEmpty(0, 1, 2, 3);
-    bboard::Move* m = new bboard::Move[4]();
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[4] = {id, id, id, id};
 
     m[0] = bboard::Move::RIGHT;
     bboard::Step(s, m);
-    REQUIRE(IsAgentPos(s, 0, 1, 0));
+    REQUIRE_AGENT(s, 0, 1, 0);
 
     m[0] = bboard::Move::DOWN;
     bboard::Step(s, m);
-    REQUIRE(IsAgentPos(s, 0, 1, 1));
+    REQUIRE_AGENT(s, 0, 1, 1);
 
     m[0] = bboard::Move::LEFT;
     bboard::Step(s, m);
-    REQUIRE(IsAgentPos(s, 0, 0, 1));
+    REQUIRE_AGENT(s, 0, 0, 1);
 
     m[0] = bboard::Move::UP;
     bboard::Step(s, m);
-    REQUIRE(IsAgentPos(s, 0, 0, 0));
+    REQUIRE_AGENT(s, 0, 0, 0);
     delete s;
 }
 
-TEST_CASE( "Basic Obstacle Collision", "[step function]" )
+TEST_CASE("Basic Obstacle Collision", "[step function]")
 {
     bboard::State* s = bboard::InitEmpty(0, 1, 2, 3);
-    bboard::Move* m = new bboard::Move[4]();
+
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[4] = {id, id, id, id};
 
     s->PutItem(0, 1, bboard::Item::RIGID);
 
     m[0] = bboard::Move::RIGHT;
     bboard::Step(s, m);
-    REQUIRE(IsAgentPos(s, 0, 0, 0));
+    REQUIRE_AGENT(s, 0, 0, 0);
 
     m[0] = bboard::Move::DOWN;
     bboard::Step(s, m);
-    REQUIRE(IsAgentPos(s, 0, 0, 1));
+    REQUIRE_AGENT(s, 0, 0, 1);
 
+    delete s;
+}
+
+TEST_CASE("Agent Destination Collision", "[step function]")
+{
+    bboard::State* s = new bboard::State();
+
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[4] = {id, id, id, id};
+
+    s->PutAgent(0, 0, 1);
+    s->PutAgent(1, 2, 1);
+
+    SECTION("Two Agent-Collision")
+    {
+        m[0] = bboard::Move::RIGHT;
+        m[1] = bboard::Move::LEFT;
+
+        bboard::Step(s, m);
+
+        REQUIRE_AGENT(s, 0, 0, 1);
+        REQUIRE_AGENT(s, 1, 2, 1);
+    }
+    SECTION("Four Agent-Collision")
+    {
+        s->PutAgent(2, 1, 0);
+        s->PutAgent(3, 1, 2);
+
+        m[0] = bboard::Move::RIGHT;
+        m[1] = bboard::Move::LEFT;
+        m[2] = bboard::Move::DOWN;
+        m[3] = bboard::Move::UP;
+
+        bboard::Step(s, m);
+
+        REQUIRE_AGENT(s, 0, 0, 1);
+        REQUIRE_AGENT(s, 1, 2, 1);
+        REQUIRE_AGENT(s, 2, 1, 0);
+        REQUIRE_AGENT(s, 3, 1, 2);
+    }
     delete s;
 }

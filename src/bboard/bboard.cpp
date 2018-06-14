@@ -7,8 +7,14 @@
 namespace bboard
 {
 
-
-void State::PutAgents(int a0, int a1, int a2, int a3)
+void State::PutAgent(int agentID, int x, int y)
+{
+    int b = Item::AGENT0 + agentID;
+    board[y][x] = b;
+    agentX[agentID] = x;
+    agentY[agentID] = y;
+}
+void State::PutAgentsInCorners(int a0, int a1, int a2, int a3)
 {
     int b = Item::AGENT0;
 
@@ -25,7 +31,7 @@ void State::PutAgents(int a0, int a1, int a2, int a3)
 State* InitEmpty(int a0, int a1, int a2, int a3)
 {
     State* result = new State();
-    result->PutAgents(a0, a1, a2, a3);
+    result->PutAgentsInCorners(a0, a1, a2, a3);
     return result;
 }
 State* InitState(int a0, int a1, int a2, int a3)
@@ -44,7 +50,7 @@ State* InitState(int a0, int a1, int a2, int a3)
         }
     }
 
-    result->PutAgents(a0, a1, a2, a3);
+    result->PutAgentsInCorners(a0, a1, a2, a3);
     return result;
 }
 
@@ -93,7 +99,9 @@ void Step(State* state, Move* moves)
 
             if(destPos[j] == desired)
             {
-                continue;
+                // a destination position conflict will never
+                // result in a valid move
+                goto end_this_agent_move;
             }
         }
 
