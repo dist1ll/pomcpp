@@ -71,7 +71,7 @@ TEST_CASE("Basic Obstacle Collision", "[step function]")
     delete s;
 }
 
-TEST_CASE("Agent Destination Collision", "[step function]")
+TEST_CASE("Destination Collision", "[step function]")
 {
     bboard::State* s = new bboard::State();
 
@@ -109,4 +109,14 @@ TEST_CASE("Agent Destination Collision", "[step function]")
         REQUIRE_AGENT(s, 3, 1, 2);
     }
     delete s;
+}
+
+TEST_CASE("Immediate Agent Collision", "[step function]")
+{
+    bboard::State* s = new bboard::State();
+
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[4] = {id, id, id, id};
+
+    // TODO: Implement
 }

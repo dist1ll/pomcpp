@@ -150,16 +150,6 @@ State* InitState(int a0, int a1, int a2, int a3);
  */
 void Step(State* state, Move* moves);
 
-
-/**
- * @brief DesiredPosition returns the x and y values of the agents
- * destination
- * @param x Current agents x position
- * @param y Current agents y position
- * @param m The desired move
- */
-Position DesiredPosition(int x, int y, Move m);
-
 /**
  * @brief Prints the state into the standard output stream.
  * @param state The state to print
