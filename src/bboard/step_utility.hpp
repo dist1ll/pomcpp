@@ -15,30 +15,47 @@ namespace bboard
  */
 Position DesiredPosition(int x, int y, Move m);
 
+
 /**
- * Consider an 2d array (referred to as dependencies) d[AGENTS][2],
- * where d[i] = j <==> agent i want's agent j's spot (and j wants to
- * go somewhere else)
- *
- * If d[i] = j, we can say agent i depends on where agent j goes
- * and write i --> j. This is because i will only be able to go
- * to j's spot once it's confirmed that j can move to his destination.
- *
- * What if j depends on a different agent k? We can list the
- * dependcy as a chain:
- *
- * i --> j --> k --> l
- *
- * If we resolve l, we can determine if k can move. That means resolving
- * backwards we can consecutively decide the movement validity in isolation.
- *
- * If we detect a circular dependency, the array can stay the same
- *
- * @brief ResolveDependencies corrects the order of the collision
- * dependency array
- * @param array The dependency array of all agents
+ * @brief FillDestPos Fills an array of destination positions.
+ * @param s The State
+ * @param m An array of all agent moves
+ * @param p The array to be filled wih dest positions
  */
-void ResolveDependencies(int array[][BOARD_SIZE]);
+void FillDestPos(State* s, Move m[AGENT_COUNT], Position p[AGENT_COUNT]);
+
+/**
+ * @brief FixSwitchMove Fixes the desired positions if the agents want
+ * switch places in one step.
+ * @param s The state
+ * @param desiredPositions an array of desired positions
+ */
+void FixSwitchMove(State* s, Position desiredPositions[AGENT_COUNT]);
+
+/**
+ * Given a State s, we want to fill an integer array of size
+ * AGENT_COUNT with the following properties:
+ *
+ */
+int ResolveDependencies(State* s, Position des[AGENT_COUNT],
+                        int dependency[AGENT_COUNT], int chain[AGENT_COUNT]);
+
+
+/**
+ * @brief PrintDependency Prints a dependency array in a nice
+ * format (stdout)
+ * @param dependency Integer array that contains the dependencies
+ */
+void PrintDependency(int dependency[AGENT_COUNT]);
+
+/**
+ * @brief PrintDependencyChain Prints a dependency chain in a nice
+ * format (stdout)
+ * @param dependency Integer array that contains the dependencies
+ * @param chain Integer array that contains all chain roots.
+ * (-1 is a skip)
+ */
+void PrintDependencyChain(int dependency[AGENT_COUNT], int chain[AGENT_COUNT]);
 
 }
 

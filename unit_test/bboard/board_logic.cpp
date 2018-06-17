@@ -119,4 +119,6 @@ TEST_CASE("Immediate Agent Collision", "[step function]")
     bboard::Move m[4] = {id, id, id, id};
 
     // TODO: Implement
+
+    delete s;
 }

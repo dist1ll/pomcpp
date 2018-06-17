@@ -9,16 +9,15 @@ void Step(State* state, Move* moves)
 {
 
     Position destPos[AGENT_COUNT];
+    FillDestPos(state, moves, destPos);
+    FixSwitchMove(state, destPos); // fixes the switching
 
-    //dependency[i] = j <==> Agent i wants j's spot,
-    //and j wants to move somewhere else
-    int dependency[AGENT_COUNT];
+    int dependency[AGENT_COUNT] = {-1, -1, -1, -1};
+    int chainRoots[AGENT_COUNT] = {-1, -1, -1, -1};
+    // the amount of chain roots
+    int rootNumber = ResolveDependencies(state, destPos, dependency, chainRoots);
 
-    for(int i = 0; i < AGENT_COUNT; i++)
-    {
-        destPos[i] = DesiredPosition(state->agentX[i], state->agentY[i], moves[i]);
-    }
-
+    // iterates 4 times but the index i jumps around the dependencies
     for(int i = 0; i < AGENT_COUNT; i++)
     {
         Move m = moves[i];
@@ -30,8 +29,6 @@ void Step(State* state, Move* moves)
 
         int x = state->agentX[i];
         int y = state->agentY[i];
-
-        dependency[i] = -1;
 
         Position desired = destPos[i];
 
@@ -71,7 +68,6 @@ void Step(State* state, Move* moves)
                 }
                 else
                 {
-                    dependency[i] = j;
                     goto end_this_agent_move;
                 }
             }
