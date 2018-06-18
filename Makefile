@@ -1,5 +1,5 @@
 CC := g++
-STD := c++11
+STD := c++17
 SRCEXT := cpp
 SRCDIR := src
 TESTDIR := unit_test
