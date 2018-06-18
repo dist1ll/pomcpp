@@ -9,7 +9,9 @@ void Step(State* state, Move* moves)
 {
 
     Position destPos[AGENT_COUNT];
+
     FillDestPos(state, moves, destPos);
+
     FixSwitchMove(state, destPos); // fixes the switching
 
     int dependency[AGENT_COUNT] = {-1, -1, -1, -1};

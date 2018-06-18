@@ -10,6 +10,13 @@ void REQUIRE_POS(bboard::Position* p, int idx, int x, int y)
     REQUIRE(p[idx].x == x);
     REQUIRE(p[idx].y == y);
 }
+
+void REQUIRE_POS(bboard::Position p, int x, int y)
+{
+    bboard::Position q = {x, y};
+    REQUIRE((p == q));
+}
+
 TEST_CASE("Destination position filling", "[step utilities]")
 {
     bboard::State* s = new bboard::State();
@@ -32,6 +39,28 @@ TEST_CASE("Destination position filling", "[step utilities]")
     REQUIRE_POS(destPos, 2, 3, 0);
     REQUIRE_POS(destPos, 3, 3, -1);
 
+    delete s;
+}
+
+TEST_CASE("Fix Switch Position", "[step utilities]")
+{
+    bboard::State* s = new bboard::State();
+    bboard::Position des[4];
+    bboard::Move r = bboard::Move::RIGHT, l = bboard::Move::LEFT;
+    bboard::Move m[4] = {r, r, l, l};
+
+    s->PutAgent(0, 0, 0);
+    s->PutAgent(1, 1, 0);
+    s->PutAgent(2, 2, 0);
+    s->PutAgent(3, 3, 0);
+
+    bboard::FillDestPos(s, m, des);
+    bboard::FixSwitchMove(s, des);
+
+    REQUIRE_POS(des[0], 1, 0);
+    REQUIRE_POS(des[1], s->agentX[1], s->agentY[1]);
+    REQUIRE_POS(des[2], s->agentX[2], s->agentY[2]);
+    REQUIRE_POS(des[3], 2, 0);
     delete s;
 }
 
