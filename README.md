@@ -25,6 +25,35 @@ To **compile** the main application and run it use `./run.sh` (alternatively you
 
 To test the project use `./test.sh` (or `make` and execute `./bin/test`). This project uses a single-header version of the [Catch2 Unit Testing Framework](https://github.com/catchorg/Catch2).
 
+## Project Structure
+
+All of the main source code is in `src/*` and all testing code is in `unit_test/*`. The source is divided into modules
+
+```
+src
+ |
+ |_ _ _ bboard
+ |        |_ _ _ bboard.hpp
+ |        |_ _ _ ..
+ |
+ |_ _ _ agents
+ |        |_ _ _ agents.hpp
+ |        |_ _ _ ..
+ |
+ |_ _ _ main.cpp
+```
+
+All environment specific functions (forward, board init, board masking etc) reside in `bboard`. Agents can be declared
+in the `agents` header and implemented in the same module.
+
+All test cases will be in the module `unit_test`. The bboard should be tested thoroughly so it exactly matches the specified behaviour of Pommerman. The compiled `test` binary can be found in `/bin`
+
+| Command | What it does |
+| ------- | ------------ |
+| `./test`  | Runs all tests, including a performance report |
+| `./test "[step function]"` | Tests only the step function  |
+| `./test ~"[performance]"` | Runs all test except the performance cases| 
+
 ## Defining Agents
 
 To create a new agent you can use the base struct defined in `bboard.hpp`. To add your own agent, declare it in
