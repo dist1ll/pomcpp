@@ -1,9 +1,28 @@
 #include <iostream>
+#include <array>
 
 #include "catch.hpp"
 #include "bboard.hpp"
 #include "step_utility.hpp"
 
+
+template<typename... Args>
+void REQUIRE_ROOTS(int c[4]) { }
+
+template<typename... Args>
+void REQUIRE_ROOTS(int c[4], int root, Args... args)
+{
+    int fit = -1;
+    for(int i = 0; i < 4; i++)
+    {
+        if(root == c[i])
+        {
+            fit = c[i];
+        }
+    }
+    REQUIRE(fit == root);
+    REQUIRE_ROOTS(c, args...);
+}
 
 void REQUIRE_POS(bboard::Position* p, int idx, int x, int y)
 {
@@ -77,17 +96,58 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
     {
         s->PutAgent(0, 0, 0);
         s->PutAgent(1, 1, 0);
-        s->PutAgent(2, 9, 9);
-        s->PutAgent(3, 8, 8);
+        s->PutAgent(2, 8, 4);
+        s->PutAgent(3, 9, 8);
 
-        m[0] = m[1] = bboard::Move::RIGHT;
+        m[0] = m[1] = m[2] = bboard::Move::RIGHT;
         bboard::FillDestPos(s, m, dest);
-
         bboard::ResolveDependencies(s, dest, dependency, chain);
 
-        bboard::PrintDependency(dependency);
-        bboard::PrintDependencyChain(dependency, chain);
+        REQUIRE_ROOTS(chain, 1);
+    }
+    SECTION("Resolve 0->1 and 2->3 dependency")
+    {
+        s->PutAgent(0, 0, 0);
+        s->PutAgent(1, 1, 0);
+        s->PutAgent(2, 8, 8);
+        s->PutAgent(3, 9, 8);
 
+        m[0] = m[1] = m[2] = bboard::Move::RIGHT;
+        bboard::FillDestPos(s, m, dest);
+        bboard::ResolveDependencies(s, dest, dependency, chain);
+
+        REQUIRE_ROOTS(chain, 1, 3);
+    }
+    SECTION("Resolve complete chain")
+    {
+        s->PutAgent(0, 0, 0);
+        s->PutAgent(1, 1, 0);
+        s->PutAgent(2, 2, 0);
+        s->PutAgent(3, 3, 0);
+
+        m[0] = m[1] = m[2] = m[3] = bboard::Move::RIGHT;
+        bboard::FillDestPos(s, m, dest);
+        bboard::ResolveDependencies(s, dest, dependency, chain);
+
+        REQUIRE_ROOTS(chain, 3);
+    }
+    SECTION("Resolve ouroboros")
+    {
+        s->PutAgent(0, 0, 0);
+        s->PutAgent(1, 1, 0);
+        s->PutAgent(2, 1, 1);
+        s->PutAgent(3, 0, 1);
+
+        m[0] = bboard::Move::RIGHT;
+        m[1] = bboard::Move::DOWN;
+        m[2] = bboard::Move::LEFT;
+        m[3] = bboard::Move::UP;
+
+        bboard::FillDestPos(s, m, dest);
+        int rootC = bboard::ResolveDependencies(s, dest, dependency, chain);
+
+        REQUIRE(chain[0] == -1);
+        REQUIRE(rootC == 0);
     }
     delete s;
 }

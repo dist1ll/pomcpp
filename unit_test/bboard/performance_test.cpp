@@ -1,6 +1,7 @@
 #include <chrono>
 #include <utility>
 #include <iostream>
+#include <cmath>
 
 #include "catch.hpp"
 #include "testing_utilities.hpp"
@@ -43,9 +44,10 @@ TEST_CASE("Step function", "[performance]")
 
 
     std::cout.precision(2);
-    std::cout << std::endl << times
-              << " iterations of bboard::Step(s, m): "
-              << t << "ms"
+    std::cout << std::endl
+              << "bboard::Step(s, m): "
+              << int(std::floor(times/(t/100.0)))
+              << " it.\t per 100ms"
               << std::endl
               << "Agent: "
               << type_name<decltype(a)>()

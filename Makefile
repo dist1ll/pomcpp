@@ -46,7 +46,7 @@ build/$(TESTDIR)/%.o: $(TESTDIR)/%.$(SRCEXT)
 
 # build test files
 build/$(TESTDIR)/$(MODULE1)/%.o: $(TESTDIR)/$(MODULE1)/%.$(SRCEXT)
-	@echo "Building bboard test"
+	@echo "Building test-case: " $@
 	@mkdir -p $(TESTBUILD) -p $(TESTBUILD)/$(MODULE1)
 	$(CC) -std=$(STD) -c -o $@ $< $(INC) -I $(TESTDIR)
 
