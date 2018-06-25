@@ -54,33 +54,13 @@ void Step(State* state, Move* moves)
         // check for destination position collision
         for(int j = 0; j < AGENT_COUNT; j++)
         {
-            if(j == i) continue;
+            if(j == i || state->dead[j]) continue;
 
             if(destPos[j] == desired)
             {
                 // a destination position conflict will never
                 // result in a valid move
                 goto end_this_agent_move;
-            }
-        }
-
-        // check for immediate agent collision
-        for(int j = 0; j < AGENT_COUNT; j++)
-        {
-            if(j == i) continue;
-
-            if(state->agentX[j] == desired.x &&
-                    state->agentY[j] == desired.y)
-            {
-                // don't execute a swap movement
-                if(destPos[j].x == x && destPos[j].y == y)
-                {
-                    goto end_this_agent_move;
-                }
-                else
-                {
-                    goto end_this_agent_move;
-                }
             }
         }
 

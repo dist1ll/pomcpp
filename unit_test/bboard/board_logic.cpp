@@ -97,6 +97,16 @@ TEST_CASE("Destination Collision", "[step function]")
         REQUIRE_AGENT(s, 0, 0, 1);
         REQUIRE_AGENT(s, 1, 2, 1);
     }
+    SECTION("Dead Collision")
+    {
+        m[0] = bboard::Move::RIGHT;
+        m[1] = bboard::Move::LEFT;
+        s->Kill(1);
+
+        bboard::Step(s, m);
+
+        REQUIRE_AGENT(s, 0, 1, 1);
+    }
     SECTION("Four Agent-Collision")
     {
         s->PutAgent(2, 1, 0);
