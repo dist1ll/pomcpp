@@ -48,6 +48,10 @@ TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
     m[0] = bboard::Move::UP;
     bboard::Step(s, m);
     REQUIRE_AGENT(s, 0, 0, 0);
+
+    m[3] = bboard::Move::UP;
+    bboard::Step(s, m);
+    REQUIRE_AGENT(s, 3, 0, 9);
     delete s;
 }
 
@@ -81,6 +85,8 @@ TEST_CASE("Destination Collision", "[step function]")
     s->PutAgent(0, 0, 1);
     s->PutAgent(1, 2, 1);
 
+    s->Kill(2, 3);
+
     SECTION("Two Agent-Collision")
     {
         m[0] = bboard::Move::RIGHT;
@@ -111,7 +117,7 @@ TEST_CASE("Destination Collision", "[step function]")
     delete s;
 }
 
-TEST_CASE("Immediate Agent Collision", "[step function]")
+TEST_CASE("Movement Dependency Handling", "[step function]")
 {
     bboard::State* s = new bboard::State();
 

@@ -61,11 +61,18 @@ int ResolveDependencies(State* s, Position des[AGENT_COUNT],
     int rootCount = 0;
     for(int i = 0; i < AGENT_COUNT; i++)
     {
-        bool isChainRoot = true;
+        // dead agents are handled as roots
+        if(s->dead[i])
+        {
+            chain[rootCount] = i;
+            rootCount++;
+            continue;
+        }
 
+        bool isChainRoot = true;
         for(int j = 0; j < AGENT_COUNT; j++)
         {
-            if(i == j) continue;
+            if(i == j || s->dead[j]) continue;
 
             if(des[i].x == s->agentX[j] && des[i].y == s->agentY[j])
             {

@@ -73,11 +73,28 @@ struct State
     /**
      * @brief PutItem Places an item on the board
      */
-    inline void PutItem(int x, int y, Item item)
+    void PutItem(int x, int y, Item item)
     {
         board[x][y] = item;
     }
 
+    /**
+     * @brief Kill Kills the specified agents
+     */
+    void Kill(int agentID)
+    {
+        dead[agentID] = true;
+    }
+
+    /**
+     * Kills all listed agents.
+     */
+    template<typename... Args>
+    void Kill(int agentID, Args... args)
+    {
+        Kill(agentID);
+        Kill(args...);
+    }
     /**
      * @brief PutAgents Places agents with given IDs
      * clockwise on the board, starting from top left.

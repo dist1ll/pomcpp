@@ -32,7 +32,7 @@ void Proxy(bboard::State* s, bboard::Move* m, bboard::Agent* a)
     m[3] = a->act(s);
     bboard::Step(s, m);
 }
-TEST_CASE("Step function", "[performance]")
+TEST_CASE("Step Function", "[performance]")
 {
     bboard::State* s = bboard::InitState(0,1,2,3);
     agents::RandomAgent a;

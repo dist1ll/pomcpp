@@ -33,8 +33,7 @@ void FillDestPos(State* s, Move m[AGENT_COUNT], Position p[AGENT_COUNT]);
 void FixSwitchMove(State* s, Position desiredPositions[AGENT_COUNT]);
 
 /**
- * Given a State s, we want to fill an integer array of size
- * AGENT_COUNT with the following properties:
+ * TODO: Fill doc for dependency resolving
  *
  */
 int ResolveDependencies(State* s, Position des[AGENT_COUNT],

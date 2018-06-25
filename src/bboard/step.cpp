@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "bboard.hpp"
 #include "step_utility.hpp"
 
@@ -15,13 +17,20 @@ void Step(State* state, Move* moves)
     FixSwitchMove(state, destPos); // fixes the switching
 
     int dependency[AGENT_COUNT] = {-1, -1, -1, -1};
-    int chainRoots[AGENT_COUNT] = {-1, -1, -1, -1};
+    int roots[AGENT_COUNT] = {-1, -1, -1, -1};
     // the amount of chain roots
-    int rootNumber = ResolveDependencies(state, destPos, dependency, chainRoots);
+    int rootNumber = ResolveDependencies(state, destPos, dependency, roots);
 
+    int rootIdx = 0;
+    int i = rootNumber == 0 ? 0 : roots[0]; // no roots -> start from 0
     // iterates 4 times but the index i jumps around the dependencies
-    for(int i = 0; i < AGENT_COUNT; i++)
+    for(int _ = 0; _ < AGENT_COUNT; _++, i = dependency[i])
     {
+        if(i == -1)
+        {
+            rootIdx++;
+            i = roots[rootIdx];
+        }
         Move m = moves[i];
 
         if(state->dead[i] || m == Move::IDLE)

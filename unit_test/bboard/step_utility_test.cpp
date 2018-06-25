@@ -1,5 +1,4 @@
 #include <iostream>
-#include <array>
 
 #include "catch.hpp"
 #include "bboard.hpp"
@@ -88,11 +87,11 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
     bboard::State* s = new bboard::State();
     bboard::Move idle = bboard::Move::IDLE;
     bboard::Move m[4] = {idle, idle, idle, idle};
-    bboard::Position dest[4];
+    bboard::Position des[4];
     int dependency[4] = {-1, -1, -1, -1};
     int chain[4] = {-1, -1, -1, -1};
 
-    SECTION("Resolve 0->1 dependency")
+    SECTION("Resolve 0->1 Dependency")
     {
         s->PutAgent(0, 0, 0);
         s->PutAgent(1, 1, 0);
@@ -100,12 +99,12 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
         s->PutAgent(3, 9, 8);
 
         m[0] = m[1] = m[2] = bboard::Move::RIGHT;
-        bboard::FillDestPos(s, m, dest);
-        bboard::ResolveDependencies(s, dest, dependency, chain);
+        bboard::FillDestPos(s, m, des);
+        bboard::ResolveDependencies(s, des, dependency, chain);
 
         REQUIRE_ROOTS(chain, 1);
     }
-    SECTION("Resolve 0->1 and 2->3 dependency")
+    SECTION("Resolve 0->1 and 2->3 Dependency")
     {
         s->PutAgent(0, 0, 0);
         s->PutAgent(1, 1, 0);
@@ -113,12 +112,12 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
         s->PutAgent(3, 9, 8);
 
         m[0] = m[1] = m[2] = bboard::Move::RIGHT;
-        bboard::FillDestPos(s, m, dest);
-        bboard::ResolveDependencies(s, dest, dependency, chain);
+        bboard::FillDestPos(s, m, des);
+        bboard::ResolveDependencies(s, des, dependency, chain);
 
         REQUIRE_ROOTS(chain, 1, 3);
     }
-    SECTION("Resolve complete chain")
+    SECTION("Resolve Complete Chain")
     {
         s->PutAgent(0, 0, 0);
         s->PutAgent(1, 1, 0);
@@ -126,12 +125,12 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
         s->PutAgent(3, 3, 0);
 
         m[0] = m[1] = m[2] = m[3] = bboard::Move::RIGHT;
-        bboard::FillDestPos(s, m, dest);
-        bboard::ResolveDependencies(s, dest, dependency, chain);
+        bboard::FillDestPos(s, m, des);
+        bboard::ResolveDependencies(s, des, dependency, chain);
 
         REQUIRE_ROOTS(chain, 3);
     }
-    SECTION("Resolve ouroboros")
+    SECTION("Resolve Ouroboros")
     {
         s->PutAgent(0, 0, 0);
         s->PutAgent(1, 1, 0);
@@ -143,11 +142,30 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
         m[2] = bboard::Move::LEFT;
         m[3] = bboard::Move::UP;
 
-        bboard::FillDestPos(s, m, dest);
-        int rootC = bboard::ResolveDependencies(s, dest, dependency, chain);
+        bboard::FillDestPos(s, m, des);
+        int rootC = bboard::ResolveDependencies(s, des, dependency, chain);
 
         REQUIRE(chain[0] == -1);
         REQUIRE(rootC == 0);
+    }
+    SECTION("Handle Dead Agents as Roots")
+    {
+        s->PutAgent(0, 0, 0);
+        s->PutAgent(1, 1, 0);
+        s->PutAgent(2, 1, 1);
+        s->PutAgent(3, 0, 1);
+
+        m[0] = bboard::Move::RIGHT;
+        m[1] = bboard::Move::DOWN;
+        m[2] = bboard::Move::LEFT;
+        m[3] = bboard::Move::UP;
+
+        s->Kill(1);
+
+        bboard::FillDestPos(s, m, des);
+        bboard::ResolveDependencies(s, des, dependency, chain);
+
+        REQUIRE_ROOTS(chain, 0, 1);
     }
     delete s;
 }
