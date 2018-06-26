@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+#include "bboard.hpp"
+
 template <class T>
 constexpr
 std::string_view

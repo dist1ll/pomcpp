@@ -134,7 +134,41 @@ TEST_CASE("Movement Dependency Handling", "[step function]")
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
 
-    // TODO: Implement
+    SECTION("Move Chain Against Obstacle")
+    {
+        s->PutAgent(0, 0, 0);
+        s->PutAgent(1, 1, 0);
+        s->PutAgent(2, 2, 0);
+        s->PutAgent(3, 3, 0);
+
+        s->PutItem(4, 0, bboard::Item::RIGID);
+
+        m[0] = m[1] = m[2] = m[3] = bboard::Move::RIGHT;
+
+        bboard::Step(s, m);
+        REQUIRE_AGENT(s, 0, 0, 0);
+        REQUIRE_AGENT(s, 1, 1, 0);
+        REQUIRE_AGENT(s, 2, 2, 0);
+        REQUIRE_AGENT(s, 3, 3, 0);
+    }
+    SECTION("Move Ouroboros")
+    {
+        s->PutAgent(0, 0, 0);
+        s->PutAgent(1, 1, 0);
+        s->PutAgent(2, 1, 1);
+        s->PutAgent(3, 0, 1);
+
+        m[0] = bboard::Move::RIGHT;
+        m[1] = bboard::Move::DOWN;
+        m[2] = bboard::Move::LEFT;
+        m[3] = bboard::Move::UP;
+
+        bboard::Step(s, m);
+        REQUIRE_AGENT(s, 3, 0, 0);
+        REQUIRE_AGENT(s, 0, 1, 0);
+        REQUIRE_AGENT(s, 1, 1, 1);
+        REQUIRE_AGENT(s, 2, 0, 1);
+    }
 
     delete s;
 }

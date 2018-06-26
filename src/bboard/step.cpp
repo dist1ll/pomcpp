@@ -21,6 +21,8 @@ void Step(State* state, Move* moves)
     // the amount of chain roots
     int rootNumber = ResolveDependencies(state, destPos, dependency, roots);
 
+    bool ouroboros = rootNumber == 0; // ouroboros formation?
+
     int rootIdx = 0;
     int i = rootNumber == 0 ? 0 : roots[0]; // no roots -> start from 0
     // iterates 4 times but the index i jumps around the dependencies
@@ -31,6 +33,7 @@ void Step(State* state, Move* moves)
             rootIdx++;
             i = roots[rootIdx];
         }
+        std::cout << rootNumber;
         Move m = moves[i];
 
         if(state->dead[i] || m == Move::IDLE)
@@ -42,6 +45,7 @@ void Step(State* state, Move* moves)
         int y = state->agentY[i];
 
         Position desired = destPos[i];
+        int itemOnDestination = state->board[desired.y][desired.x];
 
         // check out of bounds
         if(desired.x < 0 || desired.y < 0 ||
@@ -65,9 +69,17 @@ void Step(State* state, Move* moves)
         }
 
         // execute move if no obstacle
-        if(state->board[desired.y][desired.x] == 0)
+        // or in the special case that there is an ouroboros formation,
+        // execute move even if the target position has an agent present
+        if(itemOnDestination == 0 ||
+                (ouroboros && itemOnDestination >= Item::AGENT0))
         {
-            state->board[y][x] = 0;
+            // only override the position I came from if it has not been
+            // overridden by a different agent that already took this spot
+            if(state->board[y][x] == Item::AGENT0 + i)
+            {
+                state->board[y][x] = 0;
+            }
             state->board[desired.y][desired.x] = Item::AGENT0 + i;
             state->agentX[i] = desired.x;
             state->agentY[i] = desired.y;
