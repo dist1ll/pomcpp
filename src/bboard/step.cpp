@@ -14,7 +14,7 @@ void Step(State* state, Move* moves)
 
     FillDestPos(state, moves, destPos);
 
-    FixSwitchMove(state, destPos); // fixes the switching
+    FixSwitchMove(state, destPos);
 
     int dependency[AGENT_COUNT] = {-1, -1, -1, -1};
     int roots[AGENT_COUNT] = {-1, -1, -1, -1};
@@ -33,7 +33,6 @@ void Step(State* state, Move* moves)
             rootIdx++;
             i = roots[rootIdx];
         }
-        std::cout << rootNumber;
         Move m = moves[i];
 
         if(state->dead[i] || m == Move::IDLE)

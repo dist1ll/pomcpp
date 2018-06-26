@@ -1,6 +1,7 @@
 ﻿#ifndef BBOARD_H_
 #define BBOARD_H_
 
+#include <iostream>
 #include <string>
 
 namespace bboard
@@ -75,7 +76,7 @@ struct State
      */
     void PutItem(int x, int y, Item item)
     {
-        board[x][y] = item;
+        board[y][x] = item;
     }
 
     /**
@@ -137,13 +138,18 @@ struct Position
 {
     int x;
     int y;
-
-    bool operator==(const Position& other)
-    {
-        return x == other.x && y == other.y;
-    }
 };
 
+inline bool operator==(const Position& here, const Position& other)
+{
+    return here.x == other.x && here.y == other.y;
+}
+
+inline std::ostream & operator<<(std::ostream & str, const Position& v)
+{
+    str << "(" << v.x << ", " << v.y << ")";;
+    return str;
+}
 
 /**
  * @brief Same as init state but without obstacles
