@@ -62,7 +62,7 @@ TEST_CASE("Basic Obstacle Collision", "[step function]")
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
 
-    s->PutItem(0, 1, bboard::Item::RIGID);
+    s->PutItem(1, 0, bboard::Item::RIGID);
 
     m[0] = bboard::Move::RIGHT;
     bboard::Step(s, m);
@@ -150,6 +150,29 @@ TEST_CASE("Movement Dependency Handling", "[step function]")
         REQUIRE_AGENT(s, 1, 1, 0);
         REQUIRE_AGENT(s, 2, 2, 0);
         REQUIRE_AGENT(s, 3, 3, 0);
+    }
+    SECTION("Two On One")
+    {
+        /* For clarity:
+         * 0 -> 2 <- 1
+         *      |
+         *      3
+         */
+
+        s->PutAgent(0, 0, 0);
+        s->PutAgent(1, 2, 0);
+        s->PutAgent(2, 1, 0);
+        s->PutAgent(3, 1, 1);
+
+        m[0] = bboard::Move::RIGHT;
+        m[1] = bboard::Move::LEFT;
+        m[2] = m[3] = bboard::Move::DOWN;
+
+        bboard::Step(s, m);
+        REQUIRE_AGENT(s, 0, 0, 0);
+        REQUIRE_AGENT(s, 1, 2, 0);
+        REQUIRE_AGENT(s, 2, 1, 1);
+        REQUIRE_AGENT(s, 3, 1, 2);
     }
     SECTION("Move Ouroboros")
     {

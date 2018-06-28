@@ -11,6 +11,9 @@ namespace bboard
 const int AGENT_COUNT = 4;
 const int BOARD_SIZE = 11;
 
+const int BOMB_LIFETIME = 10;
+const int BOMB_DEFAULT_STRENGTH = 1;
+
 /**
  * Holds all moves an agent can make on a board. An array
  * of 4 moves are necessary to correctly calculate a full
@@ -25,6 +28,15 @@ enum class Move
     LEFT,
     RIGHT,
     BOMB
+};
+
+enum class Direction
+{
+    IDLE = 0,
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
 };
 
 enum Item
@@ -70,6 +82,11 @@ struct State
      * @brief dead dead[i] = Agent i is dead
      */
     bool dead[AGENT_COUNT];
+
+    /**
+     * @brief canKick Wether or not the agent can kick bombs
+     */
+    bool canKick[AGENT_COUNT];
 
     /**
      * @brief PutItem Places an item on the board
@@ -139,6 +156,21 @@ struct Position
     int x;
     int y;
 };
+
+
+/**
+ * @brief The Bomb struct hold all information about a specific
+ * bomb on the board
+ */
+struct Bomb
+{
+    Position position;
+    Direction velocity = Direction::IDLE; //if the bomb is moving, which way?
+
+    int timeLeft = BOMB_LIFETIME;
+    int strength = BOMB_DEFAULT_STRENGTH;
+};
+
 
 inline bool operator==(const Position& here, const Position& other)
 {
