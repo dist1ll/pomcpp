@@ -33,7 +33,7 @@ void FillDestPos(State* s, Move m[AGENT_COUNT], Position p[AGENT_COUNT])
 {
     for(int i = 0; i < AGENT_COUNT; i++)
     {
-        p[i] = DesiredPosition(s->agentX[i], s->agentY[i], m[i]);
+        p[i] = DesiredPosition(s->agents[i].x, s->agents[i].y, m[i]);
     }
 }
 
@@ -43,13 +43,13 @@ void FixSwitchMove(State* s, Position d[AGENT_COUNT])
     {
         for(int j = i; j < AGENT_COUNT; j++)
         {
-            if(d[i].x == s->agentX[j] && d[i].y == s->agentY[j] &&
-                    d[j].x == s->agentX[i] && d[j].y == s->agentY[i])
+            if(d[i].x == s->agents[j].x && d[i].y == s->agents[j].y &&
+                    d[j].x == s->agents[i].x && d[j].y == s->agents[i].y)
             {
-                d[i].x = s->agentX[i];
-                d[i].y = s->agentY[i];
-                d[j].x = s->agentX[j];
-                d[j].y = s->agentY[j];
+                d[i].x = s->agents[i].x;
+                d[i].y = s->agents[i].y;
+                d[j].x = s->agents[j].x;
+                d[j].y = s->agents[j].y;
             }
         }
     }
@@ -62,7 +62,7 @@ int ResolveDependencies(State* s, Position des[AGENT_COUNT],
     for(int i = 0; i < AGENT_COUNT; i++)
     {
         // dead agents are handled as roots
-        if(s->dead[i])
+        if(s->agents[i].dead)
         {
             chain[rootCount] = i;
             rootCount++;
@@ -72,9 +72,9 @@ int ResolveDependencies(State* s, Position des[AGENT_COUNT],
         bool isChainRoot = true;
         for(int j = 0; j < AGENT_COUNT; j++)
         {
-            if(i == j || s->dead[j]) continue;
+            if(i == j || s->agents[j].dead) continue;
 
-            if(des[i].x == s->agentX[j] && des[i].y == s->agentY[j])
+            if(des[i].x == s->agents[j].x && des[i].y == s->agents[j].y)
             {
                 dependency[j] = i;
                 isChainRoot = false;

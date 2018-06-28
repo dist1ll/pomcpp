@@ -58,6 +58,56 @@ enum Item
 };
 
 /**
+ * @brief Represents any position on a board of a state
+ */
+struct Position
+{
+    int x;
+    int y;
+};
+
+inline bool operator==(const Position& here, const Position& other)
+{
+    return here.x == other.x && here.y == other.y;
+}
+
+inline std::ostream & operator<<(std::ostream & str, const Position& v)
+{
+    str << "(" << v.x << ", " << v.y << ")";;
+    return str;
+}
+
+/**
+ * @brief The AgentInfo struct holds information ABOUT
+ * an agent.
+ *
+ * - Why not put it in the Agent struct?
+ * Because the Agent struct is a virtual base that implements
+ * the behaviour of an agent.
+ * We might want to hotswap agent behaviours during
+ * the game, without having to worry about copying all variables.
+ *
+ * The act-method is not relevant to the game's mechanics, so
+ * it's excluded for now
+ *
+ * - Why not use an array of vars in the State struct instead?
+ * That was the first approach, however fogging the state is a lot
+ * easier if all (possibly hidden) data is bundled. Now if someone
+ * is out of sight we simply don't expose their AgentInfo to the agent.
+ */
+struct AgentInfo
+{
+    int x;
+    int y;
+    bool dead;
+
+    // power-ups
+    bool canKick;
+    int bombCount;
+    int bombStrength;
+};
+
+/**
  * Represents all information associated with the game board.
  * Includes (in)destructible obstacles, bombs, player positions,
  * etc (as defined by the Pommerman source)
@@ -67,6 +117,11 @@ enum Item
 struct State
 {
     int board[11][11];
+
+    /**
+     * @brief agents Array of all agents and their properties
+     */
+    AgentInfo agents[AGENT_COUNT];
 
     /**
      * @brief agentX The x-positions of all 4 agents
@@ -89,6 +144,12 @@ struct State
     bool canKick[AGENT_COUNT];
 
     /**
+     * @brief bombStrength Holds the bomb strength of all
+     * agent's bombs.
+     */
+    bool bombStrength[AGENT_COUNT];
+
+    /**
      * @brief PutItem Places an item on the board
      */
     void PutItem(int x, int y, Item item)
@@ -101,7 +162,7 @@ struct State
      */
     void Kill(int agentID)
     {
-        dead[agentID] = true;
+        agents[agentID].dead = true;
     }
 
     /**
@@ -130,7 +191,8 @@ struct State
 };
 
 /**
- * @brief The Agent struct defines a behaviour
+ * @brief The Agent struct defines a behaviour. For a given
+ * state it will return a Move.
  */
 struct Agent
 {
@@ -148,14 +210,6 @@ struct Agent
     virtual Move act(State* state) = 0;
 };
 
-/**
- * @brief Represents any position on a board of a state
- */
-struct Position
-{
-    int x;
-    int y;
-};
 
 
 /**
@@ -170,18 +224,6 @@ struct Bomb
     int timeLeft = BOMB_LIFETIME;
     int strength = BOMB_DEFAULT_STRENGTH;
 };
-
-
-inline bool operator==(const Position& here, const Position& other)
-{
-    return here.x == other.x && here.y == other.y;
-}
-
-inline std::ostream & operator<<(std::ostream & str, const Position& v)
-{
-    str << "(" << v.x << ", " << v.y << ")";;
-    return str;
-}
 
 /**
  * @brief Same as init state but without obstacles

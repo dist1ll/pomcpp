@@ -10,16 +10,16 @@
 void REQUIRE_AGENT(bboard::State* state, int agent, int x, int y)
 {
     int o = bboard::Item::AGENT0 + agent;
-    REQUIRE(state->agentX[agent] == x);
-    REQUIRE(state->agentY[agent] == y);
+    REQUIRE(state->agents[agent].x == x);
+    REQUIRE(state->agents[agent].y == y);
     REQUIRE(state->board[y][x] == o);
 }
 
 bool IsAgentPos(bboard::State* state, int agent, int x, int y)
 {
     int o = bboard::Item::AGENT0 + agent;
-    return  state->agentX[agent] == x &&
-            state->agentY[agent] == y && state->board[y][x] == o;
+    return  state->agents[agent].x == x &&
+            state->agents[agent].y == y && state->board[y][x] == o;
 }
 
 void PlaceBrick(bboard::State* state, int x, int y)

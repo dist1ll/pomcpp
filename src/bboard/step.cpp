@@ -35,13 +35,13 @@ void Step(State* state, Move* moves)
         }
         Move m = moves[i];
 
-        if(state->dead[i] || m == Move::IDLE)
+        if(state->agents[i].dead || m == Move::IDLE)
         {
             continue;
         }
 
-        int x = state->agentX[i];
-        int y = state->agentY[i];
+        int x = state->agents[i].x;
+        int y = state->agents[i].y;
 
         Position desired = destPos[i];
         int itemOnDestination = state->board[desired.y][desired.x];
@@ -57,7 +57,7 @@ void Step(State* state, Move* moves)
         // check for destination position collision
         for(int j = 0; j < AGENT_COUNT; j++)
         {
-            if(j == i || state->dead[j]) continue;
+            if(j == i || state->agents[j].dead) continue;
 
             if(destPos[j] == desired)
             {
@@ -80,8 +80,8 @@ void Step(State* state, Move* moves)
                 state->board[y][x] = 0;
             }
             state->board[desired.y][desired.x] = Item::AGENT0 + i;
-            state->agentX[i] = desired.x;
-            state->agentY[i] = desired.y;
+            state->agents[i].x = desired.x;
+            state->agents[i].y = desired.y;
         }
 
 end_this_agent_move:
