@@ -11,8 +11,6 @@ void State::PutAgent(int agentID, int x, int y)
 {
     int b = Item::AGENT0 + agentID;
     board[y][x] = b;
-    agentX[agentID] = x;
-    agentY[agentID] = y;
 
     agents[agentID].x = x;
     agents[agentID].y = y;
@@ -26,10 +24,6 @@ void State::PutAgentsInCorners(int a0, int a1, int a2, int a3)
     board[0][BOARD_SIZE - 1] = b + a1;
     board[BOARD_SIZE - 1][BOARD_SIZE - 1] = b + a2;
     board[BOARD_SIZE - 1][0] = b + a3;
-
-    // note: the rest of the vals can remain 0
-    agentX[a1] = agentX[a2] = BOARD_SIZE - 1;
-    agentY[a2] = agentY[a3] = BOARD_SIZE - 1;
 
     agents[a1].x = agents[a2].x = BOARD_SIZE - 1;
     agents[a2].y = agents[a3].y = BOARD_SIZE - 1;

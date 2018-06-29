@@ -76,8 +76,8 @@ TEST_CASE("Fix Switch Position", "[step utilities]")
     bboard::FixSwitchMove(s, des);
 
     REQUIRE_POS(des[0], 1, 0);
-    REQUIRE_POS(des[1], s->agentX[1], s->agentY[1]);
-    REQUIRE_POS(des[2], s->agentX[2], s->agentY[2]);
+    REQUIRE_POS(des[1], s->agents[1].x, s->agents[1].y);
+    REQUIRE_POS(des[2], s->agents[2].x, s->agents[2].y);
     REQUIRE_POS(des[3], 2, 0);
     delete s;
 }

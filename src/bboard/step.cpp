@@ -67,9 +67,29 @@ void Step(State* state, Move* moves)
             }
         }
 
-        // execute move if no obstacle
-        // or in the special case that there is an ouroboros formation,
-        // execute move even if the target position has an agent present
+        //
+        // All checks passed - you can try a move now
+        //
+
+
+        // Collect those sweet power-ups
+        if(itemOnDestination == Item::EXTRABOMB)
+        {
+            state->agents[i].maxBombCount++;
+        }
+        else if(itemOnDestination == Item::INCRRANGE)
+        {
+            state->agents[i].bombStrength++;
+        }
+        else if(itemOnDestination == Item::KICK)
+        {
+            state->agents[i].canKick = true;
+        }
+
+
+        // execute move if the destination is free
+        // (in the rare case of ouroboros, make the move even
+        // if an agent occupies the spot)
         if(itemOnDestination == 0 ||
                 (ouroboros && itemOnDestination >= Item::AGENT0))
         {

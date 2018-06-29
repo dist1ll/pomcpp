@@ -99,12 +99,14 @@ struct AgentInfo
 {
     int x;
     int y;
-    bool dead;
 
     // power-ups
-    bool canKick;
-    int bombCount;
-    int bombStrength;
+    int bombCount = 0;
+    int maxBombCount = 1;
+    int bombStrength = BOMB_DEFAULT_STRENGTH;
+
+    bool canKick = false;
+    bool dead = false;
 };
 
 /**
@@ -122,32 +124,6 @@ struct State
      * @brief agents Array of all agents and their properties
      */
     AgentInfo agents[AGENT_COUNT];
-
-    /**
-     * @brief agentX The x-positions of all 4 agents
-     */
-    int agentX[AGENT_COUNT];
-
-    /**
-     * @brief agentY The y-positions of all 4 agents
-     */
-    int agentY[AGENT_COUNT];
-
-    /**
-     * @brief dead dead[i] = Agent i is dead
-     */
-    bool dead[AGENT_COUNT];
-
-    /**
-     * @brief canKick Wether or not the agent can kick bombs
-     */
-    bool canKick[AGENT_COUNT];
-
-    /**
-     * @brief bombStrength Holds the bomb strength of all
-     * agent's bombs.
-     */
-    bool bombStrength[AGENT_COUNT];
 
     /**
      * @brief PutItem Places an item on the board
