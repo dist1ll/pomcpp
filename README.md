@@ -2,6 +2,10 @@
 
 This repository is an open-source implementation of a Multi-Agent Reinforcement Learning Agent that will participate in the NIPS 2018 [Pommerman challenge](https://www.pommerman.com/). For a full list of availble competitions this year at the NIPS conference, see the [competition track](https://nips.cc/Conferences/2018/CompetitionTrack).
 
+This is how the C++ backend currently looks like: 
+
+![gif of the game](docs/gifs/06_29.gif)
+
 ## Prerequisites
 
 To compile and run this project from source you will require
