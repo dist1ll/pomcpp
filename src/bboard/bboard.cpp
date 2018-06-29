@@ -3,6 +3,7 @@
 #include <stack>
 
 #include "bboard.hpp"
+#include "colors.hpp"
 
 namespace bboard
 {
@@ -72,7 +73,21 @@ void PrintState(State* state)
             }
         }
     }
-    std::cout << result;
+    std::cout << result << std::endl << std::endl;
+
+    //Agent info
+    for(int _ = 0; _ < AGENT_COUNT / 2; _++)
+    {
+        int i = 2 * _;
+        std::printf("Agent %d: Bombs: %d     Agent %d: Bombs: %d\n"
+                    "         Range: %d              Range: %d\n"
+                    "         Kick:  %d              Kick:  %d\n",
+                    i,   state->agents[i].maxBombCount,
+                    i+1, state->agents[i+1].maxBombCount,
+
+                    state->agents[i].bombStrength, state->agents[i+1].bombStrength,
+                    state->agents[i].canKick, state->agents[i+1].canKick);
+    }
 }
 
 std::string PrintItem(int item)
@@ -84,11 +99,17 @@ std::string PrintItem(int item)
         case Item::RIGID:
             return "[X]";
         case Item::WOOD:
-            return "[\u25A0]";
+            return FBLU("[\u25A0]");
         case Item::BOMB:
-            return " \u2B24 ";
+            return " \u25CF ";
         case Item::FLAMES:
-            return " \u2B24 ";
+            return " \U0001f525 ";
+        case Item::EXTRABOMB:
+            return " \u24B7 ";
+        case Item::INCRRANGE:
+            return " \u24C7 ";
+        case Item::KICK:
+            return " \u24C0 ";
     }
     //agent number
     if(item >= Item::AGENT0)
@@ -97,7 +118,7 @@ std::string PrintItem(int item)
     }
     else
     {
-        return std::to_string(item);
+        return "[?]";
     }
 }
 

@@ -32,6 +32,9 @@ int main()
 {
     // Init
     bboard::State* init = bboard::InitState(0,1,2,3);
+    init->PutItem(1, 4, bboard::Item::INCRRANGE);
+    init->PutItem(6, 4, bboard::Item::KICK);
+    init->PutItem(7, 6, bboard::Item::EXTRABOMB);
     Run(init);
     delete init;
 }

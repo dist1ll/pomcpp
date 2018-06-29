@@ -76,14 +76,17 @@ void Step(State* state, Move* moves)
         if(itemOnDestination == Item::EXTRABOMB)
         {
             state->agents[i].maxBombCount++;
+            itemOnDestination = 0; // consume the power-up
         }
         else if(itemOnDestination == Item::INCRRANGE)
         {
             state->agents[i].bombStrength++;
+            itemOnDestination = 0; // consume the power-up
         }
         else if(itemOnDestination == Item::KICK)
         {
             state->agents[i].canKick = true;
+            itemOnDestination = 0; // consume the power-up
         }
 
 

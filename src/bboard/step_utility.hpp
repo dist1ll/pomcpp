@@ -32,6 +32,10 @@ void FillDestPos(State* s, Move m[AGENT_COUNT], Position p[AGENT_COUNT]);
  */
 void FixSwitchMove(State* s, Position desiredPositions[AGENT_COUNT]);
 
+void FixDestinationCollision(State* s, Position desiredPositions[AGENT_COUNT])
+{
+
+}
 /**
  * TODO: Fill doc for dependency resolving
  *

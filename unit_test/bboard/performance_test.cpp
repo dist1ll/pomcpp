@@ -13,14 +13,12 @@ template<typename F, typename... Args>
 double timeMethod(int times, F func, Args&&... args)
 {
     std::chrono::duration<double, std::milli> total;
+    auto t1 = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < times; i++)
     {
-        auto t1 = std::chrono::high_resolution_clock::now();
         func(std::forward<Args>(args)...);
-        auto diff = std::chrono::high_resolution_clock::now() - t1;
-        total += diff;
     }
-
+    total = std::chrono::high_resolution_clock::now() - t1;
     return total.count();
 }
 
@@ -42,8 +40,6 @@ TEST_CASE("Step Function", "[performance]")
     int times = 100000;
     double t = timeMethod(times, Proxy, s, m, &a);
 
-
-    std::cout.precision(2);
     std::cout << std::endl
               << "bboard::Step(s, m): "
               << int(std::floor(times/(t/100.0)))

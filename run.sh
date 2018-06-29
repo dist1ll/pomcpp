@@ -1,3 +1,3 @@
 #! /bin/sh
-make main
+make -s main
 (cd bin/ && ./exec)
