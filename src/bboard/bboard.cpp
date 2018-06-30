@@ -1,4 +1,6 @@
 #include <iostream>
+#include <chrono>
+#include <thread>
 #include <random>
 #include <stack>
 
@@ -7,6 +9,18 @@
 
 namespace bboard
 {
+
+void State::PlantBomb(int id, int x, int y)
+{
+    Bomb b = bombQueue.NextPos();
+    b.position.x = x;
+    b.position.y = y;
+    b.strength = agents[id].bombStrength;
+    b.velocity = Direction::IDLE;
+    b.timeLeft = BOMB_LIFETIME;
+
+    bombQueue.bombsOnBoard++;
+}
 
 void State::PutAgent(int agentID, int x, int y)
 {
@@ -55,6 +69,26 @@ State* InitState(int a0, int a1, int a2, int a3)
 
     result->PutAgentsInCorners(a0, a1, a2, a3);
     return result;
+}
+
+
+void StartGame(State* state, Agent* agents[AGENT_COUNT], int timeSteps)
+{
+    Move moves[4];
+
+    for(int i = 0; i < timeSteps; i++)
+    {
+        std::cout << "\033c"; // clear console on linux
+        for(int j = 0; j < AGENT_COUNT; j++)
+        {
+            moves[j] = agents[j]->act(state);
+        }
+
+        Step(state, moves);
+        PrintState(state);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(80));
+    }
 }
 
 void PrintState(State* state)

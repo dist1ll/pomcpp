@@ -195,3 +195,8 @@ TEST_CASE("Movement Dependency Handling", "[step function]")
 
     delete s;
 }
+
+TEST_CASE("Bomb Mechanics", "[step function]")
+{
+
+}

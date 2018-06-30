@@ -14,6 +14,9 @@ const int BOARD_SIZE = 11;
 const int BOMB_LIFETIME = 10;
 const int BOMB_DEFAULT_STRENGTH = 1;
 
+const int MAX_BOMBS_PER_AGENT = 5;
+const int MAX_BOMBS = AGENT_COUNT * MAX_BOMBS_PER_AGENT;
+
 /**
  * Holds all moves an agent can make on a board. An array
  * of 4 moves are necessary to correctly calculate a full
@@ -110,6 +113,60 @@ struct AgentInfo
 };
 
 /**
+ * @brief The Bomb struct hold all information about a specific
+ * bomb on the board
+ */
+struct Bomb
+{
+    Position position;
+    Direction velocity = Direction::IDLE; //if the bomb is moving, which way?
+
+    int timeLeft = BOMB_LIFETIME;
+    int strength = BOMB_DEFAULT_STRENGTH;
+};
+
+/**
+ * @brief The BombQueue struct holds bombs in a fixed-size queue.
+ * You can insert bombs and remove the front-most bomb.
+ *
+ * You can also iterate over all bombs with the subscript operator
+ */
+struct BombQueue
+{
+    Bomb _allbmbs[MAX_BOMBS];
+
+    int bombsOnBoard = 0;
+    int startingIndex = 0;
+
+    /**
+     * @brief PopBomb Removes the top bomb from the queue
+     * (or: bombQueue[0])
+     */
+    inline void PopBomb()
+    {
+        startingIndex = (startingIndex + 1) % (MAX_BOMBS);
+    }
+    /**
+     * @brief PollNext Polls the next free queue spot
+     */
+    inline Bomb& NextPos()
+    {
+        return _allbmbs[(startingIndex + bombsOnBoard) % MAX_BOMBS];
+    }
+
+    /**
+     * @brief operator [] Circular buffer on all bombs
+     * @return The i-th bomb if the index is in [0, n]
+     * where n = bombsOnBoard, sorted w.r.t. their lifetime
+     */
+    Bomb& operator[] (const int index);
+};
+
+inline Bomb& BombQueue::operator[] (const int index)
+{
+    return _allbmbs[(startingIndex + index) % MAX_BOMBS];
+}
+/**
  * Represents all information associated with the game board.
  * Includes (in)destructible obstacles, bombs, player positions,
  * etc (as defined by the Pommerman source)
@@ -124,6 +181,27 @@ struct State
      * @brief agents Array of all agents and their properties
      */
     AgentInfo agents[AGENT_COUNT];
+
+    /**
+     * @brief bombs Holds all bombs on this board
+     */
+    BombQueue bombQueue;
+
+    /**
+     * @brief PlantBomb Plants a bomb at the given position
+     * @param id Agent that plants the bomb
+     * @param x X position of the bomb
+     * @param y Y position of the bomb
+     */
+    void PlantBomb(int id, int x, int y);
+
+    /**
+     * @brief Proxy for BombQueue::PopBomb()
+     */
+    inline void PopBomb()
+    {
+        bombQueue.PopBomb();
+    }
 
     /**
      * @brief PutItem Places an item on the board
@@ -186,21 +264,6 @@ struct Agent
     virtual Move act(State* state) = 0;
 };
 
-
-
-/**
- * @brief The Bomb struct hold all information about a specific
- * bomb on the board
- */
-struct Bomb
-{
-    Position position;
-    Direction velocity = Direction::IDLE; //if the bomb is moving, which way?
-
-    int timeLeft = BOMB_LIFETIME;
-    int strength = BOMB_DEFAULT_STRENGTH;
-};
-
 /**
  * @brief Same as init state but without obstacles
  * @see bboard::InitState
@@ -222,6 +285,15 @@ State* InitState(int a0, int a1, int a2, int a3);
  * @param moves Array of 4 moves
  */
 void Step(State* state, Move* moves);
+
+/**
+ * @brief StartGame starts a game and prints in the terminal output
+ * (blocking)
+ * @param state The initial state of the game
+ * @param agents Array of agents that participate in this game
+ * @param timeSteps maximum of time steps after which the game ends
+ */
+void StartGame(State* state, Agent* agents[AGENT_COUNT], int timeSteps);
 
 /**
  * @brief Prints the state into the standard output stream.
