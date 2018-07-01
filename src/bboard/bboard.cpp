@@ -113,15 +113,23 @@ void PrintState(State* state)
     for(int _ = 0; _ < AGENT_COUNT / 2; _++)
     {
         int i = 2 * _;
-        std::printf("Agent %d: Bombs: %d     Agent %d: Bombs: %d\n"
-                    "         Range: %d              Range: %d\n"
-                    "         Kick:  %d              Kick:  %d\n",
-                    i,   state->agents[i].maxBombCount,
-                    i+1, state->agents[i+1].maxBombCount,
-
-                    state->agents[i].bombStrength, state->agents[i+1].bombStrength,
-                    state->agents[i].canKick, state->agents[i+1].canKick);
+        std::printf("A%d: %s %d  %s %d  %s %d     \nA%d: %s %d  %s %d  %s %d\n",
+                    i,
+                    PrintItem(Item::EXTRABOMB).c_str(),state->agents[i].maxBombCount,
+                    PrintItem(Item::INCRRANGE).c_str(),state->agents[i].bombStrength,
+                    PrintItem(Item::KICK).c_str(),state->agents[i].canKick,
+                    i+1,
+                    PrintItem(Item::EXTRABOMB).c_str(),state->agents[i+1].maxBombCount,
+                    PrintItem(Item::INCRRANGE).c_str(),state->agents[i+1].bombStrength,
+                    PrintItem(Item::KICK).c_str(),state->agents[i+1].canKick);
     }
+    std::cout << "\nBombQueue\n[";
+    for(int i = 0; i < MAX_BOMBS; i++)
+    {
+        std::cout << state->bombQueue[i].timeLeft << " ";
+    }
+    std::cout << "]";
+    //?
 }
 
 std::string PrintItem(int item)
