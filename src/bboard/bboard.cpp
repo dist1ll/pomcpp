@@ -51,17 +51,8 @@ void State::PutAgentsInCorners(int a0, int a1, int a2, int a3)
     agents[a2].y = agents[a3].y = BOARD_SIZE - 1;
 }
 
-State* InitEmpty(int a0, int a1, int a2, int a3)
+void InitState(State* result, int a0, int a1, int a2, int a3)
 {
-    State* result = new State();
-    result->PutAgentsInCorners(a0, a1, a2, a3);
-    return result;
-}
-
-State* InitState(int a0, int a1, int a2, int a3)
-{
-    State* result = new State();
-
     // Randomly put obstacles
     std::mt19937_64 rng(0x1337);
     std::uniform_int_distribution<int> intDist(0,6);
@@ -75,7 +66,6 @@ State* InitState(int a0, int a1, int a2, int a3)
     }
 
     result->PutAgentsInCorners(a0, a1, a2, a3);
-    return result;
 }
 
 

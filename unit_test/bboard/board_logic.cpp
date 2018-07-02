@@ -29,7 +29,10 @@ void PlaceBrick(bboard::State* state, int x, int y)
 
 TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
 {
-    bboard::State* s = bboard::InitEmpty(0, 1, 2, 3);
+    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
+    bboard::State* s = sx.get();
+    s->PutAgentsInCorners(0, 1, 2, 3);
+
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
 
@@ -52,12 +55,13 @@ TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
     m[3] = bboard::Move::UP;
     bboard::Step(s, m);
     REQUIRE_AGENT(s, 3, 0, 9);
-    delete s;
 }
 
 TEST_CASE("Basic Obstacle Collision", "[step function]")
 {
-    bboard::State* s = bboard::InitEmpty(0, 1, 2, 3);
+    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
+    bboard::State* s = sx.get();
+    s->PutAgentsInCorners(0, 1, 2, 3);
 
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
@@ -71,13 +75,12 @@ TEST_CASE("Basic Obstacle Collision", "[step function]")
     m[0] = bboard::Move::DOWN;
     bboard::Step(s, m);
     REQUIRE_AGENT(s, 0, 0, 1);
-
-    delete s;
 }
 
 TEST_CASE("Destination Collision", "[step function]")
 {
-    bboard::State* s = new bboard::State();
+    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
+    bboard::State* s = sx.get();
 
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
@@ -124,12 +127,12 @@ TEST_CASE("Destination Collision", "[step function]")
         REQUIRE_AGENT(s, 2, 1, 0);
         REQUIRE_AGENT(s, 3, 1, 2);
     }
-    delete s;
 }
 
 TEST_CASE("Movement Dependency Handling", "[step function]")
 {
-    bboard::State* s = new bboard::State();
+    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
+    bboard::State* s = sx.get();
 
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
@@ -192,8 +195,6 @@ TEST_CASE("Movement Dependency Handling", "[step function]")
         REQUIRE_AGENT(s, 1, 1, 1);
         REQUIRE_AGENT(s, 2, 0, 1);
     }
-
-    delete s;
 }
 
 TEST_CASE("Bomb Mechanics", "[step function]")

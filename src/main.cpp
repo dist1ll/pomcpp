@@ -8,7 +8,9 @@
 int main()
 {
     // Init
-    bboard::State* init = bboard::InitState(0,1,2,3);
+    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
+    bboard::State* init = sx.get();
+    bboard::InitState(init, 0, 1, 2, 3);
 
     init->PutItem(1, 4, bboard::Item::INCRRANGE);
     init->PutItem(6, 4, bboard::Item::KICK);
@@ -17,7 +19,6 @@ int main()
     agents::RandomAgent r;
     bboard::Agent* agents[4] = {&r, &r, &r, &r};
     bboard::StartGame(init, agents, 500);
-    delete init;
 }
 
 

@@ -25,6 +25,7 @@ void Step(State* state, Move* moves)
 
     int rootIdx = 0;
     int i = rootNumber == 0 ? 0 : roots[0]; // no roots -> start from 0
+
     // iterates 4 times but the index i jumps around the dependencies
     for(int _ = 0; _ < AGENT_COUNT; _++, i = dependency[i])
     {
@@ -41,13 +42,14 @@ void Step(State* state, Move* moves)
         }
         else if(m == Move::BOMB)
         {
-            state->PlantBomb(i, state->agents[i].x, state->agents[i].y);
+            //state->PlantBomb(i, state->agents[i].x, state->agents[i].y);
         }
         int x = state->agents[i].x;
         int y = state->agents[i].y;
 
         Position desired = destPos[i];
         int itemOnDestination = state->board[desired.y][desired.x];
+
 
         // check out of bounds
         if(desired.x < 0 || desired.y < 0 ||

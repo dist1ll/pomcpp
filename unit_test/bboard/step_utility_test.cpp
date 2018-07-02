@@ -37,7 +37,9 @@ void REQUIRE_POS(bboard::Position p, int x, int y)
 
 TEST_CASE("Destination position filling", "[step utilities]")
 {
-    bboard::State* s = new bboard::State();
+    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
+    bboard::State* s = sx.get();
+
     bboard::Move m[4] =
     {
         bboard::Move::DOWN, bboard::Move::LEFT,
@@ -56,13 +58,13 @@ TEST_CASE("Destination position filling", "[step utilities]")
     REQUIRE_POS(destPos, 1, 0, 0);
     REQUIRE_POS(destPos, 2, 3, 0);
     REQUIRE_POS(destPos, 3, 3, -1);
-
-    delete s;
 }
 
 TEST_CASE("Fix Switch Position", "[step utilities]")
 {
-    bboard::State* s = new bboard::State();
+    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
+    bboard::State* s = sx.get();
+
     bboard::Position des[4];
     bboard::Move r = bboard::Move::RIGHT, l = bboard::Move::LEFT;
     bboard::Move m[4] = {r, r, l, l};
@@ -79,12 +81,13 @@ TEST_CASE("Fix Switch Position", "[step utilities]")
     REQUIRE_POS(des[1], s->agents[1].x, s->agents[1].y);
     REQUIRE_POS(des[2], s->agents[2].x, s->agents[2].y);
     REQUIRE_POS(des[3], 2, 0);
-    delete s;
 }
 
 TEST_CASE("Dependency Resolving", "[step utilities]")
 {
-    bboard::State* s = new bboard::State();
+    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
+    bboard::State* s = sx.get();
+
     bboard::Move idle = bboard::Move::IDLE;
     bboard::Move m[4] = {idle, idle, idle, idle};
     bboard::Position des[4];
@@ -167,5 +170,4 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
 
         REQUIRE_ROOTS(chain, 0, 1);
     }
-    delete s;
 }

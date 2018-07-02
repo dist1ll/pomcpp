@@ -266,19 +266,14 @@ struct Agent
 };
 
 /**
- * @brief Same as init state but without obstacles
- * @see bboard::InitState
- */
-State* InitEmpty(int a0, int a1, int a2, int a3);
-
-/**
  * @brief InitState Returns an meaningfully initialized state
+ * @param state State
  * @param a0 Agent no. that should be at top left
  * @param a1 Agent no. that should be top right
  * @param a2 Agent no. that should be bottom right
  * @param a3 Agent no. that should be bottom left
  */
-State* InitState(int a0, int a1, int a2, int a3);
+void InitState(State* state, int a0, int a1, int a2, int a3);
 
 /**
  * @brief Applies given moves to the given board state.

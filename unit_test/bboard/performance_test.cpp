@@ -32,13 +32,15 @@ void Proxy(bboard::State* s, bboard::Move* m, bboard::Agent* a)
 }
 TEST_CASE("Step Function", "[performance]")
 {
-    bboard::State* s = bboard::InitState(0,1,2,3);
+    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
+    sx.get()->PutAgentsInCorners(0, 1, 2, 3);
+
     agents::RandomAgent a;
     bboard::Move r = bboard::Move::RIGHT;
     bboard::Move m[4] = {r, r, r, r};
 
     int times = 100000;
-    double t = timeMethod(times, Proxy, s, m, &a);
+    double t = timeMethod(times, Proxy, sx.get(), m, &a);
 
     std::cout << std::endl
               << "bboard::Step(s, m): "
