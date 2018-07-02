@@ -56,6 +56,24 @@ void PrintDependency(int dependency[AGENT_COUNT]);
  */
 void PrintDependencyChain(int dependency[AGENT_COUNT], int chain[AGENT_COUNT]);
 
+/**
+ * @brief HasDPCollision Checks if the given agent has a destination
+ * position collision with another agent
+ * @param The agent that's checked for collisions
+ * @return True if there is at least one collision
+ */
+bool HasDPCollision(const State& state, Position dp[AGENT_COUNT], int agentID);
+
+/**
+ * @brief IsOutOfBounds Checks wether a given position is out of bounds
+ * @param pos
+ * @return
+ */
+inline bool IsOutOfBounds(const Position& pos)
+{
+    return pos.x < 0 || pos.y < 0 || pos.x >= BOARD_SIZE || pos.y >= BOARD_SIZE;
+}
+
 }
 
 #endif // STEP_UTILITY_H

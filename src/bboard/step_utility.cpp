@@ -90,6 +90,21 @@ int ResolveDependencies(State* s, Position des[AGENT_COUNT],
     return rootCount;
 }
 
+bool HasDPCollision(const State& state, Position dp[AGENT_COUNT], int agentID)
+{
+    for(int i = 0; i < AGENT_COUNT; i++)
+    {
+        if(agentID == i || state.agents[i].dead) continue;
+        if(dp[agentID] == dp[i])
+        {
+            // a destination position conflict will never
+            // result in a valid move
+            return true;
+        }
+    }
+    return false;
+}
+
 void PrintDependency(int dependency[AGENT_COUNT])
 {
     for(int i = 0; i < AGENT_COUNT; i++)

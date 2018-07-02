@@ -242,5 +242,31 @@ TEST_CASE("Bomb Mechanics", "[step function]")
         bboard::Step(s.get(), m);
         REQUIRE_AGENT(s.get(), 3, 4, 0);
     }
+    SECTION("Bomb Ouroboros Block")
+    {
+        s->PutAgent(0, 0, 0);
+        s->PutAgent(1, 1, 0);
+        s->PutAgent(2, 1, 1);
+        s->PutAgent(3, 0, 1);
+
+        m[0] = m[1] = m[2] = m[3] = bboard::Move::BOMB;
+        bboard::Step(s.get(), m);
+
+        m[0] = bboard::Move::RIGHT;
+        m[1] = bboard::Move::DOWN;
+        m[2] = bboard::Move::LEFT;
+        m[3] = bboard::Move::UP;
+        bboard::Step(s.get(), m);
+
+        //everyone planted bombs, you can't move
+        REQUIRE_AGENT(s.get(), 0, 0, 0);
+        REQUIRE_AGENT(s.get(), 1, 1, 0);
+        REQUIRE_AGENT(s.get(), 2, 1, 1);
+        REQUIRE_AGENT(s.get(), 3, 0, 1);
+    }
+}
+
+TEST_CASE("Bomb Explosion", "[step function]")
+{
 
 }

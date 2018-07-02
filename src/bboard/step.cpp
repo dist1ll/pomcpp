@@ -9,19 +9,45 @@ namespace bboard
 
 void Step(State* state, Move* moves)
 {
+    ///////////////////////
+    // Flames, Explosion //
+    ///////////////////////
+
+    // tick flames
+    // <--------->
+
+    //tick bombs
+    for(int i = 0; i < state->bombQueue.bombsOnBoard; i++)
+    {
+        state->bombQueue[i].timeLeft--;
+    }
+
+    //explode timed-out bombs
+    for(int i = 0; i < state->bombQueue.bombsOnBoard; i++)
+    {
+        if(state->bombQueue[0].timeLeft == 0)
+        {
+            state->PopBomb();
+            //spawn flames
+            // <--------->
+        }
+
+    }
+
+    ///////////////////////
+    //  Player Movement  //
+    ///////////////////////
 
     Position destPos[AGENT_COUNT];
-
     FillDestPos(state, moves, destPos);
-
     FixSwitchMove(state, destPos);
 
     int dependency[AGENT_COUNT] = {-1, -1, -1, -1};
     int roots[AGENT_COUNT] = {-1, -1, -1, -1};
-    // the amount of chain roots
-    int rootNumber = ResolveDependencies(state, destPos, dependency, roots);
 
-    bool ouroboros = rootNumber == 0; // ouroboros formation?
+    // the amount of chain roots
+    const int rootNumber = ResolveDependencies(state, destPos, dependency, roots);
+    const bool ouroboros = rootNumber == 0; // ouroboros formation?
 
     int rootIdx = 0;
     int i = rootNumber == 0 ? 0 : roots[0]; // no roots -> start from 0
@@ -62,25 +88,15 @@ void Step(State* state, Move* moves)
                 }
             }
         }
-        // check out of bounds
-        if(desired.x < 0 || desired.y < 0 ||
-                desired.x >= BOARD_SIZE ||
-                desired.y >= BOARD_SIZE)
+
+        if(IsOutOfBounds(desired))
         {
             continue;
         }
 
-        // check for destination position collision
-        for(int j = 0; j < AGENT_COUNT; j++)
+        if(HasDPCollision(*state, destPos, i))
         {
-            if(j == i || state->agents[j].dead) continue;
-
-            if(destPos[j] == desired)
-            {
-                // a destination position conflict will never
-                // result in a valid move
-                goto end_this_agent_move;
-            }
+            goto end_this_agent_move;
         }
 
         //
