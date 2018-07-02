@@ -12,13 +12,20 @@ namespace bboard
 
 void State::PlantBomb(int id, int x, int y)
 {
-    Bomb b = bombQueue.NextPos();
-    b.position.x = x;
-    b.position.y = y;
-    b.strength = agents[id].bombStrength;
-    b.velocity = Direction::IDLE;
-    b.timeLeft = BOMB_LIFETIME;
+    if(agents[id].bombCount >= agents[id].maxBombCount)
+    {
+        return;
+    }
 
+    Bomb* b = &bombQueue.NextPos();
+    b->id = id;
+    b->position.x = x;
+    b->position.y = y;
+    b->strength = agents[id].bombStrength;
+    b->velocity = Direction::IDLE;
+    b->timeLeft = BOMB_LIFETIME;
+
+    agents[id].bombCount++;
     bombQueue.bombsOnBoard++;
 }
 
@@ -110,25 +117,21 @@ void PrintState(State* state)
     std::cout << result << std::endl << std::endl;
 
     //Agent info
-    for(int _ = 0; _ < AGENT_COUNT / 2; _++)
+    for(int _ = 0; _ < AGENT_COUNT; _++)
     {
-        int i = 2 * _;
-        std::printf("A%d: %s %d  %s %d  %s %d     \nA%d: %s %d  %s %d  %s %d\n",
+        int i = _;
+        std::printf("A%d: %s %d  %s %d  %s %d\n",
                     i,
                     PrintItem(Item::EXTRABOMB).c_str(),state->agents[i].maxBombCount,
                     PrintItem(Item::INCRRANGE).c_str(),state->agents[i].bombStrength,
-                    PrintItem(Item::KICK).c_str(),state->agents[i].canKick,
-                    i+1,
-                    PrintItem(Item::EXTRABOMB).c_str(),state->agents[i+1].maxBombCount,
-                    PrintItem(Item::INCRRANGE).c_str(),state->agents[i+1].bombStrength,
-                    PrintItem(Item::KICK).c_str(),state->agents[i+1].canKick);
+                    PrintItem(Item::KICK).c_str(),state->agents[i].canKick);
     }
-    std::cout << "\nBombQueue\n[";
-    for(int i = 0; i < MAX_BOMBS; i++)
+    std::cout << "\nBombQueue\n[ ";
+    for(int i = 0; i < state->bombQueue.bombsOnBoard; i++)
     {
-        std::cout << state->bombQueue[i].timeLeft << " ";
+        std::cout << state->bombQueue[i].id << " ";
     }
-    std::cout << "]";
+    std::cout << "]\n";
     //?
 }
 

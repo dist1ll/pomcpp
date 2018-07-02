@@ -120,7 +120,7 @@ struct Bomb
 {
     Position position;
     Direction velocity = Direction::IDLE; //if the bomb is moving, which way?
-
+    int id; // debug purposes
     int timeLeft = BOMB_LIFETIME;
     int strength = BOMB_DEFAULT_STRENGTH;
 };
@@ -188,7 +188,8 @@ struct State
     BombQueue bombQueue;
 
     /**
-     * @brief PlantBomb Plants a bomb at the given position
+     * @brief PlantBomb Plants a bomb at the given position.
+     * Does not add a bomb to the queue if the agent maxed out.
      * @param id Agent that plants the bomb
      * @param x X position of the bomb
      * @param y Y position of the bomb
