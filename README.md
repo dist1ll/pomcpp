@@ -90,3 +90,16 @@ bboard::Move MyNewAgent::act(bboard::State* state)
 
 }
 ```
+## Citing This Repo
+
+```
+@misc{Alic2018nips,
+  author = {Alic, Adrian},
+  title = {Distributed Async MARL Competition Entry},
+  year = {2018},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/m2q/nips2018-agent}}
+}
+
+```
