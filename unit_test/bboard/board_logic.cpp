@@ -199,5 +199,48 @@ TEST_CASE("Movement Dependency Handling", "[step function]")
 
 TEST_CASE("Bomb Mechanics", "[step function]")
 {
+    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[4] = {id, id, id, id};
+
+    SECTION("Standard Bomb Laying")
+    {
+        s->PutAgentsInCorners(0, 1, 2, 3);
+        m[0] = bboard::Move::BOMB;
+        bboard::Step(s.get(), m);
+        REQUIRE(s->board[0][0] == bboard::Item::AGENT0);
+
+        m[0] = bboard::Move::DOWN;
+        bboard::Step(s.get(), m);
+        REQUIRE(s->board[0][0] == bboard::Item::BOMB);
+    }
+    SECTION("Bomb Movement Block Simple")
+    {
+        s->PutAgentsInCorners(0, 1, 2, 3);
+        s->PutItem(1, 0, bboard::Item::BOMB);
+
+        m[0] = bboard::Move::RIGHT;
+        bboard::Step(s.get(), m);
+        REQUIRE_AGENT(s.get(), 0, 0, 0);
+    }
+    SECTION("Bomb Movement Block Complex")
+    {
+        s->PutAgent(0, 0, 0);
+        s->PutAgent(1, 1, 0);
+        s->PutAgent(2, 2, 0);
+        s->PutAgent(3, 3, 0);
+
+        m[0] = m[1] = m[2] = bboard::Move::RIGHT;
+        m[3] = bboard::Move::BOMB;
+        bboard::Step(s.get(), m);
+        REQUIRE_AGENT(s.get(), 0, 0, 0);
+        REQUIRE_AGENT(s.get(), 1, 1, 0);
+        REQUIRE_AGENT(s.get(), 2, 2, 0);
+
+        m[0] = m[1] = m[2] = bboard::Move::IDLE;
+        m[3] = bboard::Move::RIGHT;
+        bboard::Step(s.get(), m);
+        REQUIRE_AGENT(s.get(), 3, 4, 0);
+    }
 
 }

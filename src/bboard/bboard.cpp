@@ -29,6 +29,18 @@ void State::PlantBomb(int id, int x, int y)
     bombQueue.bombsOnBoard++;
 }
 
+bool State::hasBomb(int x, int y)
+{
+    for(int i = 0; i < bombQueue.bombsOnBoard; i++)
+    {
+        if(bombQueue[i].position.x == x && bombQueue[i].position.y == y)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void State::PutAgent(int agentID, int x, int y)
 {
     int b = Item::AGENT0 + agentID;

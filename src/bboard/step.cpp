@@ -42,7 +42,7 @@ void Step(State* state, Move* moves)
         }
         else if(m == Move::BOMB)
         {
-            //state->PlantBomb(i, state->agents[i].x, state->agents[i].y);
+            state->PlantBomb(i, state->agents[i].x, state->agents[i].y);
         }
         int x = state->agents[i].x;
         int y = state->agents[i].y;
@@ -50,7 +50,18 @@ void Step(State* state, Move* moves)
         Position desired = destPos[i];
         int itemOnDestination = state->board[desired.y][desired.x];
 
-
+        //if ouroboros, the bomb will be covered by an agent
+        if(ouroboros)
+        {
+            for(int j = 0; j < state->bombQueue.bombsOnBoard; j++)
+            {
+                if(state->bombQueue[j].position == desired)
+                {
+                    itemOnDestination = Item::BOMB;
+                    break;
+                }
+            }
+        }
         // check out of bounds
         if(desired.x < 0 || desired.y < 0 ||
                 desired.x >= BOARD_SIZE ||
@@ -105,7 +116,15 @@ void Step(State* state, Move* moves)
             // overridden by a different agent that already took this spot
             if(state->board[y][x] == Item::AGENT0 + i)
             {
-                state->board[y][x] = 0;
+                if(state->hasBomb(x, y))
+                {
+                    state->board[y][x] = Item::BOMB;
+                }
+                else
+                {
+                    state->board[y][x] = 0;
+                }
+
             }
             state->board[desired.y][desired.x] = Item::AGENT0 + i;
             state->agents[i].x = desired.x;
@@ -115,6 +134,7 @@ void Step(State* state, Move* moves)
 end_this_agent_move:
         ;
     }
+
 }
 
 }

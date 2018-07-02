@@ -197,6 +197,12 @@ struct State
     void PlantBomb(int id, int x, int y);
 
     /**
+     * @brief hasBomb Returns true if a bomb is at the specified
+     * position
+     */
+    bool hasBomb(int x, int y);
+
+    /**
      * @brief Proxy for BombQueue::PopBomb()
      */
     inline void PopBomb()
