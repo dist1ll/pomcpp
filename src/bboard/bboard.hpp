@@ -145,6 +145,7 @@ struct BombQueue
     inline void PopBomb()
     {
         startingIndex = (startingIndex + 1) % (MAX_BOMBS);
+        bombsOnBoard--;
     }
     /**
      * @brief PollNext Polls the next free queue spot
@@ -166,6 +167,7 @@ inline Bomb& BombQueue::operator[] (const int index)
 {
     return _allbmbs[(startingIndex + index) % MAX_BOMBS];
 }
+
 /**
  * Represents all information associated with the game board.
  * Includes (in)destructible obstacles, bombs, player positions,
@@ -175,6 +177,15 @@ inline Bomb& BombQueue::operator[] (const int index)
  */
 struct State
 {
+
+    /**
+     * @brief operator [] This way you can reference a position
+     * on the board with a Position (less verbose than board[..][..])
+     * @param The position of the board
+     * @return The integer reference at the correct board position
+     */
+    int& operator[] (const Position& pos);
+
     int board[11][11];
 
     /**
@@ -200,13 +211,19 @@ struct State
      * @brief hasBomb Returns true if a bomb is at the specified
      * position
      */
-    bool hasBomb(int x, int y);
+    bool HasBomb(int x, int y);
 
     /**
      * @brief Proxy for BombQueue::PopBomb()
      */
-    inline void PopBomb()
+    void PopBomb()
     {
+        agents[bombQueue[0].id].bombCount--;
+        int item = (*this)[bombQueue[0].position];
+        if(item == Item::BOMB)
+        {
+            item = 0;
+        }
         bombQueue.PopBomb();
     }
 
@@ -250,6 +267,11 @@ struct State
      */
     void PutAgent(int agentID, int x, int y);
 };
+
+inline int& State::operator[] (const Position& pos)
+{
+    return board[pos.y][pos.x];
+}
 
 /**
  * @brief The Agent struct defines a behaviour. For a given

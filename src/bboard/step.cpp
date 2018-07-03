@@ -132,7 +132,7 @@ void Step(State* state, Move* moves)
             // overridden by a different agent that already took this spot
             if(state->board[y][x] == Item::AGENT0 + i)
             {
-                if(state->hasBomb(x, y))
+                if(state->HasBomb(x, y))
                 {
                     state->board[y][x] = Item::BOMB;
                 }

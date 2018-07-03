@@ -29,7 +29,7 @@ void State::PlantBomb(int id, int x, int y)
     bombQueue.bombsOnBoard++;
 }
 
-bool State::hasBomb(int x, int y)
+bool State::HasBomb(int x, int y)
 {
     for(int i = 0; i < bombQueue.bombsOnBoard; i++)
     {
@@ -134,6 +134,9 @@ void PrintState(State* state)
         std::cout << state->bombQueue[i].id << " ";
     }
     std::cout << "]\n";
+    std::printf("count: \t%d\nsidx: \t%d\n",
+                state->bombQueue.bombsOnBoard, state->bombQueue.startingIndex);
+
     //?
 }
 
