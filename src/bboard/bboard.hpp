@@ -219,11 +219,12 @@ struct State
     void PopBomb()
     {
         agents[bombQueue[0].id].bombCount--;
-        int item = (*this)[bombQueue[0].position];
+        int& item = (*this)[bombQueue[0].position];
         if(item == Item::BOMB)
         {
             item = 0;
         }
+
         bombQueue.PopBomb();
     }
 

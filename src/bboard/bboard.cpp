@@ -133,6 +133,11 @@ void PrintState(State* state)
     {
         std::cout << state->bombQueue[i].id << " ";
     }
+    std::cout << "]\n[ ";
+    for(int i = 0; i < MAX_BOMBS; i++)
+    {
+        std::cout << state->bombQueue[i].timeLeft << " ";
+    }
     std::cout << "]\n";
     std::printf("count: \t%d\nsidx: \t%d\n",
                 state->bombQueue.bombsOnBoard, state->bombQueue.startingIndex);

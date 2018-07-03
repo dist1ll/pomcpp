@@ -31,6 +31,10 @@ void Step(State* state, Move* moves)
             //spawn flames
             // <--------->
         }
+        else
+        {
+            break;
+        }
 
     }
 
@@ -69,6 +73,7 @@ void Step(State* state, Move* moves)
         else if(m == Move::BOMB)
         {
             state->PlantBomb(i, state->agents[i].x, state->agents[i].y);
+            continue;
         }
         int x = state->agents[i].x;
         int y = state->agents[i].y;
