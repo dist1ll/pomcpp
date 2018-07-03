@@ -4,7 +4,7 @@ This repository is an open-source implementation of a Multi-Agent Reinforcement 
 
 This is how the C++ backend currently looks like: 
 
-![gif of the game](docs/gifs/06_29.gif)
+![gif of the game](docs/gifs/07_03.gif)
 
 ## Prerequisites
 
