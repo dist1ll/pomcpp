@@ -1,4 +1,5 @@
 CC := g++
+CFLAGS := 
 STD := c++17
 SRCEXT := cpp
 SRCDIR := src
@@ -30,39 +31,39 @@ all: main test
 	
 main: $(MAIN_OBJECTS)
 	@mkdir -p bin
-	$(CC) -std=$(STD) $^ -o $(MAIN_TARGET)
+	$(CC) $(CFLAGS) -std=$(STD) $^ -o $(MAIN_TARGET)
 
 test: $(TEST_OBJECTS)
 	make main -s
 	@mkdir -p bin
-	$(CC) -std=$(STD) $^ -o $(TEST_TARGET) $(MAIN_OBJS_NOMAIN)
+	$(CC) $(CFLAGS) -std=$(STD) $^ -o $(TEST_TARGET) $(MAIN_OBJS_NOMAIN)
 
 
 # build main test files
 build/$(TESTDIR)/%.o: $(TESTDIR)/%.$(SRCEXT)
 	@echo "Building test"
 	@mkdir -p $(TESTBUILD)
-	$(CC) -std=$(STD) -c -o $@ $< $(INC) -I $(TESTDIR)
+	$(CC) $(CFLAGS) -std=$(STD) -c -o $@ $< $(INC) -I $(TESTDIR)
 
 # build test files
 build/$(TESTDIR)/$(MODULE1)/%.o: $(TESTDIR)/$(MODULE1)/%.$(SRCEXT)
 	@echo "Building test-case: " $@
 	@mkdir -p $(TESTBUILD) -p $(TESTBUILD)/$(MODULE1)
-	$(CC) -std=$(STD) -c -o $@ $< $(INC) -I $(TESTDIR)
+	$(CC) $(CFLAGS) -std=$(STD) -c -o $@ $< $(INC) -I $(TESTDIR)
 
 # build main files
 build/src/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@echo "Building main"
 	@mkdir -p $(BUILDDIR)
-	$(CC) -std=$(STD) -c -o $@ $< $(INC)
+	$(CC) $(CFLAGS) -std=$(STD) -c -o $@ $< $(INC)
 build/src/$(MODULE1)/%.o: src/$(MODULE1)/%.$(SRCEXT)
 	@echo "Building bboard"
 	@mkdir -p $(BUILDDIR) -p $(BUILDDIR)/$(MODULE1)
-	$(CC) -std=$(STD) -c -o $@ $< $(INC)
+	$(CC) $(CFLAGS) -std=$(STD) -c -o $@ $< $(INC)
 build/src/$(MODULE2)/%.o: src/$(MODULE2)/%.$(SRCEXT)
 	@echo "Building agents"
 	@mkdir -p $(BUILDDIR) -p $(BUILDDIR)/$(MODULE2)
-	$(CC) -std=$(STD) -c -o $@ $< $(INC)
+	$(CC) $(CFLAGS) -std=$(STD) -c -o $@ $< $(INC)
 
 clean:
 	@echo " Cleaning..."; 

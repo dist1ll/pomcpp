@@ -23,7 +23,8 @@ void Step(State* state, Move* moves)
     }
 
     //explode timed-out bombs
-    for(int i = 0; i < state->bombQueue.bombsOnBoard; i++)
+    int bombCount = state->bombQueue.bombsOnBoard;
+    for(int i = 0; i < bombCount; i++)
     {
         if(state->bombQueue[0].timeLeft == 0)
         {
@@ -101,7 +102,7 @@ void Step(State* state, Move* moves)
 
         if(HasDPCollision(*state, destPos, i))
         {
-            goto end_this_agent_move;
+            continue;
         }
 
         //
