@@ -28,9 +28,9 @@ void Step(State* state, Move* moves)
     {
         if(state->bombQueue[0].timeLeft == 0)
         {
+            Bomb& c = state->bombQueue[0];
+            state->SpawnFlames(c.position.x, c.position.y, c.strength);
             state->PopBomb();
-            //spawn flames
-            // <--------->
         }
         else
         {
@@ -153,8 +153,6 @@ void Step(State* state, Move* moves)
             state->agents[i].y = desired.y;
         }
 
-end_this_agent_move:
-        ;
     }
 
 }

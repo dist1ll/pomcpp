@@ -29,6 +29,65 @@ void State::PlantBomb(int id, int x, int y)
     bombQueue.bombsOnBoard++;
 }
 
+void State::PopBomb()
+{
+    Bomb& current = bombQueue[0];
+    agents[current.id].bombCount--;
+    bombQueue.PopBomb();
+}
+
+void State::SpawnFlames(int x, int y, int strength)
+{
+    // right
+    for(int i = 0; i <= strength; i++)
+    {
+        if(x + i >= BOARD_SIZE) break; // bounds
+
+        if(board[y][x+i] != Item::RIGID)
+        {
+            board[y][x+i] = Item::FLAMES;
+        }
+        else break;
+    }
+
+    // left
+    for(int i = 0; i <= strength; i++)
+    {
+        if(x - i < 0) break; // bounds
+
+        if(board[y][x-i] != Item::RIGID)
+        {
+            board[y][x-i] = Item::FLAMES;
+        }
+        else break;
+    }
+
+    // top
+    for(int i = 0; i <= strength; i++)
+    {
+        if(y + 1 >= BOARD_SIZE) break; // bounds
+
+        if(board[y+1][x] != Item::RIGID)
+        {
+            board[y+1][x] = Item::FLAMES;
+        }
+        else break;
+    }
+
+    // bottom
+    for(int i = 0; i <= strength; i++)
+    {
+        if(y - i < 0) break; // bounds
+
+        if(board[y-1][x] != Item::RIGID)
+        {
+            board[y-1][x] = Item::FLAMES;
+        }
+        else break;
+    }
+}
+
+
 bool State::HasBomb(int x, int y)
 {
     for(int i = 0; i < bombQueue.bombsOnBoard; i++)
@@ -104,13 +163,13 @@ void PrintState(State* state)
 {
     std::string result = "";
 
-    for(int i = 0; i < BOARD_SIZE; i++)
+    for(int y = 0; y < BOARD_SIZE; y++)
     {
-        for(int j = 0; j < BOARD_SIZE; j++)
+        for(int x = 0; x < BOARD_SIZE; x++)
         {
-            int item = state->board[i][j];
+            int item = state->board[y][x];
             result += PrintItem(item);
-            if(j == BOARD_SIZE - 1)
+            if(x == BOARD_SIZE - 1)
             {
                 result += "\n";
             }
@@ -158,7 +217,7 @@ std::string PrintItem(int item)
         case Item::BOMB:
             return " \u25CF ";
         case Item::FLAMES:
-            return " \U0001f525 ";
+            return " F ";
         case Item::EXTRABOMB:
             return " \u24B7 ";
         case Item::INCRRANGE:

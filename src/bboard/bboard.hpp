@@ -139,8 +139,8 @@ struct BombQueue
     int startingIndex = 0;
 
     /**
-     * @brief PopBomb Removes the top bomb from the queue
-     * (or: bombQueue[0])
+     * @brief PopBomb Frees up the position of the bomb in the
+     * queue to be used by other bombs.
      */
     inline void PopBomb()
     {
@@ -216,17 +216,17 @@ struct State
     /**
      * @brief Proxy for BombQueue::PopBomb()
      */
-    void PopBomb()
-    {
-        agents[bombQueue[0].id].bombCount--;
-        int& item = (*this)[bombQueue[0].position];
-        if(item == Item::BOMB)
-        {
-            item = 0;
-        }
+    void PopBomb();
 
-        bombQueue.PopBomb();
-    }
+    /**
+     * @brief SpawnFlames Spawns rays of flames at the
+     * specified location.
+     * @param x The x position of the origin of flames
+     * @param y The y position of the origin of flames
+     * @param strength The farthest reachable distance
+     * from the origin
+     */
+    void SpawnFlames(int x, int y, int strength);
 
     /**
      * @brief PutItem Places an item on the board
