@@ -19,16 +19,24 @@ struct RandomAgent : bboard::Agent
     std::mt19937_64 rng;
     std::uniform_int_distribution<int> intDist;
 
-    RandomAgent()
-    {
-        std::random_device rd;  // non explicit seed
-        rng = std::mt19937_64(rd());
-        intDist = std::uniform_int_distribution<int>(0, 6);
-    }
+    RandomAgent();
 
     bboard::Move act(bboard::State* state) override;
 };
 
+
+/**
+ * @brief Randomly selects actions that are not laying bombs
+ */
+struct HarmlessAgent : bboard::Agent
+{
+    std::mt19937_64 rng;
+    std::uniform_int_distribution<int> intDist;
+
+    HarmlessAgent();
+
+    bboard::Move act(bboard::State* state) override;
+};
 
 /**
  * @brief Selects Idle for every action

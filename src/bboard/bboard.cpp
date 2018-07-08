@@ -10,6 +10,37 @@
 namespace bboard
 {
 
+/////////////////////////
+// Auxiliary Functions //
+/////////////////////////
+
+inline bool SpawnFlame(State& s, int x, int y)
+{
+    if(s.board[y][x] >= Item::AGENT0)
+    {
+        s.Kill(s.board[y][x] - Item::AGENT0);
+    }
+    if(s.board[y][x] == Item::BOMB)
+    {
+        //TODO: Chain reaction
+    }
+
+
+    if(s.board[y][x] != Item::RIGID)
+    {
+        s.board[y][x] = Item::FLAMES;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+////////////////////////////
+// BBoard Implementations //
+////////////////////////////
+
 void State::PlantBomb(int id, int x, int y)
 {
     if(agents[id].bombCount >= agents[id].maxBombCount)
@@ -43,11 +74,10 @@ void State::SpawnFlames(int x, int y, int strength)
     {
         if(x + i >= BOARD_SIZE) break; // bounds
 
-        if(board[y][x+i] != Item::RIGID)
+        if(!SpawnFlame(*this, x + i, y))
         {
-            board[y][x+i] = Item::FLAMES;
+            break;
         }
-        else break;
     }
 
     // left
@@ -55,23 +85,21 @@ void State::SpawnFlames(int x, int y, int strength)
     {
         if(x - i < 0) break; // bounds
 
-        if(board[y][x-i] != Item::RIGID)
+        if(!SpawnFlame(*this, x - i, y))
         {
-            board[y][x-i] = Item::FLAMES;
+            break;
         }
-        else break;
     }
 
     // top
     for(int i = 0; i <= strength; i++)
     {
-        if(y + 1 >= BOARD_SIZE) break; // bounds
+        if(y + i >= BOARD_SIZE) break; // bounds
 
-        if(board[y+1][x] != Item::RIGID)
+        if(!SpawnFlame(*this, x, y + i))
         {
-            board[y+1][x] = Item::FLAMES;
+            break;
         }
-        else break;
     }
 
     // bottom
@@ -79,14 +107,12 @@ void State::SpawnFlames(int x, int y, int strength)
     {
         if(y - i < 0) break; // bounds
 
-        if(board[y-1][x] != Item::RIGID)
+        if(!SpawnFlame(*this, x, y - i))
         {
-            board[y-1][x] = Item::FLAMES;
+            break;
         }
-        else break;
     }
 }
-
 
 bool State::HasBomb(int x, int y)
 {
@@ -217,7 +243,7 @@ std::string PrintItem(int item)
         case Item::BOMB:
             return " \u25CF ";
         case Item::FLAMES:
-            return " F ";
+            return FYEL(" \U0000263C ");
         case Item::EXTRABOMB:
             return " \u24B7 ";
         case Item::INCRRANGE:
