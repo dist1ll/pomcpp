@@ -231,7 +231,7 @@ struct State
     /**
      * @brief PutItem Places an item on the board
      */
-    void PutItem(int x, int y, Item item)
+    inline void PutItem(int x, int y, Item item)
     {
         board[y][x] = item;
     }
@@ -239,7 +239,7 @@ struct State
     /**
      * @brief Kill Kills the specified agents
      */
-    void Kill(int agentID)
+    inline void Kill(int agentID)
     {
         agents[agentID].dead = true;
     }

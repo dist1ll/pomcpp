@@ -68,7 +68,7 @@ build/src/$(MODULE2)/%.o: src/$(MODULE2)/%.$(SRCEXT)
 clean:
 	@echo " Cleaning..."; 
 	@echo " $(RM) -r $(BUILDDIR) $(MAIN_TARGET)"; $(RM) -r $(BUILDDIR) $(MAIN_TARGET)
-	@echo " $(RM) -r $(TESTBUILD) $(TEST_TARGET)"; $(RM) -r $(TESTBUILD) $(TEST_TARGET)
+	@echo " Clean test files except test_main"; find $(TESTBUILD) $(TEST_TARGET) -type f -not -name 'test_main.o' -print0 | xargs -0 $(RM) --
 	@echo
 # only cleans main
 mclean:
