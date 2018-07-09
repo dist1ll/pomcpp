@@ -15,6 +15,35 @@ void REQUIRE_AGENT(bboard::State* state, int agent, int x, int y)
     REQUIRE(state->board[y][x] == o);
 }
 
+/**
+ * @brief SeveralSteps Proxy for bboard::Step, useful for testing
+ */
+void SeveralSteps(int times, bboard::State* s, bboard::Move* m)
+{
+    for(int i = 0; i < times; i++)
+    {
+        bboard::Step(s, m);
+    }
+}
+
+/**
+ * @brief PlaceBombsDiagonally Lets an agent plant bombs along a
+ * horizontal
+ */
+void PlaceBombsHorizontally(bboard::State* s, int agent, int bombs)
+{
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[bboard::AGENT_COUNT] = {id, id, id, id};
+
+    for(int i = 0; i < bombs; i++)
+    {
+        m[agent] = bboard::Move::BOMB;
+        bboard::Step(s, m);
+        m[agent] = bboard::Move::RIGHT;
+        bboard::Step(s, m);
+    }
+}
+
 bool IsAgentPos(bboard::State* state, int agent, int x, int y)
 {
     int o = bboard::Item::AGENT0 + agent;
@@ -267,6 +296,68 @@ TEST_CASE("Bomb Mechanics", "[step function]")
 }
 
 TEST_CASE("Bomb Explosion", "[step function]")
+{
+    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[4] = {id, id, id, id};
+
+    s->Kill(2,3);
+    s->PutAgent(0, 5, 5); //
+
+    SECTION("Bomb Goes Off Correctly")
+    {
+        m[0] = bboard::Move::BOMB;
+        bboard::Step(s.get(), m);
+
+        m[0] = bboard::Move::UP;
+        SeveralSteps(bboard::BOMB_LIFETIME - 1, s.get(), m);
+
+        REQUIRE(s->board[5][5] == bboard::Item::BOMB);
+        bboard::Step(s.get(), m);
+        REQUIRE(s->board[5][5] == bboard::Item::FLAMES);
+    }
+    SECTION("Destroy Objects and Agents")
+    {
+        s->PutItem(6, 5, bboard::Item::WOOD);
+        s->PutAgent(1, 4, 5);
+
+        m[0] = bboard::Move::BOMB;
+        bboard::Step(s.get(), m);
+
+        m[0] = bboard::Move::UP;
+        SeveralSteps(bboard::BOMB_LIFETIME, s.get(), m);
+
+        REQUIRE(s->agents[1].dead);
+        REQUIRE(s->board[5][4] == bboard::Item::FLAMES);
+        REQUIRE(s->board[5][6] == bboard::Item::FLAMES);
+    }
+    SECTION("Keep Rigid")
+    {
+        s->PutItem(6, 5, bboard::Item::RIGID);
+
+        m[0] = bboard::Move::BOMB;
+        bboard::Step(s.get(), m);
+
+        m[0] = bboard::Move::UP;
+        SeveralSteps(bboard::BOMB_LIFETIME, s.get(), m);
+
+        REQUIRE(s->board[5][6] == bboard::Item::RIGID);
+    }
+    SECTION("Max Agent Bomb Limit")
+    {
+        s->agents[0].maxBombCount = 2;
+        REQUIRE(s->agents[0].bombCount == 0);
+
+        PlaceBombsHorizontally(s.get(), 0, 4); //place 1 over max
+        REQUIRE(s->board[5][5] == bboard::Item::BOMB);
+        REQUIRE(s->board[5][6] == bboard::Item::BOMB);
+        REQUIRE(s->board[5][7] == bboard::Item::PASSAGE);
+
+        REQUIRE(s->agents[0].bombCount == 2);
+    }
+}
+
+TEST_CASE("Flame Mechanics", "[step function]")
 {
 
 }

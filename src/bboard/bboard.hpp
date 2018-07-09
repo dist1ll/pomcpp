@@ -16,6 +16,8 @@ const int BOARD_SIZE = 11;
 const int BOMB_LIFETIME = 10;
 const int BOMB_DEFAULT_STRENGTH = 1;
 
+const int FLAME_LIFETIME = 4;
+
 const int MAX_BOMBS_PER_AGENT = 5;
 const int MAX_BOMBS = AGENT_COUNT * MAX_BOMBS_PER_AGENT;
 
