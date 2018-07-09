@@ -1,8 +1,10 @@
 ﻿#ifndef BBOARD_H_
 #define BBOARD_H_
 
-#include <iostream>
+#include <array>
 #include <string>
+#include <memory>
+#include <iostream>
 
 namespace bboard
 {
@@ -188,6 +190,8 @@ struct State
 
     int board[11][11];
 
+    int aliveAgents = AGENT_COUNT;
+
     /**
      * @brief agents Array of all agents and their properties
      */
@@ -241,7 +245,11 @@ struct State
      */
     inline void Kill(int agentID)
     {
-        agents[agentID].dead = true;
+        if(!agents[agentID].dead)
+        {
+            agents[agentID].dead = true;
+            aliveAgents--;
+        }
     }
 
     /**
@@ -292,6 +300,92 @@ struct Agent
      * @return A Move (integer, 0-..)
      */
     virtual Move act(State* state) = 0;
+};
+
+
+/**
+ * @brief The Environment struct holds all information about a
+ * Game (current state, participating agents) and takes care of
+ * distributing observations to the correct agents.
+ */
+class Environment
+{
+
+private:
+
+    std::unique_ptr<State> state;
+    std::array<Agent*, AGENT_COUNT> agents;
+
+    // Current State
+    bool finished = false;
+    bool hasStarted = false;
+    bool isDraw = false;
+
+    int agentWon = -1; // FFA
+    int teamWon = -1; // Team
+
+public:
+
+    Environment();
+    /**
+     * @brief MakeGame Initializes the state
+     */
+    void MakeGame(std::array<Agent*, AGENT_COUNT> a);
+
+    /**
+     * @brief StartGame starts a game and prints in the terminal output
+     * (blocking)
+     * @param timeSteps maximum of time steps after which the game ends
+     * @param render True if the game should be rendered (and played out with
+     * delay)
+     */
+    void StartGame(int timeSteps, bool render=true);
+
+    /**
+     * @brief Step Executes a step, given by the params
+     */
+    void Step();
+
+    inline State& GetState()
+    {
+        return *state.get();
+    }
+
+    /**
+     * @brief SetAgents Registers all agents that will participate
+     * in this game
+     * @param a An array of agent pointers (with correct length)
+     */
+    inline void SetAgents(std::array<Agent*, AGENT_COUNT> agents)
+    {
+        this->agents = agents;
+    }
+
+    /**
+     * @return True if the last step ended the current game
+     */
+    inline bool IsDone()
+    {
+        return finished;
+    }
+
+    /**
+     * @brief IsDraw Did the game end in a draw?
+     */
+    inline bool IsDraw()
+    {
+        return isDraw;
+    }
+
+    /**
+     * @brief GetWinner If the game was won by someone, return
+     * the agent's ID that won
+     */
+    inline int GetWinner()
+    {
+        return agentWon;
+    }
+
 };
 
 /**

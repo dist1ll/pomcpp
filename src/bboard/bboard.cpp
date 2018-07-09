@@ -37,9 +37,32 @@ inline bool SpawnFlame(State& s, int x, int y)
     }
 }
 
-////////////////////////////
-// BBoard Implementations //
-////////////////////////////
+void PrintGameResult(Environment& env)
+{
+    if(env.IsDone())
+    {
+        if(env.IsDraw())
+        {
+            std::cout << "Draw! All agents are dead"
+                      << std::endl;
+        }
+        else
+        {
+            std::cout << "Finished! The winner is Agent "
+                      << env.GetWinner() << std::endl;
+        }
+
+    }
+    else
+    {
+        std::cout << "Draw! Max timesteps reached "
+                  << std::endl;
+    }
+}
+
+///////////////////
+// State Methods //
+///////////////////
 
 void State::PlantBomb(int id, int x, int y)
 {
@@ -148,6 +171,85 @@ void State::PutAgentsInCorners(int a0, int a1, int a2, int a3)
     agents[a2].y = agents[a3].y = BOARD_SIZE - 1;
 }
 
+/////////////////////////
+// Environment Methods //
+/////////////////////////
+
+Environment::Environment()
+{
+    state = std::make_unique<State>();
+}
+
+void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a)
+{
+    bboard::InitState(state.get(), 0, 1, 2, 3);
+
+    state->PutItem(1, 4, bboard::Item::INCRRANGE);
+    state->PutItem(6, 4, bboard::Item::KICK);
+    state->PutItem(7, 6, bboard::Item::EXTRABOMB);
+
+    state->PutAgentsInCorners(0, 1, 2, 3);
+
+    SetAgents(a);
+    hasStarted = true;
+}
+
+void Environment::StartGame(int timeSteps, bool render)
+{
+    int time = 0;
+    while(!this->IsDone() && time < timeSteps)
+    {
+        this->Step();
+
+        if(render)
+        {
+            std::cout << "\033c"; // clear console on linux
+            PrintState(&this->GetState());
+            std::this_thread::sleep_for(std::chrono::milliseconds(80));
+        }
+        time++;
+    }
+    PrintGameResult(*this);
+}
+
+void Environment::Step()
+{
+    if(!hasStarted || finished)
+    {
+        return;
+    }
+
+    Move m[AGENT_COUNT];
+    for(uint i = 0; i < AGENT_COUNT; i++)
+    {
+        m[i] = agents[i]->act(state.get());
+    }
+
+    bboard::Step(state.get(), m);
+
+    if(state->aliveAgents == 1)
+    {
+        finished = true;
+        for(int i = 0; i < AGENT_COUNT; i++)
+        {
+            if(!state->agents[i].dead)
+            {
+                agentWon = i;
+                // teamwon = team of agent
+            }
+        }
+    }
+    if(state->aliveAgents == 0)
+    {
+        finished = true;
+        isDraw = true;
+    }
+}
+
+//////////////////////
+// bboard namespace //
+//////////////////////
+
 void InitState(State* result, int a0, int a1, int a2, int a3)
 {
     // Randomly put obstacles
@@ -213,21 +315,22 @@ void PrintState(State* state)
                     PrintItem(Item::INCRRANGE).c_str(),state->agents[i].bombStrength,
                     PrintItem(Item::KICK).c_str(),state->agents[i].canKick);
     }
-    std::cout << "\nBombQueue\n[ ";
+    std::cout << "\nBombQueue\nAgent: [  ";
     for(int i = 0; i < state->bombQueue.bombsOnBoard; i++)
     {
-        std::cout << state->bombQueue[i].id << " ";
+        std::cout << state->bombQueue[i].id << "  ";
     }
-    std::cout << "]\n[ ";
-    for(int i = 0; i < MAX_BOMBS; i++)
+    std::cout << "]\nTime:  [ ";
+    for(int i = 0; i < state->bombQueue.bombsOnBoard; i++)
     {
+        if(state->bombQueue[i].timeLeft < 10)
+        {
+            std::cout << " ";
+        }
+
         std::cout << state->bombQueue[i].timeLeft << " ";
     }
-    std::cout << "]\n";
-    std::printf("count: \t%d\nsidx: \t%d\n",
-                state->bombQueue.bombsOnBoard, state->bombQueue.startingIndex);
-
-    //?
+    std::cout << " ]\nAlive: " << state->aliveAgents << std::endl;
 }
 
 std::string PrintItem(int item)

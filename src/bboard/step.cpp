@@ -76,10 +76,18 @@ void Step(State* state, Move* moves)
             state->PlantBomb(i, state->agents[i].x, state->agents[i].y);
             continue;
         }
+
+
         int x = state->agents[i].x;
         int y = state->agents[i].y;
 
         Position desired = destPos[i];
+
+        if(IsOutOfBounds(desired))
+        {
+            continue;
+        }
+
         int itemOnDestination = state->board[desired.y][desired.x];
 
         //if ouroboros, the bomb will be covered by an agent
@@ -93,11 +101,6 @@ void Step(State* state, Move* moves)
                     break;
                 }
             }
-        }
-
-        if(IsOutOfBounds(desired))
-        {
-            continue;
         }
 
         if(HasDPCollision(*state, destPos, i))
