@@ -17,19 +17,19 @@ void Step(State* state, Move* moves)
     // <--------->
 
     //tick bombs
-    for(int i = 0; i < state->bombQueue.bombsOnBoard; i++)
+    for(int i = 0; i < state->bombQueue.count; i++)
     {
         state->bombQueue[i].timeLeft--;
     }
 
     //explode timed-out bombs
-    int bombCount = state->bombQueue.bombsOnBoard;
+    int bombCount = state->bombQueue.count;
     for(int i = 0; i < bombCount; i++)
     {
         if(state->bombQueue[0].timeLeft == 0)
         {
             Bomb& c = state->bombQueue[0];
-            state->SpawnFlames(c.position.x, c.position.y, c.strength);
+            state->SpawnFlame(c.position.x, c.position.y, c.strength);
             state->PopBomb();
         }
         else
@@ -93,7 +93,7 @@ void Step(State* state, Move* moves)
         //if ouroboros, the bomb will be covered by an agent
         if(ouroboros)
         {
-            for(int j = 0; j < state->bombQueue.bombsOnBoard; j++)
+            for(int j = 0; j < state->bombQueue.count; j++)
             {
                 if(state->bombQueue[j].position == desired)
                 {

@@ -14,7 +14,7 @@ namespace bboard
 // Auxiliary Functions //
 /////////////////////////
 
-inline bool SpawnFlame(State& s, int x, int y)
+inline bool SpawnFlameItem(State& s, int x, int y)
 {
     if(s.board[y][x] >= Item::AGENT0)
     {
@@ -80,24 +80,31 @@ void State::PlantBomb(int id, int x, int y)
     b->timeLeft = BOMB_LIFETIME;
 
     agents[id].bombCount++;
-    bombQueue.bombsOnBoard++;
+    bombQueue.count++;
 }
 
 void State::PopBomb()
 {
-    Bomb& current = bombQueue[0];
-    agents[current.id].bombCount--;
-    bombQueue.PopBomb();
+    agents[bombQueue[0].id].bombCount--;
+    bombQueue.PopElem();
 }
 
-void State::SpawnFlames(int x, int y, int strength)
+void State::SpawnFlame(int x, int y, int strength)
 {
+    Flame& f = flames.NextPos();
+    f.position.x = x;
+    f.position.y = y;
+    f.strength = strength;
+    f.timeLeft = FLAME_LIFETIME;
+
+    flames.count++;
+
     // right
     for(int i = 0; i <= strength; i++)
     {
         if(x + i >= BOARD_SIZE) break; // bounds
 
-        if(!SpawnFlame(*this, x + i, y))
+        if(!SpawnFlameItem(*this, x + i, y))
         {
             break;
         }
@@ -108,7 +115,7 @@ void State::SpawnFlames(int x, int y, int strength)
     {
         if(x - i < 0) break; // bounds
 
-        if(!SpawnFlame(*this, x - i, y))
+        if(!SpawnFlameItem(*this, x - i, y))
         {
             break;
         }
@@ -119,7 +126,7 @@ void State::SpawnFlames(int x, int y, int strength)
     {
         if(y + i >= BOARD_SIZE) break; // bounds
 
-        if(!SpawnFlame(*this, x, y + i))
+        if(!SpawnFlameItem(*this, x, y + i))
         {
             break;
         }
@@ -130,7 +137,7 @@ void State::SpawnFlames(int x, int y, int strength)
     {
         if(y - i < 0) break; // bounds
 
-        if(!SpawnFlame(*this, x, y - i))
+        if(!SpawnFlameItem(*this, x, y - i))
         {
             break;
         }
@@ -139,7 +146,7 @@ void State::SpawnFlames(int x, int y, int strength)
 
 bool State::HasBomb(int x, int y)
 {
-    for(int i = 0; i < bombQueue.bombsOnBoard; i++)
+    for(int i = 0; i < bombQueue.count; i++)
     {
         if(bombQueue[i].position.x == x && bombQueue[i].position.y == y)
         {
@@ -204,7 +211,7 @@ void Environment::StartGame(int timeSteps, bool render)
         if(render)
         {
             std::cout << "\033c"; // clear console on linux
-            PrintState(&this->GetState());
+            PrintState(state.get());
             std::this_thread::sleep_for(std::chrono::milliseconds(80));
         }
         time++;
@@ -315,22 +322,17 @@ void PrintState(State* state)
                     PrintItem(Item::INCRRANGE).c_str(),state->agents[i].bombStrength,
                     PrintItem(Item::KICK).c_str(),state->agents[i].canKick);
     }
-    std::cout << "\nBombQueue\nAgent: [  ";
-    for(int i = 0; i < state->bombQueue.bombsOnBoard; i++)
+    std::cout << "\nBomb queue:  [  ";
+    for(int i = 0; i < state->bombQueue.count; i++)
     {
         std::cout << state->bombQueue[i].id << "  ";
     }
-    std::cout << "]\nTime:  [ ";
-    for(int i = 0; i < state->bombQueue.bombsOnBoard; i++)
+    std::cout << "]\nFlame queue: [  ";
+    for(int i = 0; i < state->flames.count; i++)
     {
-        if(state->bombQueue[i].timeLeft < 10)
-        {
-            std::cout << " ";
-        }
-
-        std::cout << state->bombQueue[i].timeLeft << " ";
+        std::cout << state->flames[i].timeLeft << "  ";
     }
-    std::cout << " ]\nAlive: " << state->aliveAgents << std::endl;
+    std::cout << "]" << std::endl;
 }
 
 std::string PrintItem(int item)
