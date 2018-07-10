@@ -77,8 +77,6 @@ bool HasDPCollision(const State& state, Position dp[AGENT_COUNT], int agentID);
 
 /**
  * @brief IsOutOfBounds Checks wether a given position is out of bounds
- * @param pos
- * @return
  */
 inline bool IsOutOfBounds(const Position& pos)
 {

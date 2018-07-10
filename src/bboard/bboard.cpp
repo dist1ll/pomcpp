@@ -37,6 +37,14 @@ inline bool SpawnFlameItem(State& s, int x, int y)
     }
 }
 
+/**
+ * @brief IsOutOfBounds Checks wether a given position is out of bounds
+ */
+inline bool IsOutOfBounds(const int& x, const int& y)
+{
+    return x < 0 || y < 0 || x >= BOARD_SIZE || y >= BOARD_SIZE;
+}
+
 void PrintGameResult(Environment& env)
 {
     if(env.IsDone())
@@ -92,8 +100,22 @@ void State::PopBomb()
 void State::PopFlame()
 {
     Flame& f = flames[0];
+    const int s = f.strength;
+    int x = f.position.x;
+    int y = f.position.y;
 
-    // remove the flame from the board
+    // iterate over both axis (from x-s to x+s // y-s to y+s)
+    for(int i = -s; i <= s; i++)
+    {
+        if(!IsOutOfBounds(x + i, y) && board[y][x + i] == Item::FLAMES)
+        {
+            board[y][x + i] = Item::PASSAGE;
+        }
+        if(!IsOutOfBounds(x, y + i) && board[y + i][x] == Item::FLAMES)
+        {
+            board[y + i][x] = Item::PASSAGE;
+        }
+    }
 
     flames.PopElem();
 }
