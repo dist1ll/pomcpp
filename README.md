@@ -2,7 +2,7 @@
 
 This repository is an open-source implementation of a Multi-Agent Reinforcement Learning Agent that will participate in the NIPS 2018 [Pommerman challenge](https://www.pommerman.com/). For a full list of availble competitions this year at the NIPS conference, see the [competition track](https://nips.cc/Conferences/2018/CompetitionTrack).
 
-This is how the C++ backend currently looks like: 
+This repository also provides a re-implementation for the environment. This is how the C++ backend currently looks like: 
 
 ![gif of the game](docs/gifs/07_03.gif)
 
@@ -17,17 +17,30 @@ To compile and run this project from source you will require
 
 ## Setup
 
+#### Download
+
 This project uses the [playground environment](https://github.com/MultiAgentLearning/playground) as a submodule. To fully clone the repository use
 ```
 # git version 2.13+
 $ git clone --recurse-submodules https://github.com/m2q/nips2018-agent.git
 
-# for Git version 2.12 or less
+# git version 2.12 or less
 $ git clone --recursive https://github.com/m2q/nips2018-agent.git
 ```
-To **compile** the main application and run it use `./run.sh` (alternatively you can `make main` and the binary will be in /bin).
+#### Compilation
 
-To test the project use `./test.sh` (or `make` and execute `./bin/test`). This project uses a single-header version of the [Catch2 Unit Testing Framework](https://github.com/catchorg/Catch2).
+* Use `./run.sh` to **compile** the main application and run it.
+* Use `./test.sh` to test the project. We use the [Catch2 Unit Testing Framework](https://github.com/catchorg/Catch2).
+
+Instead of using the shell scripts you can obviously use make commands and call/debug the binaries yourself. Here is a list:
+
+| Command | What it does |
+| ------- | ------------ |
+| `make` or `make all`  | Compiles and links both test and main source files |
+| `make main` | Compiles the main source to ./bin/exec  |
+| `make test`  | Compiles the test source to ./bin/test  | 
+| `make clean`  | Removes ./bin and ./build  |
+| `make mclean`  | Removes ./bin/exec and ./build/src only |
 
 ## Project Structure
 
