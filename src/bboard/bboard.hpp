@@ -255,6 +255,12 @@ struct State
     void SpawnFlame(int x, int y, int strength);
 
     /**
+     * @brief PopFlame extinguishes the top flame
+     * of the flame queue.
+     */
+    void PopFlame();
+
+    /**
      * @brief PutItem Places an item on the board
      */
     inline void PutItem(int x, int y, Item item)

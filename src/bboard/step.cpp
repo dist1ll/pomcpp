@@ -13,45 +13,22 @@ void Step(State* state, Move* moves)
     // Flames, Explosion //
     ///////////////////////
 
-    // tick flames
-    // <--------->
-
-    //tick bombs
-    for(int i = 0; i < state->bombQueue.count; i++)
-    {
-        state->bombQueue[i].timeLeft--;
-    }
-
-    //explode timed-out bombs
-    int bombCount = state->bombQueue.count;
-    for(int i = 0; i < bombCount; i++)
-    {
-        if(state->bombQueue[0].timeLeft == 0)
-        {
-            Bomb& c = state->bombQueue[0];
-            state->SpawnFlame(c.position.x, c.position.y, c.strength);
-            state->PopBomb();
-        }
-        else
-        {
-            break;
-        }
-
-    }
+    util::TickFlames(*state);
+    util::TickBombs(*state);
 
     ///////////////////////
     //  Player Movement  //
     ///////////////////////
 
     Position destPos[AGENT_COUNT];
-    FillDestPos(state, moves, destPos);
-    FixSwitchMove(state, destPos);
+    util::FillDestPos(state, moves, destPos);
+    util::FixSwitchMove(state, destPos);
 
     int dependency[AGENT_COUNT] = {-1, -1, -1, -1};
     int roots[AGENT_COUNT] = {-1, -1, -1, -1};
 
     // the amount of chain roots
-    const int rootNumber = ResolveDependencies(state, destPos, dependency, roots);
+    const int rootNumber = util::ResolveDependencies(state, destPos, dependency, roots);
     const bool ouroboros = rootNumber == 0; // ouroboros formation?
 
     int rootIdx = 0;
@@ -83,7 +60,7 @@ void Step(State* state, Move* moves)
 
         Position desired = destPos[i];
 
-        if(IsOutOfBounds(desired))
+        if(util::IsOutOfBounds(desired))
         {
             continue;
         }
@@ -103,7 +80,7 @@ void Step(State* state, Move* moves)
             }
         }
 
-        if(HasDPCollision(*state, destPos, i))
+        if(util::HasDPCollision(*state, destPos, i))
         {
             continue;
         }

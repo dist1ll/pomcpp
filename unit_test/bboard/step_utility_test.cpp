@@ -52,7 +52,7 @@ TEST_CASE("Destination position filling", "[step utilities]")
     s->PutAgent(3, 3, 0);
 
     bboard::Position destPos[4];
-    bboard::FillDestPos(s, m, destPos);
+    bboard::util::FillDestPos(s, m, destPos);
 
     REQUIRE_POS(destPos, 0, 0, 1);
     REQUIRE_POS(destPos, 1, 0, 0);
@@ -74,8 +74,8 @@ TEST_CASE("Fix Switch Position", "[step utilities]")
     s->PutAgent(2, 2, 0);
     s->PutAgent(3, 3, 0);
 
-    bboard::FillDestPos(s, m, des);
-    bboard::FixSwitchMove(s, des);
+    bboard::util::FillDestPos(s, m, des);
+    bboard::util::FixSwitchMove(s, des);
 
     REQUIRE_POS(des[0], 1, 0);
     REQUIRE_POS(des[1], s->agents[1].x, s->agents[1].y);
@@ -102,8 +102,8 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
         s->PutAgent(3, 9, 8);
 
         m[0] = m[1] = m[2] = bboard::Move::RIGHT;
-        bboard::FillDestPos(s, m, des);
-        bboard::ResolveDependencies(s, des, dependency, chain);
+        bboard::util::FillDestPos(s, m, des);
+        bboard::util::ResolveDependencies(s, des, dependency, chain);
 
         REQUIRE_ROOTS(chain, 1);
     }
@@ -115,8 +115,8 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
         s->PutAgent(3, 9, 8);
 
         m[0] = m[1] = m[2] = bboard::Move::RIGHT;
-        bboard::FillDestPos(s, m, des);
-        bboard::ResolveDependencies(s, des, dependency, chain);
+        bboard::util::FillDestPos(s, m, des);
+        bboard::util::ResolveDependencies(s, des, dependency, chain);
 
         REQUIRE_ROOTS(chain, 1, 3);
     }
@@ -128,8 +128,8 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
         s->PutAgent(3, 3, 0);
 
         m[0] = m[1] = m[2] = m[3] = bboard::Move::RIGHT;
-        bboard::FillDestPos(s, m, des);
-        bboard::ResolveDependencies(s, des, dependency, chain);
+        bboard::util::FillDestPos(s, m, des);
+        bboard::util::ResolveDependencies(s, des, dependency, chain);
 
         REQUIRE_ROOTS(chain, 3);
     }
@@ -145,8 +145,8 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
         m[2] = bboard::Move::LEFT;
         m[3] = bboard::Move::UP;
 
-        bboard::FillDestPos(s, m, des);
-        int rootC = bboard::ResolveDependencies(s, des, dependency, chain);
+        bboard::util::FillDestPos(s, m, des);
+        int rootC = bboard::util::ResolveDependencies(s, des, dependency, chain);
 
         REQUIRE(chain[0] == -1);
         REQUIRE(rootC == 0);
@@ -165,8 +165,8 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
 
         s->Kill(1);
 
-        bboard::FillDestPos(s, m, des);
-        bboard::ResolveDependencies(s, des, dependency, chain);
+        bboard::util::FillDestPos(s, m, des);
+        bboard::util::ResolveDependencies(s, des, dependency, chain);
 
         REQUIRE_ROOTS(chain, 0, 1);
     }

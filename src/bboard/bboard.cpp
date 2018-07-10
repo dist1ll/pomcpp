@@ -89,6 +89,15 @@ void State::PopBomb()
     bombQueue.PopElem();
 }
 
+void State::PopFlame()
+{
+    Flame& f = flames[0];
+
+    // remove the flame from the board
+
+    flames.PopElem();
+}
+
 void State::SpawnFlame(int x, int y, int strength)
 {
     Flame& f = flames.NextPos();

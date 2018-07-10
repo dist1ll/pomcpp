@@ -3,7 +3,7 @@
 
 #include "bboard.hpp"
 
-namespace bboard
+namespace bboard::util
 {
 
 /**
@@ -39,6 +39,17 @@ void FixSwitchMove(State* s, Position desiredPositions[AGENT_COUNT]);
 int ResolveDependencies(State* s, Position des[AGENT_COUNT],
                         int dependency[AGENT_COUNT], int chain[AGENT_COUNT]);
 
+/**
+ * @brief TickFlames Counts down all flames in the flame queue
+ * (and possible extinguishes the flame)
+ */
+void TickFlames(State& state);
+
+/**
+ * @brief TickBombs Counts down all bomb timers and explodes them
+ * if they arrive at 10
+ */
+void TickBombs(State& state);
 
 /**
  * @brief PrintDependency Prints a dependency array in a nice

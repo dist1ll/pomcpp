@@ -3,7 +3,7 @@
 #include "bboard.hpp"
 #include "step_utility.hpp"
 
-namespace bboard
+namespace bboard::util
 {
 
 Position DesiredPosition(int x, int y, Move move)
@@ -88,6 +88,48 @@ int ResolveDependencies(State* s, Position des[AGENT_COUNT],
         }
     }
     return rootCount;
+}
+
+
+void TickFlames(State& state)
+{
+    for(int i = 0; i < state.flames.count; i++)
+    {
+        state.flames[i].timeLeft--;
+    }
+    int flameCount = state.flames.count;
+    for(int i = 0; i < flameCount; i++)
+    {
+        if(state.flames[0].timeLeft == 0)
+        {
+            state.PopFlame();
+        }
+    }
+}
+
+void TickBombs(State& state)
+{
+    for(int i = 0; i < state.bombQueue.count; i++)
+    {
+        state.bombQueue[i].timeLeft--;
+    }
+
+    //explode timed-out bombs
+    int bombCount = state.bombQueue.count;
+    for(int i = 0; i < bombCount; i++)
+    {
+        if(state.bombQueue[0].timeLeft == 0)
+        {
+            Bomb& c = state.bombQueue[0];
+            state.SpawnFlame(c.position.x, c.position.y, c.strength);
+            state.PopBomb();
+        }
+        else
+        {
+            break;
+        }
+
+    }
 }
 
 bool HasDPCollision(const State& state, Position dp[AGENT_COUNT], int agentID)
