@@ -88,8 +88,7 @@ TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
 
 TEST_CASE("Basic Obstacle Collision", "[step function]")
 {
-    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
-    bboard::State* s = sx.get();
+    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
     s->PutAgentsInCorners(0, 1, 2, 3);
 
     bboard::Move id = bboard::Move::IDLE;
@@ -98,12 +97,29 @@ TEST_CASE("Basic Obstacle Collision", "[step function]")
     s->PutItem(1, 0, bboard::Item::RIGID);
 
     m[0] = bboard::Move::RIGHT;
-    bboard::Step(s, m);
-    REQUIRE_AGENT(s, 0, 0, 0);
+    bboard::Step(s.get(), m);
+    REQUIRE_AGENT(s.get(), 0, 0, 0);
 
     m[0] = bboard::Move::DOWN;
-    bboard::Step(s, m);
-    REQUIRE_AGENT(s, 0, 0, 1);
+    bboard::Step(s.get(), m);
+    REQUIRE_AGENT(s.get(), 0, 0, 1);
+}
+
+TEST_CASE("Movement Against Flames", "[step function]")
+{
+    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[4] = {id, id, id, id};
+
+    s->PutAgentsInCorners(0, 1, 2, 3);
+    s->SpawnFlame(1,1,2);
+
+    m[0] = bboard::Move::RIGHT;
+
+    bboard::Step(s.get(), m);
+
+    REQUIRE(s->agents[0].dead);
+    REQUIRE(s->board[0][0] == bboard::Item::PASSAGE);
 }
 
 TEST_CASE("Destination Collision", "[step function]")

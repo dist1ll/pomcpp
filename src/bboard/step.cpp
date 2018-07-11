@@ -80,6 +80,15 @@ void Step(State* state, Move* moves)
             }
         }
 
+        if(IS_FLAME(itemOnDestination))
+        {
+            state->Kill(i);
+            if(state->board[y][x] == Item::AGENT0 + i)
+            {
+                state->board[y][x] = Item::PASSAGE;
+            }
+            continue;
+        }
         if(util::HasDPCollision(*state, destPos, i))
         {
             continue;
