@@ -12,6 +12,7 @@ namespace bboard
 
 const int AGENT_COUNT = 4;
 const int BOARD_SIZE = 11;
+static_assert (BOARD_SIZE <= 15, "Board positions must fit into 8-bit");
 
 const int BOMB_LIFETIME = 10;
 const int BOMB_DEFAULT_STRENGTH = 1;
@@ -48,21 +49,26 @@ enum class Direction
 
 enum Item
 {
-    PASSAGE = 0,
-    RIGID,
-    WOOD,
-    BOMB,
-    FLAMES,
-    FOG,
-    EXTRABOMB,
-    INCRRANGE,
-    KICK,
-    AGENTDUMMY,
-    AGENT0,
-    AGENT1,
-    AGENT2,
-    AGENT3
+    PASSAGE    = 0,
+    RIGID      = 1,
+    WOOD       = 2,
+    BOMB       = 3,
+    // optimization I in docs
+    FLAMES     = 1 << 8,
+    FOG        = 5,
+    EXTRABOMB  = 6,
+    INCRRANGE  = 7,
+    KICK       = 8,
+    AGENTDUMMY = 9,
+    AGENT0 = 1 << 16,
+    AGENT1 = 2 << 16,
+    AGENT2 = 3 << 16,
+    AGENT3 = 4 << 16
 };
+
+
+#define IS_FLAME(x) (((x) >> 8) == 1)
+#define FLAME_SIG(x) ((x) - bboard::Item::FLAMES)
 
 /**
  * @brief The FixedQueue struct implements a extremely
@@ -271,7 +277,7 @@ struct State
     /**
      * @brief Kill Kills the specified agents
      */
-    inline void Kill(int agentID)
+    void Kill(int agentID)
     {
         if(!agents[agentID].dead)
         {

@@ -314,7 +314,7 @@ TEST_CASE("Bomb Explosion", "[step function]")
 
         REQUIRE(s->board[5][5] == bboard::Item::BOMB);
         bboard::Step(s.get(), m);
-        REQUIRE(s->board[5][5] == bboard::Item::FLAMES);
+        REQUIRE(IS_FLAME(s->board[5][5]));
     }
     SECTION("Destroy Objects and Agents")
     {
@@ -328,8 +328,8 @@ TEST_CASE("Bomb Explosion", "[step function]")
         SeveralSteps(bboard::BOMB_LIFETIME, s.get(), m);
 
         REQUIRE(s->agents[1].dead);
-        REQUIRE(s->board[5][4] == bboard::Item::FLAMES);
-        REQUIRE(s->board[5][6] == bboard::Item::FLAMES);
+        REQUIRE(IS_FLAME(s->board[5][4]));
+        REQUIRE(IS_FLAME(s->board[5][6]));
     }
     SECTION("Keep Rigid")
     {
@@ -359,5 +359,38 @@ TEST_CASE("Bomb Explosion", "[step function]")
 
 TEST_CASE("Flame Mechanics", "[step function]")
 {
+    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[4] = {id, id, id, id};
+    s->PutAgentsInCorners(0, 1, 2, 3);
+    s->SpawnFlame(5,5,4);
 
+    bboard::Step(s.get(), m);
+
+    SECTION("Correct Lifetime Calculation")
+    {
+        SeveralSteps(bboard::FLAME_LIFETIME - 2, s.get(), m);
+        REQUIRE(IS_FLAME(s->board[5][5]));
+        bboard::Step(s.get(), m);
+        REQUIRE(!IS_FLAME(s->board[5][5]));
+    }
+    SECTION("Vanish Flame Completely")
+    {
+        for(int i = 0; i <= 4; i++)
+        {
+            REQUIRE(IS_FLAME(s->board[5][5 + i]));
+            REQUIRE(IS_FLAME(s->board[5][5 - i]));
+            REQUIRE(IS_FLAME(s->board[5 + i][5]));
+            REQUIRE(IS_FLAME(s->board[5 - i][5]));
+        }
+    }
+    SECTION("Only Vanish Your Own Flame")
+    {
+        s->SpawnFlame(6, 6, 4);
+        SeveralSteps(bboard::FLAME_LIFETIME - 1, s.get(), m);
+
+        REQUIRE(IS_FLAME(s->board[5][6]));
+        REQUIRE(IS_FLAME(s->board[6][5]));
+        REQUIRE(!IS_FLAME(s->board[5][5]));
+    }
 }

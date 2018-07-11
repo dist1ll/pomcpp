@@ -14,7 +14,15 @@ namespace bboard
 // Auxiliary Functions //
 /////////////////////////
 
-inline bool SpawnFlameItem(State& s, int x, int y)
+/**
+ * @brief SpawnFlameItem Spawns a single flame item on the board
+ * @param s The state on which the flames should be spawned
+ * @param x The x position of the fire
+ * @param y The y position of the fire
+ * @param signature An auxiliary integer less than 255
+ * @return Could the flame be spawned?
+ */
+inline bool SpawnFlameItem(State& s, int x, int y, uint8_t signature = 0)
 {
     if(s.board[y][x] >= Item::AGENT0)
     {
@@ -28,7 +36,7 @@ inline bool SpawnFlameItem(State& s, int x, int y)
 
     if(s.board[y][x] != Item::RIGID)
     {
-        s.board[y][x] = Item::FLAMES;
+        s.board[y][x] = Item::FLAMES + signature;
         return true;
     }
     else
@@ -104,16 +112,25 @@ void State::PopFlame()
     int x = f.position.x;
     int y = f.position.y;
 
+    int signature = x + BOARD_SIZE * y;
+
     // iterate over both axis (from x-s to x+s // y-s to y+s)
     for(int i = -s; i <= s; i++)
     {
-        if(!IsOutOfBounds(x + i, y) && board[y][x + i] == Item::FLAMES)
+        if(!IsOutOfBounds(x + i, y) && IS_FLAME(board[y][x + i]))
         {
-            board[y][x + i] = Item::PASSAGE;
+            // only remove if this is my own flame
+            if((board[y][x + i] - Item::FLAMES) == signature)
+            {
+                board[y][x + i] = Item::PASSAGE;
+            }
         }
-        if(!IsOutOfBounds(x, y + i) && board[y + i][x] == Item::FLAMES)
+        if(!IsOutOfBounds(x, y + i) && IS_FLAME(board[y + i][x]))
         {
-            board[y + i][x] = Item::PASSAGE;
+            if((board[y + i][x] - Item::FLAMES) == signature)
+            {
+                board[y + i][x] = Item::PASSAGE;
+            }
         }
     }
 
@@ -128,6 +145,9 @@ void State::SpawnFlame(int x, int y, int strength)
     f.strength = strength;
     f.timeLeft = FLAME_LIFETIME;
 
+    // unique flame id
+    uint8_t signature = uint8_t(x + BOARD_SIZE * y);
+
     flames.count++;
 
     // right
@@ -135,7 +155,7 @@ void State::SpawnFlame(int x, int y, int strength)
     {
         if(x + i >= BOARD_SIZE) break; // bounds
 
-        if(!SpawnFlameItem(*this, x + i, y))
+        if(!SpawnFlameItem(*this, x + i, y, signature))
         {
             break;
         }
@@ -146,7 +166,7 @@ void State::SpawnFlame(int x, int y, int strength)
     {
         if(x - i < 0) break; // bounds
 
-        if(!SpawnFlameItem(*this, x - i, y))
+        if(!SpawnFlameItem(*this, x - i, y, signature))
         {
             break;
         }
@@ -157,7 +177,7 @@ void State::SpawnFlame(int x, int y, int strength)
     {
         if(y + i >= BOARD_SIZE) break; // bounds
 
-        if(!SpawnFlameItem(*this, x, y + i))
+        if(!SpawnFlameItem(*this, x, y + i, signature))
         {
             break;
         }
@@ -168,7 +188,7 @@ void State::SpawnFlame(int x, int y, int strength)
     {
         if(y - i < 0) break; // bounds
 
-        if(!SpawnFlameItem(*this, x, y - i))
+        if(!SpawnFlameItem(*this, x, y - i, signature))
         {
             break;
         }
@@ -378,8 +398,6 @@ std::string PrintItem(int item)
             return FBLU("[\u25A0]");
         case Item::BOMB:
             return " \u25CF ";
-        case Item::FLAMES:
-            return FYEL(" \U0000263C ");
         case Item::EXTRABOMB:
             return " \u24B7 ";
         case Item::INCRRANGE:
@@ -387,10 +405,14 @@ std::string PrintItem(int item)
         case Item::KICK:
             return " \u24C0 ";
     }
+    if(IS_FLAME(item))
+    {
+        return FYEL(" \U0000263C ");
+    }
     //agent number
     if(item >= Item::AGENT0)
     {
-        return " "  +  std::to_string(item - 10) + " ";
+        return " "  +  std::to_string(item - Item::AGENT0) + " ";
     }
     else
     {
