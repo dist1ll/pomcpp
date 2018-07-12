@@ -1,4 +1,4 @@
-CC := g++
+CC := $(CXX)
 CFLAGS := 
 STD := c++17
 SRCEXT := cpp
