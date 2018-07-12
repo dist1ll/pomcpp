@@ -175,10 +175,16 @@ struct AgentInfo
 struct Bomb
 {
     Position position;
-    Direction velocity = Direction::IDLE; //if the bomb is moving, which way?
-    int id; // debug purposes
+    Direction velocity = Direction::IDLE;
+    int id;
     int timeLeft = BOMB_LIFETIME;
     int strength = BOMB_DEFAULT_STRENGTH;
+
+    /**
+     * @brief disabled A disabled bomb explodes
+     * but leaves no flame behind
+     */
+    int disabled = 0; // alignment
 };
 
 /**
@@ -240,15 +246,17 @@ struct State
     void PlantBomb(int id, int x, int y);
 
     /**
+     * @brief ExplodeTopBomb Explodes the bomb at the top of the
+     * queue and subsequently spawns flames. Handles "dead" bombs,
+     * edge conditions etc.
+     */
+    void ExplodeTopBomb();
+
+    /**
      * @brief hasBomb Returns true if a bomb is at the specified
      * position
      */
     bool HasBomb(int x, int y);
-
-    /**
-     * @brief Proxy for BombQueue::PopBomb()
-     */
-    void PopBomb();
 
     /**
      * @brief SpawnFlames Spawns rays of flames at the

@@ -120,9 +120,7 @@ void TickBombs(State& state)
     {
         if(state.bombQueue[0].timeLeft == 0)
         {
-            Bomb& c = state.bombQueue[0];
-            state.SpawnFlame(c.position.x, c.position.y, c.strength);
-            state.PopBomb();
+            state.ExplodeTopBomb();
         }
         else
         {

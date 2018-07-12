@@ -46,6 +46,16 @@ inline bool SpawnFlameItem(State& s, int x, int y, uint8_t signature = 0)
 }
 
 /**
+ * @brief PopBomb A proxy for FixedQueue::PopElem, but also
+ * takes care of agent count
+ */
+inline void PopBomb(State& state)
+{
+    state.agents[state.bombQueue[0].id].bombCount--;
+    state.bombQueue.PopElem();
+}
+
+/**
  * @brief IsOutOfBounds Checks wether a given position is out of bounds
  */
 inline bool IsOutOfBounds(const int& x, const int& y)
@@ -99,12 +109,6 @@ void State::PlantBomb(int id, int x, int y)
     bombQueue.count++;
 }
 
-void State::PopBomb()
-{
-    agents[bombQueue[0].id].bombCount--;
-    bombQueue.PopElem();
-}
-
 void State::PopFlame()
 {
     Flame& f = flames[0];
@@ -137,6 +141,20 @@ void State::PopFlame()
     flames.PopElem();
 }
 
+void State::ExplodeTopBomb()
+{
+    Bomb& c = bombQueue[0];
+    if(!c.disabled)
+    {
+        SpawnFlame(c.position.x, c.position.y, c.strength);
+    }
+    else if(board[c.position.y][c.position.x] == Item::BOMB)
+    {
+        board[c.position.y][c.position.x] = Item::PASSAGE;
+    }
+    PopBomb(*this);
+}
+
 void State::SpawnFlame(int x, int y, int strength)
 {
     Flame& f = flames.NextPos();
@@ -162,7 +180,7 @@ void State::SpawnFlame(int x, int y, int strength)
     }
 
     // left
-    for(int i = 0; i <= strength; i++)
+    for(int i = 1; i <= strength; i++)
     {
         if(x - i < 0) break; // bounds
 
@@ -173,7 +191,7 @@ void State::SpawnFlame(int x, int y, int strength)
     }
 
     // top
-    for(int i = 0; i <= strength; i++)
+    for(int i = 1; i <= strength; i++)
     {
         if(y + i >= BOARD_SIZE) break; // bounds
 
@@ -184,7 +202,7 @@ void State::SpawnFlame(int x, int y, int strength)
     }
 
     // bottom
-    for(int i = 0; i <= strength; i++)
+    for(int i = 1; i <= strength; i++)
     {
         if(y - i < 0) break; // bounds
 
