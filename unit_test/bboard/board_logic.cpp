@@ -311,40 +311,6 @@ TEST_CASE("Bomb Mechanics", "[step function]")
     }
 }
 
-TEST_CASE("Disabling Bombs", "[step function]")
-{
-    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
-    bboard::Move id = bboard::Move::IDLE;
-    bboard::Move m[4] = {id, id, id, id};
-    s->PutAgentsInCorners(0, 1, 2, 3);
-
-    SECTION("Remove Bomb Without Flames")
-    {
-        m[0] = bboard::Move::BOMB;
-        bboard::Step(s.get(), m);
-
-        m[0] = bboard::Move::RIGHT;
-        s->bombQueue[0].disabled = true;
-
-        SeveralSteps(bboard::BOMB_LIFETIME, s.get(), m);
-
-        REQUIRE(s->bombQueue.count == 0);
-        REQUIRE(s->flames.count == 0);
-        REQUIRE(s->board[0][0] == bboard::Item::PASSAGE);
-    }
-    SECTION("No Chain On Disabled Bombs")
-    {
-        s->PlantBomb(0, 3, 3);
-        s->PlantBomb(1, 4, 3);
-
-        s->bombQueue[0].disabled = true;
-
-        SeveralSteps(bboard::BOMB_LIFETIME, s.get(), m);
-
-        REQUIRE(s->bombQueue.count == 0);
-        REQUIRE(s->flames.count == 1);
-    }
-}
 
 TEST_CASE("Bomb Explosion", "[step function]")
 {

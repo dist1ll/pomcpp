@@ -51,8 +51,8 @@ inline bool SpawnFlameItem(State& s, int x, int y, uint8_t signature = 0)
  */
 inline void PopBomb(State& state)
 {
-    state.agents[state.bombQueue[0].id].bombCount--;
-    state.bombQueue.PopElem();
+    state.agents[BMB_ID(state.bombs[0])].bombCount--;
+    state.bombs.PopElem();
 }
 
 /**
@@ -97,16 +97,15 @@ void State::PlantBomb(int id, int x, int y)
         return;
     }
 
-    Bomb* b = &bombQueue.NextPos();
-    b->id = id;
-    b->position.x = x;
-    b->position.y = y;
-    b->strength = agents[id].bombStrength;
-    b->velocity = Direction::IDLE;
-    b->timeLeft = BOMB_LIFETIME;
+    Bomb* b = &bombs.NextPos();
+    SetBombID(*b, id);
+    SetBombPosition(*b, x, y);
+    SetBombStrength(*b, agents[id].bombStrength);
+    // TODO: velocity
+    SetBombTime(*b, BOMB_LIFETIME);
 
     agents[id].bombCount++;
-    bombQueue.count++;
+    bombs.count++;
 }
 
 void State::PopFlame()
@@ -143,15 +142,8 @@ void State::PopFlame()
 
 void State::ExplodeTopBomb()
 {
-    Bomb& c = bombQueue[0];
-    if(!c.disabled)
-    {
-        SpawnFlame(c.position.x, c.position.y, c.strength);
-    }
-    else if(board[c.position.y][c.position.x] == Item::BOMB)
-    {
-        board[c.position.y][c.position.x] = Item::PASSAGE;
-    }
+    Bomb& c = bombs[0];
+    SpawnFlame(BMB_POS_X(c), BMB_POS_Y(c), BMB_STRENGTH(c));
     PopBomb(*this);
 }
 
@@ -215,9 +207,9 @@ void State::SpawnFlame(int x, int y, int strength)
 
 bool State::HasBomb(int x, int y)
 {
-    for(int i = 0; i < bombQueue.count; i++)
+    for(int i = 0; i < bombs.count; i++)
     {
-        if(bombQueue[i].position.x == x && bombQueue[i].position.y == y)
+        if(BMB_POS_X(bombs[i]) == x && BMB_POS_Y(bombs[i]) == y)
         {
             return true;
         }
@@ -392,9 +384,9 @@ void PrintState(State* state)
                     PrintItem(Item::KICK).c_str(),state->agents[i].canKick);
     }
     std::cout << "\nBomb queue:  [  ";
-    for(int i = 0; i < state->bombQueue.count; i++)
+    for(int i = 0; i < state->bombs.count; i++)
     {
-        std::cout << state->bombQueue[i].id << "  ";
+        std::cout << BMB_ID(state->bombs[i]) << "  ";
     }
     std::cout << "]\nFlame queue: [  ";
     for(int i = 0; i < state->flames.count; i++)

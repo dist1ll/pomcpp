@@ -168,24 +168,43 @@ struct AgentInfo
     bool dead = false;
 };
 
-/**
- * @brief The Bomb struct hold all information about a specific
- * bomb on the board
- */
-struct Bomb
-{
-    Position position;
-    Direction velocity = Direction::IDLE;
-    int id;
-    int timeLeft = BOMB_LIFETIME;
-    int strength = BOMB_DEFAULT_STRENGTH;
 
-    /**
-     * @brief disabled A disabled bomb explodes
-     * but leaves no flame behind
-     */
-    int disabled = 0; // alignment
-};
+// BOMB MACROS
+#define BMB_POS_X(x)    (((x) & 0xF))           // [ 0, 4]
+#define BMB_POS_Y(x)    (((x) & 0xF0) >> 4)     // [ 4, 8]
+#define BMB_ID(x)       (((x) & 0xF00) >> 8)    // [ 8,12]
+#define BMB_STRENGTH(x) (((x) & 0xF000) >> 12)  // [12,16]
+#define BMB_TIME(x)     (((x) & 0xF0000) >> 16) // [16,64]
+
+typedef int Bomb;
+
+// inverted bit-mask
+const int cmask0_4   =  (~0) & (~0xF);
+const int cmask4_8   =  (~0) & (~0xF0);
+const int cmask8_12  =  (~0) & (~0xF00);
+const int cmask12_16 =  (~0) & (~0xF000);
+const int cmask16_r  =  (0xFFFF);
+
+inline void ReduceBombTimer(Bomb& bomb)
+{
+    bomb = bomb - (1 << 16);
+}
+inline void SetBombPosition(Bomb& bomb, int x, int y)
+{
+    bomb = (bomb & cmask0_4 & cmask4_8) + (x) + (y << 4);
+}
+inline void SetBombID(Bomb& bomb, int id)
+{
+    bomb = (bomb & cmask8_12) + (id << 8);
+}
+inline void SetBombStrength(Bomb& bomb, int strength)
+{
+    bomb = (bomb & cmask12_16) + (strength << 12);
+}
+inline void SetBombTime(Bomb& bomb, int time)
+{
+    bomb = (bomb & cmask16_r) + (time << 16);
+}
 
 /**
  * @brief The Flame struct holds all information about a specific
@@ -229,7 +248,7 @@ struct State
     /**
      * @brief bombQueue Holds all bombs on this board
      */
-    FixedQueue<Bomb, MAX_BOMBS> bombQueue;
+    FixedQueue<Bomb, MAX_BOMBS> bombs;
 
     /**
      * @brief flames Holds all flames on this board

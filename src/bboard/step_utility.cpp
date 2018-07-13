@@ -109,16 +109,16 @@ void TickFlames(State& state)
 
 void TickBombs(State& state)
 {
-    for(int i = 0; i < state.bombQueue.count; i++)
+    for(int i = 0; i < state.bombs.count; i++)
     {
-        state.bombQueue[i].timeLeft--;
+        ReduceBombTimer(state.bombs[i]);
     }
 
     //explode timed-out bombs
-    int bombCount = state.bombQueue.count;
+    int bombCount = state.bombs.count;
     for(int i = 0; i < bombCount; i++)
     {
-        if(state.bombQueue[0].timeLeft == 0)
+        if(BMB_TIME(state.bombs[0]) == 0)
         {
             state.ExplodeTopBomb();
         }

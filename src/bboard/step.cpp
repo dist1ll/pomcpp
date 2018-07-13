@@ -70,9 +70,10 @@ void Step(State* state, Move* moves)
         //if ouroboros, the bomb will be covered by an agent
         if(ouroboros)
         {
-            for(int j = 0; j < state->bombQueue.count; j++)
+            for(int j = 0; j < state->bombs.count; j++)
             {
-                if(state->bombQueue[j].position == desired)
+                if(BMB_POS_X(state->bombs[j]) == desired.x
+                        && BMB_POS_Y(state->bombs[j]) == desired.y)
                 {
                     itemOnDestination = Item::BOMB;
                     break;
