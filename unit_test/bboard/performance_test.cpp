@@ -9,6 +9,8 @@
 #include "bboard.hpp"
 #include "agents.hpp"
 
+using bboard::FixedQueue;
+
 template<typename F, typename... Args>
 double timeMethod(int times, F func, Args&&... args)
 {
@@ -50,5 +52,59 @@ TEST_CASE("Step Function", "[performance]")
               << std::endl
               << "Agent: "
               << type_name<decltype(a)>()
+              << std::endl << std::endl;
+}
+
+inline void QueueRemovalSTD(FixedQueue<int, 20>& queue)
+{
+    queue.count = 20;
+    for(int i = queue.count/2 - 1; i >= 0; i--)
+    {
+        queue.RemoveAt_STDCPY(i * 2);
+    }
+}
+
+inline void QueueRemovalMEM(FixedQueue<int, 20>& queue)
+{
+    queue.count = 20;
+    for(int i = 9; i >= 0; i--)
+    {
+        queue.RemoveAt_MEMCPY(i * 2);
+    }
+}
+
+TEST_CASE("Fixed Queue Remove Copies", "[performance]")
+{
+    int times = 1000;
+    int avgRuns = 100;
+    std::cout << "FixedQueue::RemoveAt (Avg. over "
+              << avgRuns << " runs)"
               << std::endl;
+
+    FixedQueue<int, 20> q;
+
+    double t1 = 0;
+    double t2 = 0;
+
+    for(int i = 0; i < avgRuns; i++)
+    {
+        t1 += timeMethod(times, QueueRemovalSTD, q);
+    }
+    for(int i = 0; i < avgRuns; i++)
+    {
+        t2 += timeMethod(times, QueueRemovalMEM, q);
+    }
+
+    t1 /= avgRuns;
+    t2 /= avgRuns;
+
+    std::cout << times / 100 << "k"
+              << " removal calls for STDCPY:\t"
+              << t1 << "ms"
+              << std::endl;
+    std::cout << times / 100 << "k"
+              << " removal calls for MEMCPY:\t"
+              << t2 << "ms"
+              << std::endl << std::endl;
+
 }

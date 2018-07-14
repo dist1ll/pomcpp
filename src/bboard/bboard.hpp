@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <iostream>
+#include <algorithm>
 
 namespace bboard
 {
@@ -87,16 +88,45 @@ struct FixedQueue
      * @brief PopBomb Frees up the position of the elem in the
      * queue to be used by other elems.
      */
-    inline void PopElem()
+    void PopElem()
     {
         index = (index + 1) % (TSize);
         count--;
     }
 
     /**
+     * @brief RemoveAt Removes an element at a specified index
+     * Highly discouraged! Only use if necessary
+     */
+    void RemoveAt_STDCPY(int removeAt)
+    {
+        for(int i = removeAt + 1; i < count; i++)
+        {
+            int translatedIndex = (index + i) % TSize;
+            queue[(translatedIndex - 1 + TSize) % TSize] = queue[translatedIndex];
+        }
+        count--;
+
+    }
+
+    /**
+     * @brief RemoveAt Removes an element at a specified index
+     * Highly discouraged! Only use if necessary
+     */
+    void RemoveAt_MEMCPY(int removeAt)
+    {
+        for(int i = removeAt + 1; i < count; i++)
+        {
+            int translatedIndex = (index + i) % TSize;
+            queue[(translatedIndex - 1 + TSize) % TSize] = queue[translatedIndex];
+        }
+        count--;
+    }
+
+    /**
      * @brief PollNext Polls the next free queue spot
      */
-    inline T& NextPos()
+    T& NextPos()
     {
         return queue[(index + count) % TSize];
     }
@@ -176,6 +206,19 @@ struct AgentInfo
 #define BMB_STRENGTH(x) (((x) & 0xF000) >> 12)  // [12,16]
 #define BMB_TIME(x)     (((x) & 0xF0000) >> 16) // [16,64]
 
+/**
+ * Represents all information about a single
+ * bomb on the board.
+ *
+ * Specification (see docs optimization II)
+ *
+ *   Bit     Semantics
+ * [ 0,  4]  x-Position
+ * [ 4,  8]  y-Position
+ * [ 8, 12]  ID
+ * [12, 16]  Strength
+ * [16, 64]  Time
+ */
 typedef int Bomb;
 
 // inverted bit-mask
