@@ -172,16 +172,14 @@ void State::SpawnFlame(int x, int y, int strength)
 
     flames.count++;
 
-    // if there's a bomb in origin, don't do SpawnFlameItem
-    // because it checks the bomb queue for chained hits.
-    if(board[y][x] == Item::BOMB)
+    // kill agent possibly in origin
+    if(board[y][x] >= Item::AGENT0)
     {
-        board[y][x] = Item::FLAMES + signature;
+        Kill(board[y][x] - Item::AGENT0);
     }
-    else // handle normally
-    {
-        SpawnFlameItem(*this, x, y, signature);
-    }
+
+    // override origin
+    board[y][x] = Item::FLAMES + signature;
 
     // right
     for(int i = 1; i <= strength; i++)
