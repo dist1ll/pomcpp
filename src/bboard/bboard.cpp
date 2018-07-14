@@ -28,11 +28,19 @@ inline bool SpawnFlameItem(State& s, int x, int y, uint8_t signature = 0)
     {
         s.Kill(s.board[y][x] - Item::AGENT0);
     }
-    if(s.board[y][x] == Item::BOMB)
+    if(s.board[y][x] == Item::BOMB || s.board[y][x] >= Item::AGENT0)
     {
         //TODO: Chain reaction
+        for(int i = 0; i < s.bombs.count; i++)
+        {
+            if(BMB_POS(s.bombs[i]) == (x + (y << 4)))
+            {
+                s.SpawnFlame(x, y, s.agents[BMB_ID(s.bombs[i])].bombStrength);
+                s.bombs.RemoveAt(i);
+                break;
+            }
+        }
     }
-
 
     if(s.board[y][x] != Item::RIGID)
     {
@@ -90,7 +98,7 @@ void PrintGameResult(Environment& env)
 // State Methods //
 ///////////////////
 
-void State::PlantBomb(int id, int x, int y)
+void State::PlantBomb(int id, int x, int y, bool setItem)
 {
     if(agents[id].bombCount >= agents[id].maxBombCount)
     {
@@ -104,6 +112,10 @@ void State::PlantBomb(int id, int x, int y)
     // TODO: velocity
     SetBombTime(*b, BOMB_LIFETIME);
 
+    if(setItem)
+    {
+        board[y][x] = Item::BOMB;
+    }
     agents[id].bombCount++;
     bombs.count++;
 }
@@ -160,8 +172,19 @@ void State::SpawnFlame(int x, int y, int strength)
 
     flames.count++;
 
+    // if there's a bomb in origin, don't do SpawnFlameItem
+    // because it checks the bomb queue for chained hits.
+    if(board[y][x] == Item::BOMB)
+    {
+        board[y][x] = Item::FLAMES + signature;
+    }
+    else // handle normally
+    {
+        SpawnFlameItem(*this, x, y, signature);
+    }
+
     // right
-    for(int i = 0; i <= strength; i++)
+    for(int i = 1; i <= strength; i++)
     {
         if(x + i >= BOARD_SIZE) break; // bounds
 

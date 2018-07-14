@@ -60,7 +60,7 @@ inline void QueueRemovalSTD(FixedQueue<int, 20>& queue)
     queue.count = 20;
     for(int i = queue.count/2 - 1; i >= 0; i--)
     {
-        queue.RemoveAt_STDCPY(i * 2);
+        queue.RemoveAt(i * 2);
     }
 }
 
@@ -96,15 +96,10 @@ TEST_CASE("Fixed Queue Remove Copies", "[performance]")
     }
 
     t1 /= avgRuns;
-    t2 /= avgRuns;
 
     std::cout << times / 100 << "k"
               << " removal calls for STDCPY:\t"
               << t1 << "ms"
-              << std::endl;
-    std::cout << times / 100 << "k"
-              << " removal calls for MEMCPY:\t"
-              << t2 << "ms"
               << std::endl << std::endl;
 
 }

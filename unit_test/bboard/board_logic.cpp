@@ -380,12 +380,13 @@ TEST_CASE("Flame Mechanics", "[step function]")
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
     s->PutAgentsInCorners(0, 1, 2, 3);
-    s->SpawnFlame(5,5,4);
 
-    bboard::Step(s.get(), m);
 
     SECTION("Correct Lifetime Calculation")
     {
+        s->SpawnFlame(5,5,4);
+        bboard::Step(s.get(), m);
+
         SeveralSteps(bboard::FLAME_LIFETIME - 2, s.get(), m);
         REQUIRE(IS_FLAME(s->board[5][5]));
         bboard::Step(s.get(), m);
@@ -393,6 +394,9 @@ TEST_CASE("Flame Mechanics", "[step function]")
     }
     SECTION("Vanish Flame Completely")
     {
+        s->SpawnFlame(5,5,4);
+        bboard::Step(s.get(), m);
+
         for(int i = 0; i <= 4; i++)
         {
             REQUIRE(IS_FLAME(s->board[5][5 + i]));
@@ -403,6 +407,9 @@ TEST_CASE("Flame Mechanics", "[step function]")
     }
     SECTION("Only Vanish Your Own Flame")
     {
+        s->SpawnFlame(5,5,4);
+        bboard::Step(s.get(), m);
+
         s->SpawnFlame(6, 6, 4);
         SeveralSteps(bboard::FLAME_LIFETIME - 1, s.get(), m);
 
@@ -410,4 +417,49 @@ TEST_CASE("Flame Mechanics", "[step function]")
         REQUIRE(IS_FLAME(s->board[6][5]));
         REQUIRE(!IS_FLAME(s->board[5][5]));
     }
+}
+
+TEST_CASE("Chained Explosions", "[step function]")
+{
+    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[4] = {id, id, id, id};
+    /*
+     * Note two ways to plant bombs in this test
+     * PlantBomb  =>  Bomb gets ticked
+     * Set Move to Bomb  =>  Bomb doesn't get ticked
+     */
+
+    SECTION("Two Bombs")
+    {
+        s->PutAgentsInCorners(0, 1, 2, 3);
+        s->PlantBomb(0, 5, 5, true);
+        bboard::Step(s.get(), m);
+        s->PlantBomb(1, 4, 5, true);
+        SeveralSteps(bboard::BOMB_LIFETIME - 1, s.get(), m);
+        REQUIRE(s->bombs.count == 0);
+        REQUIRE(IS_FLAME(s->board[5][6]));
+    }
+    SECTION("Two Bombs Covered By Agent")
+    {
+        s->PutAgent(0, 5, 5);
+        s->PutAgent(1, 4, 5);
+        s->Kill(2, 3);
+        m[0] = bboard::Move::BOMB;
+        bboard::Step(s.get(), m);
+
+        m[1] = bboard::Move::BOMB;
+        bboard::Step(s.get(), m);
+
+        m[0] = m[1] = bboard::Move::DOWN;
+
+        SeveralSteps(bboard::BOMB_LIFETIME - 2, s.get(), m);
+
+        REQUIRE(s->bombs.count == 2);
+        bboard::Step(s.get(), m);
+        REQUIRE(s->bombs.count == 0);
+        REQUIRE(s->flames.count == 2);
+    }
+
+
 }

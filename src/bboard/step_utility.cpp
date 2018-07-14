@@ -116,7 +116,7 @@ void TickBombs(State& state)
 
     //explode timed-out bombs
     int bombCount = state.bombs.count;
-    for(int i = 0; i < bombCount; i++)
+    for(int i = 0; i < bombCount && state.bombs.count > 0; i++)
     {
         if(BMB_TIME(state.bombs[0]) == 0)
         {

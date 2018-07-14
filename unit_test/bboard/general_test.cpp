@@ -23,17 +23,17 @@ void TestQueue(FixedQueue<Bomb, 10>& queue)
     REQUIRE(queue.count == 7);
     REQUIRE(queue[0] == 3);
 
-    queue.RemoveAt_STDCPY(5);
+    queue.RemoveAt(5);
 
     REQUIRE(queue.count == 6);
     REQUIRE(queue[4] == 7);
     REQUIRE(queue[5] == 9);
 
-    queue.RemoveAt_STDCPY(0);
+    queue.RemoveAt(0);
 
     REQUIRE(queue[0] == 4);
 
-    queue.RemoveAt_STDCPY(4);
+    queue.RemoveAt(4);
 
     REQUIRE(queue.count == 4);
     REQUIRE(queue[3] == 7);

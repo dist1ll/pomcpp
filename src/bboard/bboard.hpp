@@ -98,7 +98,7 @@ struct FixedQueue
      * @brief RemoveAt Removes an element at a specified index
      * Highly discouraged! Only use if necessary
      */
-    void RemoveAt_STDCPY(int removeAt)
+    void RemoveAt(int removeAt)
     {
         for(int i = removeAt + 1; i < count; i++)
         {
@@ -115,12 +115,8 @@ struct FixedQueue
      */
     void RemoveAt_MEMCPY(int removeAt)
     {
-        for(int i = removeAt + 1; i < count; i++)
-        {
-            int translatedIndex = (index + i) % TSize;
-            queue[(translatedIndex - 1 + TSize) % TSize] = queue[translatedIndex];
-        }
-        count--;
+        //TODO
+        count --;
     }
 
     /**
@@ -200,6 +196,7 @@ struct AgentInfo
 
 
 // BOMB MACROS
+#define BMB_POS(x)      (((x) & 0xFF))          // [ 0, 8]
 #define BMB_POS_X(x)    (((x) & 0xF))           // [ 0, 4]
 #define BMB_POS_Y(x)    (((x) & 0xF0) >> 4)     // [ 4, 8]
 #define BMB_ID(x)       (((x) & 0xF00) >> 8)    // [ 8,12]
@@ -222,11 +219,11 @@ struct AgentInfo
 typedef int Bomb;
 
 // inverted bit-mask
-const int cmask0_4   =  (~0) & (~0xF);
-const int cmask4_8   =  (~0) & (~0xF0);
-const int cmask8_12  =  (~0) & (~0xF00);
-const int cmask12_16 =  (~0) & (~0xF000);
-const int cmask16_r  =  (0xFFFF);
+const int cmask0_4   =  ~0xF;
+const int cmask4_8   =  ~0xF0;
+const int cmask8_12  =  ~0xF00;
+const int cmask12_16 =  ~0xF000;
+const int cmask16_r  =   0xFFFF;
 
 inline void ReduceBombTimer(Bomb& bomb)
 {
@@ -304,8 +301,9 @@ struct State
      * @param id Agent that plants the bomb
      * @param x X position of the bomb
      * @param y Y position of the bomb
+     * @param setItem Should the bomb item be set on that position
      */
-    void PlantBomb(int id, int x, int y);
+    void PlantBomb(int id, int x, int y, bool setItem = false);
 
     /**
      * @brief ExplodeTopBomb Explodes the bomb at the top of the
