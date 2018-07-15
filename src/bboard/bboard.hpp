@@ -401,7 +401,7 @@ struct Agent
      * @param state The (potentially fogged) board state
      * @return A Move (integer, 0-..)
      */
-    virtual Move act(State* state) = 0;
+    virtual Move act(const State* state) = 0;
 };
 
 

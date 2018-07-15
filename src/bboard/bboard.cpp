@@ -44,8 +44,9 @@ inline bool SpawnFlameItem(State& s, int x, int y, uint8_t signature = 0)
 
     if(s.board[y][x] != Item::RIGID)
     {
+        bool wasWood = s.board[y][x] == Item::WOOD;
         s.board[y][x] = Item::FLAMES + signature;
-        return true;
+        return !wasWood; // if wood, then only destroy 1
     }
     else
     {
@@ -438,7 +439,7 @@ std::string PrintItem(int item)
     }
     if(IS_FLAME(item))
     {
-        return FYEL(" \U0000263C ");
+        return FRED(" \U0000263C ");
     }
     //agent number
     if(item >= Item::AGENT0)

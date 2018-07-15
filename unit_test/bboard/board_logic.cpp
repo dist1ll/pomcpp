@@ -360,6 +360,18 @@ TEST_CASE("Bomb Explosion", "[step function]")
 
         REQUIRE(s->board[5][6] == bboard::Item::RIGID);
     }
+    SECTION("Kill Only 1 Wood")
+    {
+        s->PutItem(7, 5, bboard::Item::WOOD);
+        s->PutItem(8, 5, bboard::Item::WOOD);
+
+        s->agents[0].bombStrength = 5;
+        s->PlantBomb(6, 5, 0, true);
+        SeveralSteps(bboard::BOMB_LIFETIME, s.get(), m);
+
+        REQUIRE(IS_FLAME(s->board[5][7]));
+        REQUIRE(!IS_FLAME(s->board[5][8]));
+    }
     SECTION("Max Agent Bomb Limit")
     {
         s->agents[0].maxBombCount = 2;

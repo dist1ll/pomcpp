@@ -21,7 +21,7 @@ struct RandomAgent : bboard::Agent
 
     RandomAgent();
 
-    bboard::Move act(bboard::State* state) override;
+    bboard::Move act(const bboard::State* state) override;
 };
 
 
@@ -35,7 +35,7 @@ struct HarmlessAgent : bboard::Agent
 
     HarmlessAgent();
 
-    bboard::Move act(bboard::State* state) override;
+    bboard::Move act(const bboard::State* state) override;
 };
 
 /**
@@ -43,7 +43,7 @@ struct HarmlessAgent : bboard::Agent
  */
 struct LazyAgent : bboard::Agent
 {
-    bboard::Move act(bboard::State* state) override;
+    bboard::Move act(const bboard::State* state) override;
 };
 
 // more agents to be included?
