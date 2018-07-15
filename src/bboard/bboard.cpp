@@ -98,7 +98,7 @@ void PrintGameResult(Environment& env)
 // State Methods //
 ///////////////////
 
-void State::PlantBomb(int id, int x, int y, bool setItem)
+void State::PlantBomb(int x, int y, int id, bool setItem)
 {
     if(agents[id].bombCount >= agents[id].maxBombCount)
     {

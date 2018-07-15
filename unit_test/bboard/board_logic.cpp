@@ -433,9 +433,9 @@ TEST_CASE("Chained Explosions", "[step function]")
     SECTION("Two Bombs")
     {
         s->PutAgentsInCorners(0, 1, 2, 3);
-        s->PlantBomb(0, 5, 5, true);
+        s->PlantBomb(5, 5, 0, true);
         bboard::Step(s.get(), m);
-        s->PlantBomb(1, 4, 5, true);
+        s->PlantBomb(4, 5, 1, true);
         SeveralSteps(bboard::BOMB_LIFETIME - 1, s.get(), m);
         REQUIRE(s->bombs.count == 0);
         REQUIRE(IS_FLAME(s->board[5][6]));

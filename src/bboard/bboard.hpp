@@ -303,7 +303,7 @@ struct State
      * @param y Y position of the bomb
      * @param setItem Should the bomb item be set on that position
      */
-    void PlantBomb(int id, int x, int y, bool setItem = false);
+    void PlantBomb(int x, int y, int id, bool setItem = false);
 
     /**
      * @brief ExplodeTopBomb Explodes the bomb at the top of the

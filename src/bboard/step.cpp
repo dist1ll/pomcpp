@@ -50,7 +50,7 @@ void Step(State* state, Move* moves)
         }
         else if(m == Move::BOMB)
         {
-            state->PlantBomb(i, state->agents[i].x, state->agents[i].y);
+            state->PlantBomb(state->agents[i].x, state->agents[i].y, i);
             continue;
         }
 
