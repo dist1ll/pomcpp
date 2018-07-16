@@ -27,14 +27,14 @@ INCL2 := $(SRCDIR)/$(MODULE2)
 
 INC := -I src/bboard -I src/agents
 
-all: main test
+all:    main test
 	
 main: $(MAIN_OBJECTS)
 	@mkdir -p bin
 	@$(CC) $(CFLAGS) -std=$(STD) $^ -o $(MAIN_TARGET)
 
 test: $(TEST_OBJECTS)
-	@make main -s
+	@$(MAKE) main -s
 	@mkdir -p bin
 	@$(CC) $(CFLAGS) -std=$(STD) $^ -o $(TEST_TARGET) $(MAIN_OBJS_NOMAIN)
 

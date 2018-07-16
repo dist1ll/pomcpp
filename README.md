@@ -42,6 +42,16 @@ Instead of using the shell scripts you can obviously use make commands and call/
 | `make clean`  | Removes ./bin and ./build  |
 | `make mclean`  | Removes ./bin/exec and ./build/src only |
 
+Tip: The makefile makes use of the MAKEFLAGS environment variable. Let's say you want
+to have `-j n` as the default job count, where `n` is the number of cores available on
+your system. Then just export an env variable like this
+
+```
+$ export MAKEFLAGS="-j $(grep -c ^processor /proc/cpuinfo)"
+```
+
+(or alternatively add it to your `${HOME}.profile`)
+
 ## Project Structure
 
 All of the main source code is in `src/*` and all testing code is in `unit_test/*`. The source is divided into modules

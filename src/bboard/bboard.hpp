@@ -426,6 +426,9 @@ private:
     int agentWon = -1; // FFA
     int teamWon = -1; // Team
 
+    bool threading = false;
+    int threadCount = 1;
+
 public:
 
     Environment();

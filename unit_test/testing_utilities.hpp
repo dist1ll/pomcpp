@@ -6,8 +6,22 @@
 #define TESTING_UTILITIES_HPP
 
 #include <iostream>
+#include <iomanip>
+#include <locale>
 
 #include "bboard.hpp"
+
+/**
+ * @author https://stackoverflow.com/a/7276879
+ */
+template<class T>
+std::string FormatWithCommas(T value)
+{
+    std::stringstream ss;
+    ss.imbue(std::locale(""));
+    ss << std::fixed << value;
+    return ss.str();
+}
 
 template <class T>
 constexpr
