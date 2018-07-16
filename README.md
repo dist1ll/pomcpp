@@ -95,6 +95,9 @@ Tested with:                     agents::HarmlessAgent
 All tests passed (1 assertion in 1 test case)
 
 ```
+You can also directly run the test-binaries. For a list of command line arguments
+see the Catch2 CLI docs (or run `./test --help`). Here are some typical examples
+I use a lot:
 
 | Command | What it does |
 | ------- | ------------ |

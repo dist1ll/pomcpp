@@ -81,9 +81,9 @@ TEST_CASE("Step Function", "[performance]")
               << FGRN("Test Results:") << std::endl
               << "Iteration count (100ms):         ";
     if(THREADING)
-        std::cout << FormatWithCommas(uint(std::floor(times/(t/100.0))) * THREAD_COUNT);
+        RecursiveCommas(std::cout, uint(std::floor(times/(t/100.0))) * THREAD_COUNT);
     else
-        std::cout << FormatWithCommas(uint(std::floor(times/(t/100.0))));
+        RecursiveCommas(std::cout, uint(std::floor(times/(t/100.0))));
     std::cout << std::endl
               << "Tested with:                     "
               << type_name<decltype(a)>()

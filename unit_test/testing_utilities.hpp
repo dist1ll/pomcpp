@@ -7,20 +7,24 @@
 
 #include <iostream>
 #include <iomanip>
-#include <locale>
 
 #include "bboard.hpp"
 
-/**
- * @author https://stackoverflow.com/a/7276879
- */
 template<class T>
-std::string FormatWithCommas(T value)
+void RecursiveCommas(std::ostream& os, T n)
 {
-    std::stringstream ss;
-    ss.imbue(std::locale(""));
-    ss << std::fixed << value;
-    return ss.str();
+    T rest = n % 1000; //"last 3 digits"
+    n /= 1000;         //"begining"
+
+    if (n > 0)
+    {
+        RecursiveCommas(os, n); //printing "begining"
+
+        //and last chunk
+        os << ',' << std::setfill('0') << std::setw(3) << rest;
+    }
+    else
+        os << rest; //first chunk of the number
 }
 
 template <class T>
