@@ -13286,7 +13286,7 @@ using Catch::Detail::Approx;
 #endif // TWOBLUECUBES_SINGLE_INCLUDE_CATCH_HPP_INCLUDED
 
 // custom
-static const int THREADING_MAX_ALLOWED = 128;
-static bool THREADING = false;
-static int THREAD_COUNT = 1;
+static const uint THREADING_MAX_ALLOWED = 128;
+extern bool THREADING;
+extern uint THREAD_COUNT;
 

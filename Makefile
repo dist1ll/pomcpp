@@ -1,5 +1,5 @@
 CC := $(CXX)
-CFLAGS := 
+CFLAGS := -pthread
 STD := c++17
 SRCEXT := cpp
 SRCDIR := src

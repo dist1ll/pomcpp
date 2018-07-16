@@ -75,11 +75,33 @@ in the `agents` header and implemented in the same module.
 
 All test cases will be in the module `unit_test`. The bboard should be tested thoroughly so it exactly matches the specified behaviour of Pommerman. The compiled `test` binary can be found in `/bin`
 
+## Testing
+
+Want to test out how many steps can be simulated on your machine in 100ms?
+
+```
+# example of 4 threads on an Intel i5 (Skylake/4 cores)
+$ ./performance.sh -t 4 
+
+Activated Multi-Threading for performance tests. 
+	Thread count:            4
+	Max supported threads:   4
+
+Test Results:
+Iteration count (100ms):         586.332
+Tested with:                     agents::HarmlessAgent
+
+===============================================================================
+All tests passed (1 assertion in 1 test case)
+
+```
+
 | Command | What it does |
 | ------- | ------------ |
 | `./test`  | Runs all tests, including a performance report |
 | `./test "[step function]"` | Tests only the step function  |
 | `./test ~"[performance]"` | Runs all test except the performance cases| 
+
 
 ## Defining Agents
 

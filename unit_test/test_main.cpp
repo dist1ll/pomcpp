@@ -4,6 +4,9 @@
 
 #include "catch.hpp"
 
+bool THREADING;
+uint THREAD_COUNT;
+
 int main( int argc, char* argv[] )
 {
     Catch::Session session; // There must be exactly one instance
@@ -27,10 +30,11 @@ int main( int argc, char* argv[] )
     if( returnCode != 0 ) // Indicates a command line error
         return returnCode;
 
+
     // if set on the command line then 'height' is now set at this point
-    if( THREAD_COUNT > 1 )
+    THREADING = THREAD_COUNT > 1;
+    if(THREADING)
     {
-        THREADING = true;
         std::cout << std::endl
                   << "Activated Multi-Threading for performance tests. " << std::endl
                   << "\tThread count:            " << THREAD_COUNT << std::endl

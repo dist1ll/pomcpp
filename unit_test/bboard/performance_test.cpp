@@ -31,11 +31,14 @@ void Proxy(bboard::Environment& s)
     s.Step();
 }
 
-void ProxyConcurrent(bboard::Environment& s, int times)
+void ProxyConcurrent(int times)
 {
+    agents::HarmlessAgent a;
+    bboard::Environment env;
+    env.MakeGame({&a, &a, &a, &a});
     for(int i = 0; i < times; i++)
     {
-        s.Step();
+        env.Step();
     }
 }
 
@@ -50,24 +53,22 @@ TEST_CASE("Step Function", "[performance]")
 
     double t = -1;
 
-    if(THREADING)
+    if(!THREADING)
     {
         t = timeMethod(times, Proxy, env);
     }
-
     else
     {
-        std::thread threads[THREADING_MAX_ALLOWED];
+        std::vector<std::thread> threads(THREAD_COUNT);
+
         std::chrono::duration<double, std::milli> total;
         auto t1 = std::chrono::high_resolution_clock::now();
-        for(int i = 0; i < THREAD_COUNT; i++)
+        for(uint i = 0; i < THREAD_COUNT; i++)
         {
-            // threads[i] = std::thread(ProxyConcurrent, env, times);
-            // hmm
+            threads[i] = std::thread(ProxyConcurrent, times);
         }
-
         // join all
-        for(int i = 0; i < THREAD_COUNT; i++)
+        for(uint i = 0; i < THREAD_COUNT; i++)
         {
             threads[i].join();
         }
@@ -78,30 +79,15 @@ TEST_CASE("Step Function", "[performance]")
 
     std::cout << std::endl
               << FGRN("Test Results:") << std::endl
-              << "Iteration count (100ms):         "
-              << FormatWithCommas(int(std::floor(times/(t/100.0))))
-              << std::endl
+              << "Iteration count (100ms):         ";
+    if(THREADING)
+        std::cout << FormatWithCommas(uint(std::floor(times/(t/100.0))) * THREAD_COUNT);
+    else
+        std::cout << FormatWithCommas(uint(std::floor(times/(t/100.0))));
+    std::cout << std::endl
               << "Tested with:                     "
               << type_name<decltype(a)>()
               << std::endl << std::endl;
 
     REQUIRE(1);
-}
-
-inline void QueueRemovalSTD(FixedQueue<int, 20>& queue)
-{
-    queue.count = 20;
-    for(int i = queue.count/2 - 1; i >= 0; i--)
-    {
-        queue.RemoveAt(i * 2);
-    }
-}
-
-inline void QueueRemovalMEM(FixedQueue<int, 20>& queue)
-{
-    queue.count = 20;
-    for(int i = 9; i >= 0; i--)
-    {
-        queue.RemoveAt_MEMCPY(i * 2);
-    }
 }
