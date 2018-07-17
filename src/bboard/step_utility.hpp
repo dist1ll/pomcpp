@@ -52,6 +52,14 @@ void TickFlames(State& state);
 void TickBombs(State& state);
 
 /**
+ * @brief ConsumePowerup Lets an agent consume a powerup
+ * @param agentID The agent's ID that consumes the item
+ * @param powerUp A powerup item. If it's something else,
+ * this function will do nothing.
+ */
+void ConsumePowerup(State& state, int agentID, int powerUp);
+
+/**
  * @brief PrintDependency Prints a dependency array in a nice
  * format (stdout)
  * @param dependency Integer array that contains the dependencies

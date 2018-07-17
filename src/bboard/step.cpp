@@ -42,7 +42,7 @@ void Step(State* state, Move* moves)
             rootIdx++;
             i = roots[rootIdx];
         }
-        Move m = moves[i];
+        const Move m = moves[i];
 
         if(state->agents[i].dead || m == Move::IDLE)
         {
@@ -101,22 +101,11 @@ void Step(State* state, Move* moves)
 
 
         // Collect those sweet power-ups
-        if(itemOnDestination == Item::EXTRABOMB)
+        if(IS_POWERUP(itemOnDestination))
         {
-            state->agents[i].maxBombCount++;
-            itemOnDestination = 0; // consume the power-up
+            util::ConsumePowerup(*state, i, itemOnDestination);
+            itemOnDestination = 0;
         }
-        else if(itemOnDestination == Item::INCRRANGE)
-        {
-            state->agents[i].bombStrength++;
-            itemOnDestination = 0; // consume the power-up
-        }
-        else if(itemOnDestination == Item::KICK)
-        {
-            state->agents[i].canKick = true;
-            itemOnDestination = 0; // consume the power-up
-        }
-
 
         // execute move if the destination is free
         // (in the rare case of ouroboros, make the move even

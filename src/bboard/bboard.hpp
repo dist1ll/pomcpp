@@ -55,7 +55,7 @@ enum Item
     WOOD       = 2,
     BOMB       = 3,
     // optimization I in docs
-    FLAMES     = 1 << 8,
+    FLAMES     = 4 << 8,
     FOG        = 5,
     EXTRABOMB  = 6,
     INCRRANGE  = 7,
@@ -67,8 +67,8 @@ enum Item
     AGENT3 = 4 << 16
 };
 
-
-#define IS_FLAME(x) (((x) >> 8) == 1)
+#define IS_POWERUP(x) ((x) > 5 && (x) < 9)
+#define IS_FLAME(x) (((x) >> 8) == 4)
 #define FLAME_SIG(x) ((x) - bboard::Item::FLAMES)
 
 /**
@@ -107,16 +107,6 @@ struct FixedQueue
         }
         count--;
 
-    }
-
-    /**
-     * @brief RemoveAt Removes an element at a specified index
-     * Highly discouraged! Only use if necessary
-     */
-    void RemoveAt_MEMCPY(int removeAt)
-    {
-        //TODO
-        count --;
     }
 
     /**
@@ -376,7 +366,7 @@ struct State
      * @param x x-position of the agent.
      * @param y y-position of the agent.
      */
-    void PutAgent(int agentID, int x, int y);
+    void PutAgent(int x, int y, int agentID);
 };
 
 inline int& State::operator[] (const Position& pos)

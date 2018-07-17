@@ -49,7 +49,7 @@ TEST_CASE("Step Function", "[performance]")
 
     env.MakeGame({&a, &a, &a, &a});
 
-    int times = 100000;
+    int times = 10000;
 
     double t = -1;
 
@@ -67,11 +67,13 @@ TEST_CASE("Step Function", "[performance]")
         {
             threads[i] = std::thread(ProxyConcurrent, times);
         }
+
         // join all
         for(uint i = 0; i < THREAD_COUNT; i++)
         {
             threads[i].join();
         }
+
         total = std::chrono::high_resolution_clock::now() - t1;
         t = total.count();
     }

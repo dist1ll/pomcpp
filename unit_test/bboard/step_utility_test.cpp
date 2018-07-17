@@ -47,9 +47,9 @@ TEST_CASE("Destination position filling", "[step utilities]")
     };
 
     s->PutAgent(0, 0, 0);
-    s->PutAgent(1, 1, 0);
-    s->PutAgent(2, 2, 0);
-    s->PutAgent(3, 3, 0);
+    s->PutAgent(1, 0, 1);
+    s->PutAgent(2, 0, 2);
+    s->PutAgent(3, 0, 3);
 
     bboard::Position destPos[4];
     bboard::util::FillDestPos(s, m, destPos);
@@ -70,9 +70,9 @@ TEST_CASE("Fix Switch Position", "[step utilities]")
     bboard::Move m[4] = {r, r, l, l};
 
     s->PutAgent(0, 0, 0);
-    s->PutAgent(1, 1, 0);
-    s->PutAgent(2, 2, 0);
-    s->PutAgent(3, 3, 0);
+    s->PutAgent(1, 0, 1);
+    s->PutAgent(2, 0, 2);
+    s->PutAgent(3, 0, 3);
 
     bboard::util::FillDestPos(s, m, des);
     bboard::util::FixSwitchMove(s, des);
@@ -97,9 +97,9 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
     SECTION("Resolve 0->1 Dependency")
     {
         s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 1, 0);
-        s->PutAgent(2, 8, 4);
-        s->PutAgent(3, 9, 8);
+        s->PutAgent(1, 0, 1);
+        s->PutAgent(8, 4, 2);
+        s->PutAgent(9, 8, 3);
 
         m[0] = m[1] = m[2] = bboard::Move::RIGHT;
         bboard::util::FillDestPos(s, m, des);
@@ -110,9 +110,9 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
     SECTION("Resolve 0->1 and 2->3 Dependency")
     {
         s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 1, 0);
-        s->PutAgent(2, 8, 8);
-        s->PutAgent(3, 9, 8);
+        s->PutAgent(1, 0, 1);
+        s->PutAgent(8, 8, 2);
+        s->PutAgent(9, 8, 3);
 
         m[0] = m[1] = m[2] = bboard::Move::RIGHT;
         bboard::util::FillDestPos(s, m, des);
@@ -123,9 +123,9 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
     SECTION("Resolve Complete Chain")
     {
         s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 1, 0);
-        s->PutAgent(2, 2, 0);
-        s->PutAgent(3, 3, 0);
+        s->PutAgent(1, 0, 1);
+        s->PutAgent(2, 0, 2);
+        s->PutAgent(3, 0, 3);
 
         m[0] = m[1] = m[2] = m[3] = bboard::Move::RIGHT;
         bboard::util::FillDestPos(s, m, des);
@@ -136,9 +136,9 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
     SECTION("Resolve Ouroboros")
     {
         s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 1, 0);
-        s->PutAgent(2, 1, 1);
-        s->PutAgent(3, 0, 1);
+        s->PutAgent(1, 0, 1);
+        s->PutAgent(1, 1, 2);
+        s->PutAgent(0, 1, 3);
 
         m[0] = bboard::Move::RIGHT;
         m[1] = bboard::Move::DOWN;
@@ -154,9 +154,9 @@ TEST_CASE("Dependency Resolving", "[step utilities]")
     SECTION("Handle Dead Agents as Roots")
     {
         s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 1, 0);
-        s->PutAgent(2, 1, 1);
-        s->PutAgent(3, 0, 1);
+        s->PutAgent(1, 0, 1);
+        s->PutAgent(1, 1, 2);
+        s->PutAgent(0, 1, 3);
 
         m[0] = bboard::Move::RIGHT;
         m[1] = bboard::Move::DOWN;

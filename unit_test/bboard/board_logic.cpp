@@ -58,8 +58,7 @@ void PlaceBrick(bboard::State* state, int x, int y)
 
 TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
 {
-    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
-    bboard::State* s = sx.get();
+    bboard::State* s = std::make_unique<bboard::State>().get();
     s->PutAgentsInCorners(0, 1, 2, 3);
 
     bboard::Move id = bboard::Move::IDLE;
@@ -84,6 +83,7 @@ TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
     m[3] = bboard::Move::UP;
     bboard::Step(s, m);
     REQUIRE_AGENT(s, 3, 0, 9);
+
 }
 
 TEST_CASE("Basic Obstacle Collision", "[step function]")
@@ -130,8 +130,8 @@ TEST_CASE("Destination Collision", "[step function]")
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
 
-    s->PutAgent(0, 0, 1);
-    s->PutAgent(1, 2, 1);
+    s->PutAgent(0, 1, 0);
+    s->PutAgent(2, 1, 1);
 
     s->Kill(2, 3);
 
@@ -157,8 +157,8 @@ TEST_CASE("Destination Collision", "[step function]")
     }
     SECTION("Four Agent-Collision")
     {
-        s->PutAgent(2, 1, 0);
-        s->PutAgent(3, 1, 2);
+        s->PutAgent(1, 0, 2);
+        s->PutAgent(1, 2, 3);
 
         m[0] = bboard::Move::RIGHT;
         m[1] = bboard::Move::LEFT;
@@ -185,9 +185,9 @@ TEST_CASE("Movement Dependency Handling", "[step function]")
     SECTION("Move Chain Against Obstacle")
     {
         s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 1, 0);
-        s->PutAgent(2, 2, 0);
-        s->PutAgent(3, 3, 0);
+        s->PutAgent(1, 0, 1);
+        s->PutAgent(2, 0, 2);
+        s->PutAgent(3, 0, 3);
 
         s->PutItem(4, 0, bboard::Item::RIGID);
 
@@ -208,9 +208,9 @@ TEST_CASE("Movement Dependency Handling", "[step function]")
          */
 
         s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 2, 0);
-        s->PutAgent(2, 1, 0);
-        s->PutAgent(3, 1, 1);
+        s->PutAgent(2, 0, 1);
+        s->PutAgent(1, 0, 2);
+        s->PutAgent(1, 1, 3);
 
         m[0] = bboard::Move::RIGHT;
         m[1] = bboard::Move::LEFT;
@@ -225,9 +225,9 @@ TEST_CASE("Movement Dependency Handling", "[step function]")
     SECTION("Move Ouroboros")
     {
         s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 1, 0);
-        s->PutAgent(2, 1, 1);
-        s->PutAgent(3, 0, 1);
+        s->PutAgent(1, 0, 1);
+        s->PutAgent(1, 1, 2);
+        s->PutAgent(0, 1, 3);
 
         m[0] = bboard::Move::RIGHT;
         m[1] = bboard::Move::DOWN;
@@ -271,9 +271,9 @@ TEST_CASE("Bomb Mechanics", "[step function]")
     SECTION("Bomb Movement Block Complex")
     {
         s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 1, 0);
-        s->PutAgent(2, 2, 0);
-        s->PutAgent(3, 3, 0);
+        s->PutAgent(1, 0, 1);
+        s->PutAgent(2, 0, 2);
+        s->PutAgent(3, 0, 3);
 
         m[0] = m[1] = m[2] = bboard::Move::RIGHT;
         m[3] = bboard::Move::BOMB;
@@ -290,9 +290,9 @@ TEST_CASE("Bomb Mechanics", "[step function]")
     SECTION("Bomb Ouroboros Block")
     {
         s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 1, 0);
-        s->PutAgent(2, 1, 1);
-        s->PutAgent(3, 0, 1);
+        s->PutAgent(1, 0, 1);
+        s->PutAgent(1, 1, 2);
+        s->PutAgent(0, 1, 3);
 
         m[0] = m[1] = m[2] = m[3] = bboard::Move::BOMB;
         bboard::Step(s.get(), m);
@@ -319,7 +319,7 @@ TEST_CASE("Bomb Explosion", "[step function]")
     bboard::Move m[4] = {id, id, id, id};
 
     s->Kill(2,3);
-    s->PutAgent(0, 5, 5); //
+    s->PutAgent(5, 5, 0); //
 
     SECTION("Bomb Goes Off Correctly")
     {
@@ -336,7 +336,7 @@ TEST_CASE("Bomb Explosion", "[step function]")
     SECTION("Destroy Objects and Agents")
     {
         s->PutItem(6, 5, bboard::Item::WOOD);
-        s->PutAgent(1, 4, 5);
+        s->PutAgent(4, 5, 1);
 
         m[0] = bboard::Move::BOMB;
         bboard::Step(s.get(), m);
@@ -454,8 +454,8 @@ TEST_CASE("Chained Explosions", "[step function]")
     }
     SECTION("Two Bombs Covered By Agent")
     {
-        s->PutAgent(0, 5, 5);
-        s->PutAgent(1, 4, 5);
+        s->PutAgent(5, 5, 0);
+        s->PutAgent(4, 5, 1);
         s->Kill(2, 3);
         m[0] = bboard::Move::BOMB;
         bboard::Step(s.get(), m);

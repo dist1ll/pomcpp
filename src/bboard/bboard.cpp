@@ -30,7 +30,6 @@ inline bool SpawnFlameItem(State& s, int x, int y, uint8_t signature = 0)
     }
     if(s.board[y][x] == Item::BOMB || s.board[y][x] >= Item::AGENT0)
     {
-        //TODO: Chain reaction
         for(int i = 0; i < s.bombs.count; i++)
         {
             if(BMB_POS(s.bombs[i]) == (x + (y << 4)))
@@ -239,7 +238,7 @@ bool State::HasBomb(int x, int y)
     return false;
 }
 
-void State::PutAgent(int agentID, int x, int y)
+void State::PutAgent(int x, int y, int agentID)
 {
     int b = Item::AGENT0 + agentID;
     board[y][x] = b;

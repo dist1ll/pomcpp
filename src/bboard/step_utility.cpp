@@ -130,6 +130,23 @@ void TickBombs(State& state)
     }
 }
 
+void ConsumePowerup(State& state, int agentID, int powerUp)
+{
+    if(powerUp == Item::EXTRABOMB)
+    {
+        state.agents[agentID].maxBombCount++;
+    }
+    else if(powerUp == Item::INCRRANGE)
+    {
+        state.agents[agentID].bombStrength++;
+    }
+    else if(powerUp == Item::KICK)
+    {
+        state.agents[agentID].canKick = true;
+    }
+
+}
+
 bool HasDPCollision(const State& state, Position dp[AGENT_COUNT], int agentID)
 {
     for(int i = 0; i < AGENT_COUNT; i++)
