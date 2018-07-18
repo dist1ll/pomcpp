@@ -15,12 +15,17 @@ bool IsAdjacentEnemy(const State& state, int agentID, int distance)
 
         // manhattan dist
         if((std::abs(state.agents[i].x - a.x) +
-                std::abs(state.agents[i].y - a.y)) < distance)
+                std::abs(state.agents[i].y - a.y)) <= distance)
         {
             return true;
         }
     }
     return false;
+}
+
+bool CanSafelyBomb(const State& state, int agentID)
+{
+    return true;
 }
 
 }

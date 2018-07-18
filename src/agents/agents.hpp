@@ -46,6 +46,14 @@ struct LazyAgent : bboard::Agent
     bboard::Move act(const bboard::State* state) override;
 };
 
+
+/**
+ * @brief Selects Idle for every action
+ */
+struct SimpleAgent : bboard::Agent
+{
+    bboard::Move act(const bboard::State* state) override;
+};
 // more agents to be included?
 
 }
