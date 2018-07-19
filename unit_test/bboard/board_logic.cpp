@@ -51,38 +51,33 @@ bool IsAgentPos(bboard::State* state, int agent, int x, int y)
             state->agents[agent].y == y && state->board[y][x] == o;
 }
 
-void PlaceBrick(bboard::State* state, int x, int y)
-{
-    state->board[y][x] = bboard::Item::RIGID;
-}
-
 TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
 {
-    bboard::State* s = std::make_unique<bboard::State>().get();
+    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
     s->PutAgentsInCorners(0, 1, 2, 3);
 
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
 
     m[0] = bboard::Move::RIGHT;
-    bboard::Step(s, m);
-    REQUIRE_AGENT(s, 0, 1, 0);
+    bboard::Step(s.get(), m);
+    REQUIRE_AGENT(s.get(), 0, 1, 0);
 
     m[0] = bboard::Move::DOWN;
-    bboard::Step(s, m);
-    REQUIRE_AGENT(s, 0, 1, 1);
+    bboard::Step(s.get(), m);
+    REQUIRE_AGENT(s.get(), 0, 1, 1);
 
     m[0] = bboard::Move::LEFT;
-    bboard::Step(s, m);
-    REQUIRE_AGENT(s, 0, 0, 1);
+    bboard::Step(s.get(), m);
+    REQUIRE_AGENT(s.get(), 0, 0, 1);
 
     m[0] = bboard::Move::UP;
-    bboard::Step(s, m);
-    REQUIRE_AGENT(s, 0, 0, 0);
+    bboard::Step(s.get(), m);
+    REQUIRE_AGENT(s.get(), 0, 0, 0);
 
     m[3] = bboard::Move::UP;
-    bboard::Step(s, m);
-    REQUIRE_AGENT(s, 3, 0, 9);
+    bboard::Step(s.get(), m);
+    REQUIRE_AGENT(s.get(), 3, 0, 9);
 
 }
 

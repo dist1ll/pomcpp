@@ -1,3 +1,5 @@
+#include <random>
+
 #include "catch.hpp"
 #include "bboard.hpp"
 #include "strategy.hpp"
@@ -26,7 +28,40 @@ TEST_CASE("IsAdjacent", "[strategy]")
     }
 }
 
-TEST_CASE("Can Safely Bomb", "[strategy]")
+TEST_CASE("Fill RMap", "[strategy]")
 {
+    std::unique_ptr<State> s = std::make_unique<State>();
 
+    InitBoardItems(*s.get(), 0x13327);
+
+    for(int i = 0; i < BOARD_SIZE; i++)
+    {
+        for(int  j = 0; j < BOARD_SIZE; j++)
+        {
+            s->board[i][j] = Item::RIGID;
+        }
+    }
+
+    strategy::RMap r;
+
+    s->Kill(1, 2, 3);
+    s->PutAgent(0, 0, 0);
+    strategy::FillRMap(*s.get(), r, 0, 0);
+
+    // Can confirm by printing:
+
+    // PrintState(&s);
+    // strategy::PrintMap(r);
+
+    for(int y = 0; y < BOARD_SIZE; y++)
+    {
+        for(int x = 0; x < BOARD_SIZE; x++)
+        {
+            if(s->board[y][x] == Item::RIGID)
+            {
+                REQUIRE(!strategy::IsReachable(r, x, y));
+            }
+
+        }
+    }
 }

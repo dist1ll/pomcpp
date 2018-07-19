@@ -266,7 +266,7 @@ struct State
      */
     int& operator[] (const Position& pos);
 
-    int board[11][11];
+    int board[BOARD_SIZE][BOARD_SIZE];
 
     int aliveAgents = AGENT_COUNT;
 
@@ -486,6 +486,13 @@ public:
     }
 
 };
+
+/**
+ * @brief InitBoardItems Puts boxes, rigid objects and powerups on
+ * the field without adding/creating agents
+ * @param seed The random seed for the item generator
+ */
+void InitBoardItems(State& state, int seed = 0x1337);
 
 /**
  * @brief InitState Returns an meaningfully initialized state

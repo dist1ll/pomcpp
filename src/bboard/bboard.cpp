@@ -342,20 +342,23 @@ void Environment::Step()
 void InitState(State* result, int a0, int a1, int a2, int a3)
 {
     // Randomly put obstacles
-    std::mt19937_64 rng(0x1337);
+    InitBoardItems(*result);
+    result->PutAgentsInCorners(a0, a1, a2, a3);
+}
+
+void InitBoardItems(State& result, int seed)
+{
+    std::mt19937_64 rng(seed);
     std::uniform_int_distribution<int> intDist(0,6);
     for(int i = 0; i < BOARD_SIZE; i++)
     {
         for(int  j = 0; j < BOARD_SIZE; j++)
         {
             int tmp = intDist(rng);
-            result->board[i][j] = tmp > 2 ? 0 : tmp;
+            result.board[i][j] = tmp > 2 ? 0 : tmp;
         }
     }
-
-    result->PutAgentsInCorners(a0, a1, a2, a3);
 }
-
 
 void StartGame(State* state, Agent* agents[AGENT_COUNT], int timeSteps)
 {

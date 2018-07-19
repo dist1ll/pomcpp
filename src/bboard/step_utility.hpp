@@ -91,6 +91,14 @@ inline bool IsOutOfBounds(const Position& pos)
     return pos.x < 0 || pos.y < 0 || pos.x >= BOARD_SIZE || pos.y >= BOARD_SIZE;
 }
 
+/**
+ * @brief IsOutOfBounds Checks wether a given position is out of bounds
+ */
+inline bool IsOutOfBounds(const int& x, const int& y)
+{
+    return x < 0 || y < 0 || x >= BOARD_SIZE || y >= BOARD_SIZE;
+}
+
 }
 
 #endif // STEP_UTILITY_H
