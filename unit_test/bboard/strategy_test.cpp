@@ -31,7 +31,6 @@ TEST_CASE("IsAdjacent", "[strategy]")
 TEST_CASE("Fill RMap", "[strategy]")
 {
     std::unique_ptr<State> s = std::make_unique<State>();
-
     InitBoardItems(*s.get(), 0x13327);
 
     strategy::RMap r;
@@ -56,5 +55,56 @@ TEST_CASE("Fill RMap", "[strategy]")
             }
 
         }
+    }
+}
+
+TEST_CASE("Move Towards Methods", "[strategy]")
+{
+    std::unique_ptr<State> s = std::make_unique<State>();
+    InitBoardItems(*s.get(), 0x1337);
+
+    strategy::RMap r;
+
+    SECTION("MoveTowardsPosition")
+    {
+        s->Kill(1, 2, 3);
+        s->PutAgent(4, 5, 0);
+        strategy::FillRMap(*s.get(), r, 0);
+
+        Move m1 = strategy::MoveTowardsPosition(r, {4, 0});
+        Move m2 = strategy::MoveTowardsPosition(r, {3, 6});
+        Move m3 = strategy::MoveTowardsPosition(r, {0,10});
+
+        REQUIRE(m1 == Move::UP);
+        REQUIRE(m2 == Move::DOWN);
+        REQUIRE(m3 == Move::DOWN);
+    }
+    SECTION("MoveTowardsPowerup")
+    {
+        s->Kill(1, 2, 3);
+        s->PutAgent(4, 5, 0);
+        s->PutItem(2, 6, Item::EXTRABOMB);
+
+        strategy::FillRMap(*s.get(), r, 0);
+
+        Move m1 = strategy::MoveTowardsPowerup(*s.get(), r, 2);
+        Move m2 = strategy::MoveTowardsPowerup(*s.get(), r, 3);
+
+        REQUIRE(m1 == Move::IDLE);
+        REQUIRE(m2 == Move::DOWN);
+    }
+    SECTION("MoveTowardsEnemy")
+    {
+        s->Kill(2, 3);
+        s->PutAgent(4, 5, 0);
+        s->PutAgent(2, 6, 1);
+
+        strategy::FillRMap(*s.get(), r, 0);
+
+        Move m1 = strategy::MoveTowardsEnemy(*s.get(), r, 2);
+        Move m2 = strategy::MoveTowardsEnemy(*s.get(), r, 3);
+
+        REQUIRE(m1 == Move::IDLE);
+        REQUIRE(m2 == Move::DOWN);
     }
 }

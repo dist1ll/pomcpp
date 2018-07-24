@@ -22,12 +22,12 @@ void RMap::SetPredecessor(int x, int y, int xp, int yp)
     map[y][x] = (map[y][x] & chalf) + ((xp + BOARD_SIZE * yp) << 16);
 }
 
-int RMap::GetDistance(int x, int y)
+int RMap::GetDistance(int x, int y) const
 {
     return map[y][x] & chalf;
 }
 
-int RMap::GetPredecessor(int x, int y)
+int RMap::GetPredecessor(int x, int y) const
 {
     return map[y][x] >> 16;
 }
@@ -36,22 +36,28 @@ template <typename T, int N>
 inline RMapInfo TryAdd(State& s, FixedQueue<T, N>& q, RMap& r, Position& c, int cx, int cy)
 {
     int dist = r.GetDistance(c.x, c.y);
+    int item = s.board[cy][cx];
     if(!util::IsOutOfBounds(cx, cy) &&
             r.GetDistance(cx, cy) == 0 &&
-            s.board[cy][cx] == Item::PASSAGE)
+            (IS_WALKABLE(item) || item >= Item::AGENT0))
     {
         r.SetPredecessor(cx, cy, c.x, c.y);
         r.SetDistance(cx, cy, dist + 1);
-        q.AddElem({cx, cy});
+
+        // we compute paths to agent positions but don't
+        // continue search
+        if(item < Item::AGENT0)
+            q.AddElem({cx, cy});
         return 0;
     }
     return 0;
 }
 // BFS
-RMapInfo FillRMap(State& s, RMap& r, int agentID)
+void FillRMap(State& s, RMap& r, int agentID)
 {
     int x = s.agents[agentID].x;
     int y = s.agents[agentID].y;
+    r.source = {x, y};
 
     FixedQueue<Position, BOARD_SIZE * BOARD_SIZE> queue;
     r.SetDistance(x, y, 0);
@@ -81,12 +87,77 @@ RMapInfo FillRMap(State& s, RMap& r, int agentID)
 
     }
     r.info = result;
-    return result;
 }
 
 ///////////////////////
 // General Functions //
 ///////////////////////
+
+Move MoveTowardsPosition(const RMap& r, const Position& position)
+{
+    Position curr = position;
+    for(int i = 0;; i++)
+    {
+        int idx = r.GetPredecessor(curr.x, curr.y);
+        int y = idx / BOARD_SIZE;
+        int x = idx % BOARD_SIZE;
+        if(x == r.source.x && y == r.source.y)
+        {
+            if(curr.x > r.source.x) return Move::RIGHT;
+            if(curr.x < r.source.x) return Move::LEFT;
+            if(curr.y > r.source.y) return Move::DOWN;
+            if(curr.y < r.source.y) return Move::UP;
+        }
+        curr = {x, y};
+    }
+}
+
+Move MoveTowardsPowerup(const State& state, const RMap& r, int radius)
+{
+    const Position& a = r.source;
+    for(int y = a.y - radius; y < a.y + radius; y++)
+    {
+        for(int x = a.x - radius; x < a.x + radius; x++)
+        {
+            if(util::IsOutOfBounds(x, y) ||
+                    std::abs(x - a.x) + std::abs(y - a.y) > radius) continue;
+
+            if(IS_POWERUP(state.board[y][x]))
+            {
+                return MoveTowardsPosition(r, {x, y});
+            }
+        }
+    }
+
+    return Move::IDLE;
+}
+
+Move MoveTowardsEnemy(const State& state, const RMap& r, int radius)
+{
+    const Position& a = r.source;
+
+    for(int i = 0; i < AGENT_COUNT; i++)
+    {
+        const AgentInfo& inf = state.agents[i];
+
+        if((inf.x == a.x && inf.y == a.y) || inf.dead) continue;
+
+        int x = state.agents[i].x;
+        int y = state.agents[i].y;
+        std::cout << std::abs(x - a.x) + std::abs(y - a.y);
+        if(std::abs(x - a.x) + std::abs(y - a.y) > radius)
+        {
+            continue;
+        }
+        else
+        {
+            return MoveTowardsPosition(r, {x, y});
+        }
+
+    }
+    return Move::IDLE;
+}
+
 
 void PrintMap(RMap &r)
 {
@@ -138,7 +209,7 @@ bool IsAdjacentEnemy(const State& state, int agentID, int distance)
 
     for(int i = 0; i < bboard::AGENT_COUNT; i++)
     {
-        if(i == agentID) continue;
+        if(i == agentID || state.agents[i].dead) continue;
 
         // manhattan dist
         if((std::abs(state.agents[i].x - a.x) +

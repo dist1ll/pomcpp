@@ -10,9 +10,10 @@
 namespace bboard
 {
 
-
+const int MOVE_COUNT  = 4;
 const int AGENT_COUNT = 4;
-const int BOARD_SIZE = 11;
+const int BOARD_SIZE  = 11;
+
 static_assert (BOARD_SIZE <= 15, "Board positions must fit into 8-bit");
 
 const int BOMB_LIFETIME = 10;
@@ -67,7 +68,8 @@ enum Item
     AGENT3 = 4 << 16
 };
 
-#define IS_POWERUP(x) ((x) > 5 && (x) < 9)
+#define IS_POWERUP(x)  ((x) > 5 && (x) < 9)
+#define IS_WALKABLE(x) (IS_POWERUP((x)) || (x) == 0)
 #define IS_FLAME(x) (((x) >> 8) == 4)
 #define FLAME_SIG(x) ((x) - bboard::Item::FLAMES)
 
