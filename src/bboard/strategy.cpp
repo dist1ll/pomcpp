@@ -1,4 +1,7 @@
+#include <unordered_set>
+
 #include "bboard.hpp"
+#include "colors.hpp"
 #include "strategy.hpp"
 #include "step_utility.hpp"
 
@@ -30,43 +33,55 @@ int RMap::GetPredecessor(int x, int y)
 }
 
 template <typename T, int N>
-inline void TryAddToQueue(State& s, FixedQueue<T, N>& queue, RMap& r, int dist, int cx, int cy)
+inline RMapInfo TryAdd(State& s, FixedQueue<T, N>& q, RMap& r, Position& c, int cx, int cy)
 {
+    int dist = r.GetDistance(c.x, c.y);
     if(!util::IsOutOfBounds(cx, cy) &&
             r.GetDistance(cx, cy) == 0 &&
-            s.board[cy][cx] != Item::RIGID)
+            s.board[cy][cx] == Item::PASSAGE)
     {
+        r.SetPredecessor(cx, cy, c.x, c.y);
         r.SetDistance(cx, cy, dist + 1);
-        queue.AddElem({cx, cy});
+        q.AddElem({cx, cy});
+        return 0;
     }
+    return 0;
 }
-// optimized dijkstra. See explanation optimization III in docs
-RMapInfo FillRMap(State& s, RMap& r, int x, int y, int distance)
+// BFS
+RMapInfo FillRMap(State& s, RMap& r, int agentID)
 {
-    // holds 1-d indices
+    int x = s.agents[agentID].x;
+    int y = s.agents[agentID].y;
+
     FixedQueue<Position, BOARD_SIZE * BOARD_SIZE> queue;
     r.SetDistance(x, y, 0);
     queue.AddElem({x, y});
+
+    AgentInfo& a = s.agents[agentID];
+    RMapInfo result = 0;
 
     while(queue.count != 0)
     {
 
         Position& c = queue.PopElem();
         int dist = r.GetDistance(c.x, c.y);
+        if(IsInBombRange(a.x, a.y, a.bombStrength, c) && dist < 10)
+        {
+            result |= 0b1;
+        }
 
         if(c.x != x || c.y+1 != y)
-            TryAddToQueue(s, queue, r, dist, c.x, c.y + 1);
+            TryAdd(s, queue, r, c, c.x, c.y + 1);
         if(c.x != x || c.y-1 != y)
-            TryAddToQueue(s, queue, r, dist, c.x, c.y - 1);
+            TryAdd(s, queue, r, c, c.x, c.y - 1);
         if(c.x+1 != x || c.y != y)
-            TryAddToQueue(s, queue, r, dist, c.x + 1, c.y);
+            TryAdd(s, queue, r, c, c.x + 1, c.y);
         if(c.x-1 != x || c.y != y)
-            TryAddToQueue(s, queue, r, dist, c.x - 1, c.y);
-
+            TryAdd(s, queue, r, c, c.x - 1, c.y);
 
     }
-
-    return 0;
+    r.info = result;
+    return result;
 }
 
 ///////////////////////
@@ -81,6 +96,36 @@ void PrintMap(RMap &r)
         {
             std::cout << (r.GetDistance(j, i) >= 10 ? "" : " ");
             std::cout << r.GetDistance(j, i) << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
+
+void PrintPath(RMap &r, Position from, Position to)
+{
+    std::array<Position, BOARD_SIZE * BOARD_SIZE> path;
+    std::unordered_set<Position> pathx;
+
+    path[0] = {to.x, to.y};
+    Position curr = path[0];
+
+    for(uint i = 0; !(curr == from); i++)
+    {
+        pathx.insert(curr);
+        int idx = r.GetPredecessor(curr.x, curr.y);
+        int y = idx / BOARD_SIZE;
+        int x = idx % BOARD_SIZE;
+        curr = path[i] = {x, y};
+    }
+
+    for(int i = 0; i < BOARD_SIZE; i++)
+    {
+        for(int j = 0; j < BOARD_SIZE; j++)
+        {
+            std::cout << (r.GetDistance(j, i) >= 10 ? "" : " ");
+            auto dist = std::to_string(r.GetDistance(j, i));
+            std::cout << (pathx.count({j, i}) ? FRED(dist) : dist) << " ";
         }
         std::cout << std::endl;
     }

@@ -544,4 +544,17 @@ std::string PrintItem(int item);
 
 }
 
+namespace std
+{
+template<>
+struct hash<bboard::Position>
+{
+    size_t
+    operator()(const bboard::Position & obj) const
+    {
+        return hash<int>()(obj.x + obj.y * bboard::BOARD_SIZE);
+    }
+};
+}
+
 #endif

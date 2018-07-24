@@ -13,7 +13,7 @@ namespace bboard::strategy
  * @brief RMapInfo Filling an RMap lets you collect additional
  * information. These are encoded into RMapInfo
  */
-typedef int RMapInfo;
+typedef uint RMapInfo;
 
 const int chalf = 0xFFFF;
 
@@ -25,6 +25,8 @@ const int chalf = 0xFFFF;
 struct RMap
 {
     int map[BOARD_SIZE][BOARD_SIZE] = {};
+
+    RMapInfo info;
 
     /**
      * @brief GetDistance Returns the shortest walking
@@ -43,16 +45,14 @@ struct RMap
 };
 
 /**
- * @brief FillRMap Fills a given RMap. Optimized Dijkstra.
+ * @brief FillRMap Fills a given RMap. Uses BFS
  * @param s The state
  * @param r A reference to the RMap
- * @param x The x-position of the agent
- * @param y The y-position of the agent
- * @param _distance ignore.
  * @return Information that was collected during the filling. Use the
  * provided macros to interpret RMapInfo
  */
-RMapInfo FillRMap(State& s, RMap& r, int x, int y, int _distance = 0);
+RMapInfo FillRMap(State& s, RMap& r, int agentID);
+
 
 /**
  * @brief IsReachable Returns true if the given position is reachable
@@ -69,10 +69,26 @@ inline bool IsReachable(RMap& r, int x, int y)
 void PrintMap(RMap& r);
 
 /**
+ * @brief PrintMap Pretty-prints the path from-to
+ */
+void PrintPath(RMap& r, Position from, Position to);
+
+/**
  * @brief IsAdjacentEnemy returns true if the agent is within a
  * given manhattan-distance from an enemey
  */
 bool IsAdjacentEnemy(const State& state, int agentID, int distance);
+
+/**
+ * @brief IsInBombRange Returns True if the given position is in range
+ * of a bomb planted at (x, y) with strength s
+ */
+inline bool IsInBombRange(int x, int y, int s, Position& pos)
+{
+    return (pos.y == y && x-s > pos.x > x+s)
+           ||
+           (pos.x == x && y-s > pos.y > y+s);
+}
 
 }
 

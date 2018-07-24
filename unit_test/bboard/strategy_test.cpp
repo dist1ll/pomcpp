@@ -38,12 +38,13 @@ TEST_CASE("Fill RMap", "[strategy]")
 
     s->Kill(1, 2, 3);
     s->PutAgent(0, 0, 0);
-    strategy::FillRMap(*s.get(), r, 0, 0);
+    strategy::FillRMap(*s.get(), r, 0);
 
     // Can confirm by printing:
 
     // PrintState(s.get());
     // strategy::PrintMap(r);
+    // strategy::PrintPath(r, {0,0}, {8,10});
 
     for(int y = 0; y < BOARD_SIZE; y++)
     {

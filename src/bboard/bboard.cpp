@@ -422,6 +422,9 @@ void PrintState(State* state)
 
 std::string PrintItem(int item)
 {
+    std::string wood = "[\u25A0]";
+    std::string fire = " \U0000263C ";
+
     switch(item)
     {
         case Item::PASSAGE:
@@ -429,7 +432,7 @@ std::string PrintItem(int item)
         case Item::RIGID:
             return "[X]";
         case Item::WOOD:
-            return FBLU("[\u25A0]");
+            return FBLU(wood);
         case Item::BOMB:
             return " \u25CF ";
         case Item::EXTRABOMB:
@@ -441,7 +444,7 @@ std::string PrintItem(int item)
     }
     if(IS_FLAME(item))
     {
-        return FRED(" \U0000263C ");
+        return FRED(fire);
     }
     //agent number
     if(item >= Item::AGENT0)

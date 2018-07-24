@@ -78,9 +78,9 @@ TEST_CASE("Step Function", "[performance]")
         t = total.count();
     }
 
-
+    std::string tst = "Test Results:";
     std::cout << std::endl
-              << FGRN("Test Results:") << std::endl
+              << FGRN(tst) << std::endl
               << "Iteration count (100ms):         ";
     if(THREADING)
         RecursiveCommas(std::cout, uint(std::floor(times/(t/100.0))) * THREAD_COUNT);
