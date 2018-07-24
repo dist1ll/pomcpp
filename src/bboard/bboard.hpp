@@ -88,12 +88,22 @@ struct FixedQueue
      * @brief PopBomb Frees up the position of the elem in the
      * queue to be used by other elems.
      */
-    void PopElem()
+    T& PopElem()
     {
+        int x = index;
         index = (index + 1) % (TSize);
         count--;
+        return queue[x % TSize];
     }
 
+    /**
+     * @brief AddElem Adds an element to the queue
+     */
+    void AddElem(const T& elem)
+    {
+        NextPos() = elem;
+        count++;
+    }
     /**
      * @brief RemoveAt Removes an element at a specified index
      * Highly discouraged! Only use if necessary

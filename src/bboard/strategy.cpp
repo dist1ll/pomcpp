@@ -9,36 +9,63 @@ namespace bboard::strategy
 // RMap Functions //
 ////////////////////
 
-inline void ClearReachable(RMap& r, int x, int y)
+void RMap::SetDistance(int x, int y, int distance)
 {
-    int* i = r.map + (x + BOARD_SIZE * y)/32;  // use correct integer
-    *i &= ~(1 << ((x + BOARD_SIZE * y) % 32)); // set correct position
+    map[y][x] = (map[y][x] & ~chalf) + distance;
 }
 
-inline void SetReachable(RMap& r, int x, int y)
+void RMap::SetPredecessor(int x, int y, int xp, int yp)
 {
-    int* i = r.map + (x + BOARD_SIZE * y)/32; // use correct integer
-    *i |= 1 << ((x + BOARD_SIZE * y) % 32);   // set correct position
+    map[y][x] = (map[y][x] & chalf) + ((xp + BOARD_SIZE * yp) << 16);
 }
 
-inline RMapInfo InspectPositionRecursively(State& s, RMap& r, int x, int y)
+int RMap::GetDistance(int x, int y)
 {
-    if(!util::IsOutOfBounds(x, y)
-            && s.board[y][x] == Item::PASSAGE
-            && !IsReachable(r, x, y))
+    return map[y][x] & chalf;
+}
+
+int RMap::GetPredecessor(int x, int y)
+{
+    return map[y][x] >> 16;
+}
+
+template <typename T, int N>
+inline void TryAddToQueue(State& s, FixedQueue<T, N>& queue, RMap& r, int dist, int cx, int cy)
+{
+    if(!util::IsOutOfBounds(cx, cy) &&
+            r.GetDistance(cx, cy) == 0 &&
+            s.board[cy][cx] != Item::RIGID)
     {
-        SetReachable(r, x, y);
-        return FillRMap(s, r, x, y);
+        r.SetDistance(cx, cy, dist + 1);
+        queue.AddElem({cx, cy});
     }
-    return 0;
 }
-
-RMapInfo FillRMap(State& s, RMap& r, int x, int y)
+// optimized dijkstra. See explanation optimization III in docs
+RMapInfo FillRMap(State& s, RMap& r, int x, int y, int distance)
 {
-    InspectPositionRecursively(s, r, x, y + 1);
-    InspectPositionRecursively(s, r, x, y - 1);
-    InspectPositionRecursively(s, r, x + 1, y);
-    InspectPositionRecursively(s, r, x - 1, y);
+    // holds 1-d indices
+    FixedQueue<Position, BOARD_SIZE * BOARD_SIZE> queue;
+    r.SetDistance(x, y, 0);
+    queue.AddElem({x, y});
+
+    while(queue.count != 0)
+    {
+
+        Position& c = queue.PopElem();
+        int dist = r.GetDistance(c.x, c.y);
+
+        if(c.x != x || c.y+1 != y)
+            TryAddToQueue(s, queue, r, dist, c.x, c.y + 1);
+        if(c.x != x || c.y-1 != y)
+            TryAddToQueue(s, queue, r, dist, c.x, c.y - 1);
+        if(c.x+1 != x || c.y != y)
+            TryAddToQueue(s, queue, r, dist, c.x + 1, c.y);
+        if(c.x-1 != x || c.y != y)
+            TryAddToQueue(s, queue, r, dist, c.x - 1, c.y);
+
+
+    }
+
     return 0;
 }
 
@@ -46,13 +73,14 @@ RMapInfo FillRMap(State& s, RMap& r, int x, int y)
 // General Functions //
 ///////////////////////
 
-void PrintMap(RMap& r)
+void PrintMap(RMap &r)
 {
     for(int i = 0; i < BOARD_SIZE; i++)
     {
         for(int j = 0; j < BOARD_SIZE; j++)
         {
-            std::cout << IsReachable(r, j, i) << " ";
+            std::cout << (r.GetDistance(j, i) >= 10 ? "" : " ");
+            std::cout << r.GetDistance(j, i) << " ";
         }
         std::cout << std::endl;
     }
@@ -75,11 +103,6 @@ bool IsAdjacentEnemy(const State& state, int agentID, int distance)
         }
     }
     return false;
-}
-
-bool CanSafelyBomb(const State& state, int agentID)
-{
-    return true;
 }
 
 }

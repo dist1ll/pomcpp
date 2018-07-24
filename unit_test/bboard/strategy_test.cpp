@@ -34,14 +34,6 @@ TEST_CASE("Fill RMap", "[strategy]")
 
     InitBoardItems(*s.get(), 0x13327);
 
-    for(int i = 0; i < BOARD_SIZE; i++)
-    {
-        for(int  j = 0; j < BOARD_SIZE; j++)
-        {
-            s->board[i][j] = Item::RIGID;
-        }
-    }
-
     strategy::RMap r;
 
     s->Kill(1, 2, 3);
@@ -50,7 +42,7 @@ TEST_CASE("Fill RMap", "[strategy]")
 
     // Can confirm by printing:
 
-    // PrintState(&s);
+    // PrintState(s.get());
     // strategy::PrintMap(r);
 
     for(int y = 0; y < BOARD_SIZE; y++)
