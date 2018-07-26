@@ -1,3 +1,4 @@
+#include <limits>
 #include <unordered_set>
 
 #include "bboard.hpp"
@@ -33,7 +34,7 @@ int RMap::GetPredecessor(int x, int y) const
 }
 
 template <typename T, int N>
-inline RMapInfo TryAdd(State& s, FixedQueue<T, N>& q, RMap& r, Position& c, int cx, int cy)
+inline RMapInfo TryAdd(const State& s, FixedQueue<T, N>& q, RMap& r, Position& c, int cx, int cy)
 {
     int dist = r.GetDistance(c.x, c.y);
     int item = s.board[cy][cx];
@@ -53,7 +54,7 @@ inline RMapInfo TryAdd(State& s, FixedQueue<T, N>& q, RMap& r, Position& c, int 
     return 0;
 }
 // BFS
-void FillRMap(State& s, RMap& r, int agentID)
+void FillRMap(const State& s, RMap& r, int agentID)
 {
     int x = s.agents[agentID].x;
     int y = s.agents[agentID].y;
@@ -63,7 +64,7 @@ void FillRMap(State& s, RMap& r, int agentID)
     r.SetDistance(x, y, 0);
     queue.AddElem({x, y});
 
-    AgentInfo& a = s.agents[agentID];
+    const AgentInfo& a = s.agents[agentID];
     RMapInfo result = 0;
 
     while(queue.count != 0)
@@ -144,7 +145,6 @@ Move MoveTowardsEnemy(const State& state, const RMap& r, int radius)
 
         int x = state.agents[i].x;
         int y = state.agents[i].y;
-        std::cout << std::abs(x - a.x) + std::abs(y - a.y);
         if(std::abs(x - a.x) + std::abs(y - a.y) > radius)
         {
             continue;
@@ -158,6 +158,28 @@ Move MoveTowardsEnemy(const State& state, const RMap& r, int radius)
     return Move::IDLE;
 }
 
+int IsInDanger(State& state, int agentID)
+{
+    int minTime = std::numeric_limits<int>::max();
+
+    // TODO: add consideration for chained bomb explosions
+    for(int i = 0; i < state.bombs.count; i++)
+    {
+        Bomb& b = state.bombs[i];
+        if(IsInBombRange(BMB_POS_X(b), BMB_POS_Y(b), BMB_STRENGTH(b), {1,1}))
+        {
+            if(BMB_TIME(b) < minTime)
+            {
+                minTime = BMB_TIME(b);
+            }
+        }
+    }
+
+    if(minTime == std::numeric_limits<int>::max())
+        minTime = 0;
+
+    return minTime;
+}
 
 void PrintMap(RMap &r)
 {

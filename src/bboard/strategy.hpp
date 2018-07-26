@@ -50,7 +50,7 @@ struct RMap
  * @brief FillRMap Fills a given RMap. Uses BFS. Additional
  * info is in map.info
  */
-void FillRMap(State& s, RMap& r, int agentID);
+void FillRMap(const State& s, RMap& r, int agentID);
 
 /**
  * @brief IsReachable Returns true if the given position is reachable
@@ -104,10 +104,16 @@ Move MoveTowardsEnemy(const State& state, const RMap& r, int radius);
 int SafeDirections(const State& state, std::array<Move, MOVE_COUNT> moves);
 
 /**
+ * @brief IsSafe Returns true if the agent is endangered (in range of a bomb).
+ * The int-value says how much time the agent has to flee.
+ */
+int IsInDanger(State& state, int agentID);
+
+/**
  * @brief IsInBombRange Returns True if the given position is in range
  * of a bomb planted at (x, y) with strength s
  */
-inline bool IsInBombRange(int x, int y, int s, Position& pos)
+inline bool IsInBombRange(int x, int y, int s, const Position& pos)
 {
     return (pos.y == y && x-s > pos.x > x+s)
            ||

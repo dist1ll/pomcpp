@@ -6,6 +6,7 @@
 #include <memory>
 #include <iostream>
 #include <algorithm>
+#include <functional>
 
 namespace bboard
 {
@@ -280,6 +281,7 @@ struct State
 
     int board[BOARD_SIZE][BOARD_SIZE];
 
+    int timeStep = 0;
     int aliveAgents = AGENT_COUNT;
 
     /**
@@ -394,6 +396,8 @@ struct Agent
 {
     virtual ~Agent() {}
 
+    int id = -1;
+
     /**
      * This method defines the behaviour of the Agent.
      * Classes that implement Agent can be used to participate
@@ -419,13 +423,13 @@ private:
 
     std::unique_ptr<State> state;
     std::array<Agent*, AGENT_COUNT> agents;
+    std::function<void(const State&)> listener;
 
     // Current State
     bool finished = false;
     bool hasStarted = false;
     bool isDraw = false;
 
-    int timeStep = 0;
     int agentWon = -1; // FFA
     int teamWon = -1; // Team
 
@@ -458,52 +462,44 @@ public:
 
     /**
      * @brief Print Pretty-prints the Environment
+     * @param clear Should the console be cleared first?
      */
-    void Print();
+    void Print(bool clear = true);
 
     /**
      * @brief GetState Returns a reference to the current state of
      * the environment
      */
-    inline const State& GetState()
-    {
-        return *state.get();
-    }
+    State& GetState() const;
 
     /**
      * @brief SetAgents Registers all agents that will participate
      * in this game
      * @param a An array of agent pointers (with correct length)
      */
-    inline void SetAgents(std::array<Agent*, AGENT_COUNT> agents)
-    {
-        this->agents = agents;
-    }
+    void SetAgents(std::array<Agent*, AGENT_COUNT> agents);
+
+    /**
+     * @brief SetStepListener Sets the step listener. Step listener
+     * gets invoked every time after the step function was called.
+     */
+    void SetStepListener(const std::function<void(const State&)>& f);
 
     /**
      * @return True if the last step ended the current game
      */
-    inline bool IsDone()
-    {
-        return finished;
-    }
+    bool IsDone();
 
     /**
      * @brief IsDraw Did the game end in a draw?
      */
-    inline bool IsDraw()
-    {
-        return isDraw;
-    }
+    bool IsDraw();
 
     /**
      * @brief GetWinner If the game was won by someone, return
      * the agent's ID that won
      */
-    inline int GetWinner()
-    {
-        return agentWon;
-    }
+    int GetWinner();
 
 };
 

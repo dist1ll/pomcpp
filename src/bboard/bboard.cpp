@@ -1,8 +1,7 @@
-#include <iostream>
+#include <random>
 #include <chrono>
 #include <thread>
-#include <random>
-#include <stack>
+#include <iostream>
 
 #include "bboard.hpp"
 #include "colors.hpp"
@@ -69,31 +68,6 @@ inline void PopBomb(State& state)
 inline bool IsOutOfBounds(const int& x, const int& y)
 {
     return x < 0 || y < 0 || x >= BOARD_SIZE || y >= BOARD_SIZE;
-}
-
-void PrintGameResult(Environment& env)
-{
-    std::cout << std::endl;
-
-    if(env.IsDone())
-    {
-        if(env.IsDraw())
-        {
-            std::cout << "Draw! All agents are dead"
-                      << std::endl;
-        }
-        else
-        {
-            std::cout << "Finished! The winner is Agent "
-                      << env.GetWinner() << std::endl;
-        }
-
-    }
-    else
-    {
-        std::cout << "Draw! Max timesteps reached "
-                  << std::endl;
-    }
 }
 
 ///////////////////
@@ -260,91 +234,6 @@ void State::PutAgentsInCorners(int a0, int a1, int a2, int a3)
 
     agents[a1].x = agents[a2].x = BOARD_SIZE - 1;
     agents[a2].y = agents[a3].y = BOARD_SIZE - 1;
-}
-
-/////////////////////////
-// Environment Methods //
-/////////////////////////
-
-Environment::Environment()
-{
-    state = std::make_unique<State>();
-}
-
-void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a)
-{
-    bboard::InitState(state.get(), 0, 1, 2, 3);
-
-    state->PutItem(1, 4, bboard::Item::INCRRANGE);
-    state->PutItem(6, 4, bboard::Item::KICK);
-    state->PutItem(7, 6, bboard::Item::EXTRABOMB);
-
-    state->PutAgentsInCorners(0, 1, 2, 3);
-
-    SetAgents(a);
-    hasStarted = true;
-}
-
-void Environment::StartGame(int timeSteps, bool render, bool stepByStep)
-{
-    int time = 0;
-    while(!this->IsDone() && time < timeSteps)
-    {
-        this->Step();
-
-        if(render)
-        {
-            std::cout << "\033c"; // clear console on linux
-            Print();
-
-            if(stepByStep)
-                std::getchar();
-            else
-                std::this_thread::sleep_for(std::chrono::milliseconds(80));
-        }
-        time++;
-    }
-    PrintGameResult(*this);
-}
-
-void Environment::Step()
-{
-    if(!hasStarted || finished)
-    {
-        return;
-    }
-
-    Move m[AGENT_COUNT];
-    for(uint i = 0; i < AGENT_COUNT; i++)
-    {
-        m[i] = agents[i]->act(state.get());
-    }
-
-    bboard::Step(state.get(), m);
-    timeStep++;
-
-    if(state->aliveAgents == 1)
-    {
-        finished = true;
-        for(int i = 0; i < AGENT_COUNT; i++)
-        {
-            if(!state->agents[i].dead)
-            {
-                agentWon = i;
-                // teamwon = team of agent
-            }
-        }
-    }
-    if(state->aliveAgents == 0)
-    {
-        finished = true;
-        isDraw = true;
-    }
-}
-
-void Environment::Print()
-{
-    PrintState(state.get());
 }
 
 //////////////////////

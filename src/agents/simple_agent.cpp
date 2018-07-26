@@ -1,13 +1,18 @@
 #include "bboard.hpp"
 #include "agents.hpp"
+#include "strategy.hpp"
+
+using namespace bboard;
+using namespace bboard::strategy;
 
 namespace agents
 {
 
-
-bboard::Move SimpleAgent::act(const bboard::State* state)
+Move SimpleAgent::act(const State* state)
 {
-    return bboard::Move::IDLE;
+    FillRMap(*state, r, id);
+
+    return Move::RIGHT;
 }
 
 }

@@ -4,6 +4,7 @@
 #include <random>
 
 #include "bboard.hpp"
+#include "strategy.hpp"
 
 namespace agents
 {
@@ -52,6 +53,7 @@ struct LazyAgent : bboard::Agent
  */
 struct SimpleAgent : bboard::Agent
 {
+    bboard::strategy::RMap r;
     bboard::Move act(const bboard::State* state) override;
 };
 // more agents to be included?
