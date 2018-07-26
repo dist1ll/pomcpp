@@ -73,6 +73,8 @@ inline bool IsOutOfBounds(const int& x, const int& y)
 
 void PrintGameResult(Environment& env)
 {
+    std::cout << std::endl;
+
     if(env.IsDone())
     {
         if(env.IsDraw())
@@ -283,7 +285,7 @@ void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a)
     hasStarted = true;
 }
 
-void Environment::StartGame(int timeSteps, bool render)
+void Environment::StartGame(int timeSteps, bool render, bool stepByStep)
 {
     int time = 0;
     while(!this->IsDone() && time < timeSteps)
@@ -293,8 +295,12 @@ void Environment::StartGame(int timeSteps, bool render)
         if(render)
         {
             std::cout << "\033c"; // clear console on linux
-            PrintState(state.get());
-            std::this_thread::sleep_for(std::chrono::milliseconds(80));
+            Print();
+
+            if(stepByStep)
+                std::getchar();
+            else
+                std::this_thread::sleep_for(std::chrono::milliseconds(80));
         }
         time++;
     }
@@ -315,6 +321,7 @@ void Environment::Step()
     }
 
     bboard::Step(state.get(), m);
+    timeStep++;
 
     if(state->aliveAgents == 1)
     {
@@ -333,6 +340,11 @@ void Environment::Step()
         finished = true;
         isDraw = true;
     }
+}
+
+void Environment::Print()
+{
+    PrintState(state.get());
 }
 
 //////////////////////
@@ -389,35 +401,39 @@ void PrintState(State* state)
         {
             int item = state->board[y][x];
             result += PrintItem(item);
-            if(x == BOARD_SIZE - 1)
-            {
-                result += "\n";
-            }
         }
+        std::cout << (result) << "          ";
+        result = "";
+        // Print AgentInfo
+        if(y < AGENT_COUNT)
+        {
+            int i = y;
+            std::printf("Agent %d: %s %d  %s %d  %s %d",
+                        i,
+                        PrintItem(Item::EXTRABOMB).c_str(),state->agents[i].maxBombCount,
+                        PrintItem(Item::INCRRANGE).c_str(),state->agents[i].bombStrength,
+                        PrintItem(Item::KICK).c_str(),state->agents[i].canKick);
+        }
+        else if(y == AGENT_COUNT + 1)
+        {
+            std::cout << "Bombs:  [  ";
+            for(int i = 0; i < state->bombs.count; i++)
+            {
+                std::cout << BMB_ID(state->bombs[i]) << "  ";
+            }
+            std::cout << "]";
+        }
+        else if(y == AGENT_COUNT + 2)
+        {
+            std::cout << "Flames: [  ";
+            for(int i = 0; i < state->flames.count; i++)
+            {
+                std::cout << state->flames[i].timeLeft << "  ";
+            }
+            std::cout << "]";
+        }
+        std::cout << std::endl;
     }
-    std::cout << result << std::endl << std::endl;
-
-    //Agent info
-    for(int _ = 0; _ < AGENT_COUNT; _++)
-    {
-        int i = _;
-        std::printf("A%d: %s %d  %s %d  %s %d\n",
-                    i,
-                    PrintItem(Item::EXTRABOMB).c_str(),state->agents[i].maxBombCount,
-                    PrintItem(Item::INCRRANGE).c_str(),state->agents[i].bombStrength,
-                    PrintItem(Item::KICK).c_str(),state->agents[i].canKick);
-    }
-    std::cout << "\nBomb queue:  [  ";
-    for(int i = 0; i < state->bombs.count; i++)
-    {
-        std::cout << BMB_ID(state->bombs[i]) << "  ";
-    }
-    std::cout << "]\nFlame queue: [  ";
-    for(int i = 0; i < state->flames.count; i++)
-    {
-        std::cout << state->flames[i].timeLeft << "  ";
-    }
-    std::cout << "]" << std::endl;
 }
 
 std::string PrintItem(int item)

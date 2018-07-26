@@ -425,6 +425,7 @@ private:
     bool hasStarted = false;
     bool isDraw = false;
 
+    int timeStep = 0;
     int agentWon = -1; // FFA
     int teamWon = -1; // Team
 
@@ -445,13 +446,20 @@ public:
      * @param timeSteps maximum of time steps after which the game ends
      * @param render True if the game should be rendered (and played out with
      * delay)
+     * @param stepByStep For debugging purposes.If true, pauses execution
+     * after each step. (Press enter to continue)
      */
-    void StartGame(int timeSteps, bool render=true);
+    void StartGame(int timeSteps, bool render=true, bool stepByStep = false);
 
     /**
      * @brief Step Executes a step, given by the params
      */
     void Step();
+
+    /**
+     * @brief Print Pretty-prints the Environment
+     */
+    void Print();
 
     /**
      * @brief GetState Returns a reference to the current state of
