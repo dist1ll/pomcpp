@@ -210,15 +210,17 @@ int IsInDanger(const State& state, int x, int y)
 
 void PrintMap(RMap &r)
 {
+    std::string res = "";
     for(int i = 0; i < BOARD_SIZE; i++)
     {
         for(int j = 0; j < BOARD_SIZE; j++)
         {
-            std::cout << (r.GetDistance(j, i) >= 10 ? "" : " ");
-            std::cout << r.GetDistance(j, i) << " ";
+            res += (r.GetDistance(j, i) >= 10 ? "" : " ");
+            res += std::to_string(r.GetDistance(j, i)) + " ";
         }
-        std::cout << std::endl;
+        res += "\n";
     }
+    std::cout << res;
 }
 
 

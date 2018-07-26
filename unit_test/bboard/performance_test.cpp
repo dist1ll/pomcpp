@@ -44,39 +44,42 @@ void ProxyConcurrent(int times)
 
 TEST_CASE("Step Function", "[performance]")
 {
-    agents::HarmlessAgent a;
-    bboard::Environment env;
+    agents::SimpleAgent b;
 
-    env.MakeGame({&a, &a, &a, &a});
-
-    int times = 10000;
-
+    int times = 100;
     double t = -1;
 
-    if(!THREADING)
+    for(int _ = 0; _ < 100; _++)
     {
-        t = timeMethod(times, Proxy, env);
-    }
-    else
-    {
-        std::vector<std::thread> threads(THREAD_COUNT);
-
-        std::chrono::duration<double, std::milli> total;
-        auto t1 = std::chrono::high_resolution_clock::now();
-        for(uint i = 0; i < THREAD_COUNT; i++)
+        agents::SimpleAgent a[4];
+        bboard::Environment env;
+        env.MakeGame({&a[0], &a[1], &a[2], &a[3]});
+        if(!THREADING)
         {
-            threads[i] = std::thread(ProxyConcurrent, times);
+            t += timeMethod(times, Proxy, env);
         }
-
-        // join all
-        for(uint i = 0; i < THREAD_COUNT; i++)
+        else
         {
-            threads[i].join();
-        }
+            std::vector<std::thread> threads(THREAD_COUNT);
 
-        total = std::chrono::high_resolution_clock::now() - t1;
-        t = total.count();
+            std::chrono::duration<double, std::milli> total;
+            auto t1 = std::chrono::high_resolution_clock::now();
+            for(uint i = 0; i < THREAD_COUNT; i++)
+            {
+                threads[i] = std::thread(ProxyConcurrent, times);
+            }
+
+            // join all
+            for(uint i = 0; i < THREAD_COUNT; i++)
+            {
+                threads[i].join();
+            }
+
+            total = std::chrono::high_resolution_clock::now() - t1;
+            t += total.count();
+        }
     }
+    t /= 100;
 
     std::string tst = "Test Results:";
     std::cout << std::endl
@@ -88,7 +91,7 @@ TEST_CASE("Step Function", "[performance]")
         RecursiveCommas(std::cout, uint(std::floor(times/(t/100.0))));
     std::cout << std::endl
               << "Tested with:                     "
-              << type_name<decltype(a)>()
+              << type_name<decltype(b)>()
               << std::endl << std::endl;
 
     REQUIRE(1);

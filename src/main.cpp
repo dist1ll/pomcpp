@@ -8,8 +8,8 @@
 int main()
 {
 
-    agents::RandomAgent r;
-    std::array<bboard::Agent*, 4> agents = {&r, &r, &r, &r};
+    agents::SimpleAgent r[4];
+    std::array<bboard::Agent*, 4> agents = {&r[0], &r[1], &r[2], &r[3]};
 
     bboard::Environment env;
     env.MakeGame(agents);

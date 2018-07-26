@@ -17,6 +17,7 @@ SimpleAgent::SimpleAgent()
 
 Move SimpleAgent::act(const State* state)
 {
+    const AgentInfo& a = state->agents[id];
     FillRMap(*state, r, id);
 
     danger = strategy::IsInDanger(*state, id);
@@ -28,7 +29,14 @@ Move SimpleAgent::act(const State* state)
     }
     else
     {
-        return Move::BOMB;
+        if(intDist(rng))
+        {
+            return static_cast<bboard::Move>(intDist(rng));
+        }
+        else
+        {
+            return Move::BOMB;
+        }
     }
 }
 
