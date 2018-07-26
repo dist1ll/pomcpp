@@ -78,6 +78,16 @@ bool IsAdjacentEnemy(const State& state, int agentID, int distance);
 Move MoveTowardsPosition(const RMap& r, const Position& position);
 
 /**
+ * @brief MoveTowardsSafePlace Returns the direction towards one
+ * of the closest points from the source that is safe from explosions.
+ * (In the given radius)
+ * @param r The filled RMap
+ * @param radius The search radius
+ * @return IDLE if no safe place could be found
+ */
+Move MoveTowardsSafePlace(const State& state, const RMap& r, int radius);
+
+/**
  * @brief MoveTowardsPowerup Returns the move that brings the agent
  * closer to a powerup in a specified radius. If no nearby powerup is
  * in that radius, then don't the move is IDLE
@@ -107,7 +117,8 @@ int SafeDirections(const State& state, std::array<Move, MOVE_COUNT> moves);
  * @brief IsSafe Returns true if the agent is endangered (in range of a bomb).
  * The int-value says how much time the agent has to flee.
  */
-int IsInDanger(State& state, int agentID);
+int IsInDanger(const State& state, int agentID);
+int IsInDanger(const State& state, int x, int y);
 
 /**
  * @brief IsInBombRange Returns True if the given position is in range
@@ -115,9 +126,9 @@ int IsInDanger(State& state, int agentID);
  */
 inline bool IsInBombRange(int x, int y, int s, const Position& pos)
 {
-    return (pos.y == y && x-s > pos.x > x+s)
+    return (pos.y == y && (x-s <= pos.x && pos.x <= x+s))
            ||
-           (pos.x == x && y-s > pos.y > y+s);
+           (pos.x == x && (y-s <= pos.y && pos.y <= y+s));
 }
 
 

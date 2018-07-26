@@ -1,4 +1,5 @@
 #include <limits>
+#include <algorithm>
 #include <unordered_set>
 
 #include "bboard.hpp"
@@ -56,6 +57,7 @@ inline RMapInfo TryAdd(const State& s, FixedQueue<T, N>& q, RMap& r, Position& c
 // BFS
 void FillRMap(const State& s, RMap& r, int agentID)
 {
+    std::fill(r.map[0], r.map[0] + BOARD_SIZE * BOARD_SIZE, 0);
     int x = s.agents[agentID].x;
     int y = s.agents[agentID].y;
     r.source = {x, y};
@@ -113,6 +115,26 @@ Move MoveTowardsPosition(const RMap& r, const Position& position)
     }
 }
 
+Move MoveTowardsSafePlace(const State& state, const RMap& r, int radius)
+{
+    int originX = r.source.x;
+    int originY = r.source.y;
+    for(int y = originY - radius; y < radius; y++)
+    {
+        for(int x = originX - radius; x < radius; x++)
+        {
+            if(util::IsOutOfBounds({x, y}) ||
+                    std::abs(x - originX) + std::abs(y - originY) > radius) continue;
+
+            if(r.GetDistance(x, y) != 0 && !IsInDanger(state, x, y))
+            {
+                return MoveTowardsPosition(r, {x, y});
+            }
+        }
+    }
+    return Move::IDLE;
+}
+
 Move MoveTowardsPowerup(const State& state, const RMap& r, int radius)
 {
     const Position& a = r.source;
@@ -158,15 +180,20 @@ Move MoveTowardsEnemy(const State& state, const RMap& r, int radius)
     return Move::IDLE;
 }
 
-int IsInDanger(State& state, int agentID)
+int IsInDanger(const State& state, int agentID)
+{
+    const AgentInfo& a = state.agents[agentID];
+    return IsInDanger(state, a.x, a.y);
+}
+
+int IsInDanger(const State& state, int x, int y)
 {
     int minTime = std::numeric_limits<int>::max();
-
     // TODO: add consideration for chained bomb explosions
     for(int i = 0; i < state.bombs.count; i++)
     {
-        Bomb& b = state.bombs[i];
-        if(IsInBombRange(BMB_POS_X(b), BMB_POS_Y(b), BMB_STRENGTH(b), {1,1}))
+        const Bomb& b = state.bombs[i];
+        if(IsInBombRange(BMB_POS_X(b), BMB_POS_Y(b), BMB_STRENGTH(b), {x,y}))
         {
             if(BMB_TIME(b) < minTime)
             {

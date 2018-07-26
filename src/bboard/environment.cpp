@@ -10,9 +10,13 @@ namespace bboard
 void Pause(bool timeBased)
 {
     if(!timeBased)
-        std::getchar();
+    {
+        std::cin.get();
+    }
     else
+    {
         std::this_thread::sleep_for(std::chrono::milliseconds(80));
+    }
 }
 
 void PrintGameResult(Environment& env)
@@ -62,23 +66,21 @@ void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a)
 void Environment::StartGame(int timeSteps, bool render, bool stepByStep)
 {
     state->timeStep = 0;
-    Print();
-    if(stepByStep)
-        std::getchar();
-
     while(!this->IsDone() && state->timeStep < timeSteps)
     {
-        this->Step();
+
         if(render)
         {
             Print();
 
             if(listener)
-                listener(*state.get());
+                listener(*this);
 
             Pause(!stepByStep);
         }
+        this->Step();
     }
+    Print();
     PrintGameResult(*this);
 }
 
@@ -92,7 +94,10 @@ void Environment::Step()
     Move m[AGENT_COUNT];
     for(uint i = 0; i < AGENT_COUNT; i++)
     {
-        m[i] = agents[i]->act(state.get());
+        if(!state->agents[i].dead)
+        {
+            m[i] = agents[i]->act(state.get());
+        }
     }
 
     bboard::Step(state.get(), m);
@@ -124,13 +129,22 @@ void Environment::Print(bool clear)
     PrintState(state.get());
 }
 
-State& Environment::GetState() const
+const State& Environment::GetState() const
 {
     return *state.get();
 }
 
+Agent* Environment::GetAgent(uint agentID) const
+{
+    return agents[agentID];
+}
+
 void Environment::SetAgents(std::array<Agent*, AGENT_COUNT> agents)
 {
+    for(uint i = 0; i < AGENT_COUNT; i++)
+    {
+        agents[i]->id = int(i);
+    }
     this->agents = agents;
 }
 
@@ -149,7 +163,7 @@ int Environment::GetWinner()
     return agentWon;
 }
 
-void Environment::SetStepListener(const std::function<void(const State&)>& f)
+void Environment::SetStepListener(const std::function<void(const Environment&)>& f)
 {
     listener = f;
 }

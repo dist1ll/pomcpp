@@ -21,6 +21,7 @@ bboard::Move RandomAgent::act(const bboard::State* state)
     return static_cast<bboard::Move>(intDist(rng));
 }
 
+
 //////////////////////
 //  Harmless Agent  //
 //////////////////////
@@ -35,6 +36,7 @@ bboard::Move HarmlessAgent::act(const bboard::State* state)
 {
     return static_cast<bboard::Move>(intDist(rng));
 }
+
 
 //////////////////
 //  Lazy Agent  //

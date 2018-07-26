@@ -1,14 +1,17 @@
 #include "catch.hpp"
 #include "bboard.hpp"
 #include "agents.hpp"
+#include "strategy.hpp"
 
 using namespace agents;
 
 template <int AGENT>
-void PrintAgentInfo(const bboard::State& state)
+void PrintAgentInfo(const bboard::Environment& env)
 {
+    SimpleAgent& a = *static_cast<SimpleAgent*>(env.GetAgent(AGENT));
     std::cout << std::endl;
-    std::cout << "debbuging agent nr. " << AGENT;
+    // std::cout << a.danger;
+    bboard::strategy::PrintMap(a.r);
 }
 
 TEST_CASE("Test Simple Agent", "[live testing]")
@@ -26,5 +29,5 @@ TEST_CASE("Test Simple Agent", "[live testing]")
     e.MakeGame({&simpleton, &r[0], &r[1], &r[2]});
 
     // starts the game with the specified params
-    e.StartGame(50, true, true);
+    e.StartGame(500, true, false);
 }

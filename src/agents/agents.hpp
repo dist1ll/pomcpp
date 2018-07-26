@@ -53,6 +53,12 @@ struct LazyAgent : bboard::Agent
  */
 struct SimpleAgent : bboard::Agent
 {
+    std::mt19937_64 rng;
+    std::uniform_int_distribution<int> intDist;
+
+    SimpleAgent();
+
+    int danger = 0;
     bboard::strategy::RMap r;
     bboard::Move act(const bboard::State* state) override;
 };

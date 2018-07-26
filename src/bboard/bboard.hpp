@@ -135,7 +135,8 @@ struct FixedQueue
      * @return The i-th elem if the index is in [0, n]
      * where n = elemcount, sorted w.r.t. their lifetime
      */
-    T& operator[] (const int index);
+    T&       operator[] (const int index);
+    const T& operator[] (const int index) const;
 };
 
 template<typename T, int TSize>
@@ -143,7 +144,11 @@ inline T& FixedQueue<T, TSize>::operator[] (const int offset)
 {
     return queue[(index + offset) % TSize];
 }
-
+template<typename T, int TSize>
+inline const T& FixedQueue<T, TSize>::operator[] (const int offset) const
+{
+    return queue[(index + offset) % TSize];
+}
 /**
  * @brief Represents any position on a board of a state
  */
@@ -423,7 +428,7 @@ private:
 
     std::unique_ptr<State> state;
     std::array<Agent*, AGENT_COUNT> agents;
-    std::function<void(const State&)> listener;
+    std::function<void(const Environment&)> listener;
 
     // Current State
     bool finished = false;
@@ -470,7 +475,7 @@ public:
      * @brief GetState Returns a reference to the current state of
      * the environment
      */
-    State& GetState() const;
+    const State& GetState() const;
 
     /**
      * @brief SetAgents Registers all agents that will participate
@@ -480,10 +485,17 @@ public:
     void SetAgents(std::array<Agent*, AGENT_COUNT> agents);
 
     /**
+     * @brief GetAgent
+     * @param agentID
+     * @return
+     */
+    Agent* GetAgent(uint agentID) const;
+
+    /**
      * @brief SetStepListener Sets the step listener. Step listener
      * gets invoked every time after the step function was called.
      */
-    void SetStepListener(const std::function<void(const State&)>& f);
+    void SetStepListener(const std::function<void(const Environment&)>& f);
 
     /**
      * @return True if the last step ended the current game
