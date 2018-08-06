@@ -87,6 +87,11 @@ struct FixedQueue
     int index = 0;
     int count = 0;
 
+    int RemainingCapacity()
+    {
+        return TSize - count;
+    }
+
     /**
      * @brief PopBomb Frees up the position of the elem in the
      * queue to be used by other elems.

@@ -58,11 +58,17 @@ struct SimpleAgent : bboard::Agent
 
     SimpleAgent();
 
+    //////////////
+    // Specific //
+    //////////////
     int danger = 0;
     bboard::strategy::RMap r;
     bboard::FixedQueue<bboard::Move, bboard::MOVE_COUNT> moveQueue;
+    bboard::FixedQueue<bboard::Position, 4> recentPositions;
 
     bboard::Move act(const bboard::State* state) override;
+
+    void PrintDetailedInfo();
 };
 // more agents to be included?
 

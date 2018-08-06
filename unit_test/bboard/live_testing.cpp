@@ -10,8 +10,8 @@ void PrintAgentInfo(const bboard::Environment& env)
 {
     SimpleAgent& a = *static_cast<SimpleAgent*>(env.GetAgent(AGENT));
     std::cout << std::endl;
-    std::cout << a.moveQueue.count;
-    bboard::strategy::PrintMap(a.r);
+    // bboard::strategy::PrintMap(a.r);
+    a.PrintDetailedInfo();
 }
 
 TEST_CASE("Test Simple Agent", "[live testing]")

@@ -2,6 +2,7 @@
 #define STRATEGY_H
 
 #include "bboard.hpp"
+#include "step_utility.hpp"
 
 // integer with less than 4 bytes will have bugs
 static_assert (sizeof(int) == 4 || sizeof (int) == 8, "32/64 bit integer");
@@ -118,6 +119,34 @@ Move MoveTowardsEnemy(const State& state, const RMap& r, int radius);
  * queue
  */
 void SafeDirections(const State& state, FixedQueue<Move, MOVE_COUNT>& q, int x, int y);
+
+/**
+ * @brief SortDirections Sort a move-queue, where unvisited states are
+ * last in the queue
+ */
+template <int X>
+void SortDirections(FixedQueue<Move, MOVE_COUNT>& q,
+                    FixedQueue<Position, X>& p, int x, int y)
+{
+    int moves = q.count;
+    for(int _ = 0; _ < moves; _++)
+    {
+        int i = _;
+        Position pos = util::DesiredPosition(x, y, q[i]);
+        for(int j = 0; j < p.count; j++)
+        {
+            if(pos == p[j])
+            {
+                q.AddElem(q[i]);
+                q.RemoveAt(i);
+                i--;
+                break;
+            }
+        }
+    }
+}
+
+
 
 /**
  * @brief IsSafe Returns true if the agent is endangered (in range of a bomb).

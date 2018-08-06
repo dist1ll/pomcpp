@@ -21,41 +21,65 @@ SimpleAgent::SimpleAgent()
     intDist = std::uniform_int_distribution<int>(0, 4); // no bombs
 }
 
-Move SimpleAgent::act(const State* state)
+
+Move _Decide(SimpleAgent& me, const State* state)
 {
-    const AgentInfo& a = state->agents[id];
-    FillRMap(*state, r, id);
+    const AgentInfo& a = state->agents[me.id];
+    FillRMap(*state, me.r, me.id);
 
-    danger = IsInDanger(*state, id);
+    me.danger = IsInDanger(*state, me.id);
 
-    if(danger > 0)
+    if(me.danger > 0)
     {
-        return MoveTowardsSafePlace(*state, r, danger);
+        return MoveTowardsSafePlace(*state, me.r, me.danger);
     }
 
     if(a.bombCount < a.maxBombCount)
     {
-        if(IsAdjacentEnemy(*state, id, 1)
-                || IsAdjacentItem(*state, id, 1, Item::WOOD))
+        if(IsAdjacentEnemy(*state, me.id, 2)
+                || IsAdjacentItem(*state, me.id, 1, Item::WOOD))
         {
             return Move::BOMB;
         }
 
-        if(IsAdjacentEnemy(*state, id, 3))
+        if(IsAdjacentEnemy(*state, me.id, 7))
         {
-            return MoveTowardsEnemy(*state, r, 3);
+            return MoveTowardsEnemy(*state, me.r, 7);
         }
     }
-    moveQueue.count = 0;
-    SafeDirections(*state, moveQueue, a.x, a.y);
+    me.moveQueue.count = 0;
+    SafeDirections(*state, me.moveQueue, a.x, a.y);
+    SortDirections(me.moveQueue, me.recentPositions, a.x, a.y);
 
-    if(moveQueue.count == 0)
+    if(me.moveQueue.count == 0)
     {
         return Move::IDLE;
     }
     else
     {
-        return moveQueue[intDist(rng) % moveQueue.count];
+        return me.moveQueue[me.intDist(me.rng) % 2];
+    }
+}
+Move SimpleAgent::act(const State* state)
+{
+    const AgentInfo& a = state->agents[id];
+    Move m = _Decide(*this, state);
+    Position p = util::DesiredPosition(a.x, a.y, m);
+
+    if(recentPositions.RemainingCapacity() == 0)
+    {
+        recentPositions.PopElem();
+    }
+    recentPositions.AddElem(p);
+
+    return m;
+}
+
+void SimpleAgent::PrintDetailedInfo()
+{
+    for(int i = 0; i < recentPositions.count; i++)
+    {
+        std::cout << recentPositions[i] << std::endl;
     }
 }
 

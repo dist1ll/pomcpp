@@ -111,6 +111,10 @@ Move MoveTowardsPosition(const RMap& r, const Position& position)
             if(curr.y > r.source.y) return Move::DOWN;
             if(curr.y < r.source.y) return Move::UP;
         }
+        else if(r.GetDistance(curr.x, curr.y) == 0)
+        {
+            return Move::IDLE;
+        }
         curr = {x, y};
     }
 }
