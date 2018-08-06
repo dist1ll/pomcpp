@@ -10,14 +10,14 @@ void PrintAgentInfo(const bboard::Environment& env)
 {
     SimpleAgent& a = *static_cast<SimpleAgent*>(env.GetAgent(AGENT));
     std::cout << std::endl;
-    // std::cout << a.danger;
+    std::cout << a.moveQueue.count;
     bboard::strategy::PrintMap(a.r);
 }
 
 TEST_CASE("Test Simple Agent", "[live testing]")
 {
     SimpleAgent simpleton;
-    std::array<LazyAgent, 3> r;
+    std::array<SimpleAgent, 3> r;
 
     // create an environment
     bboard::Environment e;
@@ -29,5 +29,5 @@ TEST_CASE("Test Simple Agent", "[live testing]")
     e.MakeGame({&simpleton, &r[0], &r[1], &r[2]});
 
     // starts the game with the specified params
-    e.StartGame(500, true, false);
+    e.StartGame(500, true, true);
 }

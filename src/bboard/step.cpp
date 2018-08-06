@@ -86,7 +86,15 @@ void Step(State* state, Move* moves)
             state->Kill(i);
             if(state->board[y][x] == Item::AGENT0 + i)
             {
-                state->board[y][x] = Item::PASSAGE;
+                if(state->HasBomb(x, y))
+                {
+                    state->board[y][x] = Item::BOMB;
+                }
+                else
+                {
+                    state->board[y][x] = Item::PASSAGE;
+                }
+
             }
             continue;
         }

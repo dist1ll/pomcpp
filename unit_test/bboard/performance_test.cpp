@@ -44,14 +44,14 @@ void ProxyConcurrent(int times)
 
 TEST_CASE("Step Function", "[performance]")
 {
-    agents::SimpleAgent b;
+    agents::HarmlessAgent b;
 
-    int times = 100;
+    int times = 1000;
     double t = -1;
 
-    for(int _ = 0; _ < 100; _++)
+    for(int _ = 0; _ < 10; _++)
     {
-        agents::SimpleAgent a[4];
+        agents::HarmlessAgent a[4];
         bboard::Environment env;
         env.MakeGame({&a[0], &a[1], &a[2], &a[3]});
         if(!THREADING)
@@ -79,7 +79,7 @@ TEST_CASE("Step Function", "[performance]")
             t += total.count();
         }
     }
-    t /= 100;
+    t /= 10;
 
     std::string tst = "Test Results:";
     std::cout << std::endl

@@ -72,6 +72,12 @@ inline bool IsReachable(RMap& r, int x, int y)
 bool IsAdjacentEnemy(const State& state, int agentID, int distance);
 
 /**
+ * @brief IsAdjacentEnemy returns true if the agent is within a
+ * given manhattan-distance from the specified item
+ */
+bool IsAdjacentItem(const State& state, int agentID, int distance, Item item);
+
+/**
  * @brief MoveTowardsPosition Selects a move the brings you closest
  * from the RMap source to the specified target
  */
@@ -108,10 +114,10 @@ Move MoveTowardsPowerup(const State& state, const RMap& r, int radius);
 Move MoveTowardsEnemy(const State& state, const RMap& r, int radius);
 
 /**
- * @brief SafeDirections Fills an array of moves with safe moves
- * @return The amount of moves put into std::array
+ * @brief FilterSafeDirections Adds all possible safe moves to the
+ * queue
  */
-int SafeDirections(const State& state, std::array<Move, MOVE_COUNT> moves);
+void SafeDirections(const State& state, FixedQueue<Move, MOVE_COUNT>& q, int x, int y);
 
 /**
  * @brief IsSafe Returns true if the agent is endangered (in range of a bomb).

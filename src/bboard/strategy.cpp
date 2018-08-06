@@ -138,9 +138,9 @@ Move MoveTowardsSafePlace(const State& state, const RMap& r, int radius)
 Move MoveTowardsPowerup(const State& state, const RMap& r, int radius)
 {
     const Position& a = r.source;
-    for(int y = a.y - radius; y < a.y + radius; y++)
+    for(int y = a.y - radius; y <= a.y + radius; y++)
     {
-        for(int x = a.x - radius; x < a.x + radius; x++)
+        for(int x = a.x - radius; x <= a.x + radius; x++)
         {
             if(util::IsOutOfBounds(x, y) ||
                     std::abs(x - a.x) + std::abs(y - a.y) > radius) continue;
@@ -178,6 +178,31 @@ Move MoveTowardsEnemy(const State& state, const RMap& r, int radius)
 
     }
     return Move::IDLE;
+}
+
+bool _CheckPos(const State& state, int x, int y)
+{
+    return !util::IsOutOfBounds(x, y) && IS_WALKABLE(state.board[y][x]);
+}
+
+void SafeDirections(const State& state, FixedQueue<Move, MOVE_COUNT>& q, int x, int y)
+{
+    if(_CheckPos(state, x + 1, y) && !IsInDanger(state, x + 1, y))
+    {
+        q.AddElem(Move::RIGHT);
+    }
+    if(_CheckPos(state, x - 1, y) && !IsInDanger(state, x - 1, y))
+    {
+        q.AddElem(Move::LEFT);
+    }
+    if(_CheckPos(state, x, y + 1) && !IsInDanger(state, x, y + 1))
+    {
+        q.AddElem(Move::DOWN);
+    }
+    if(_CheckPos(state, x, y - 1) && !IsInDanger(state, x, y - 1))
+    {
+        q.AddElem(Move::UP);
+    }
 }
 
 int IsInDanger(const State& state, int agentID)
@@ -267,6 +292,27 @@ bool IsAdjacentEnemy(const State& state, int agentID, int distance)
                 std::abs(state.agents[i].y - a.y)) <= distance)
         {
             return true;
+        }
+    }
+    return false;
+}
+
+bool IsAdjacentItem(const State& state, int agentID, int distance, Item item)
+{
+    const AgentInfo& a = state.agents[agentID];
+    const int originX = a.x;
+    const int originY = a.y;
+    for(int y = originY - distance; y <= originY + distance; y++)
+    {
+        for(int x = originX - distance; x <= originX + distance; x++)
+        {
+            if(util::IsOutOfBounds(x, y) ||
+                    std::abs(x - originX) + std::abs(y - originY) > distance) continue;
+
+            if(state.board[y][x] == item)
+            {
+                return true;
+            }
         }
     }
     return false;

@@ -60,6 +60,8 @@ struct SimpleAgent : bboard::Agent
 
     int danger = 0;
     bboard::strategy::RMap r;
+    bboard::FixedQueue<bboard::Move, bboard::MOVE_COUNT> moveQueue;
+
     bboard::Move act(const bboard::State* state) override;
 };
 // more agents to be included?
