@@ -53,10 +53,6 @@ void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a)
 {
     bboard::InitState(state.get(), 0, 1, 2, 3);
 
-    state->PutItem(1, 4, bboard::Item::INCRRANGE);
-    state->PutItem(6, 4, bboard::Item::KICK);
-    state->PutItem(7, 6, bboard::Item::EXTRABOMB);
-
     state->PutAgentsInCorners(0, 1, 2, 3);
 
     SetAgents(a);

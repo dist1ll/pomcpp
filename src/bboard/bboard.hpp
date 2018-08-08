@@ -3,6 +3,7 @@
 
 #include <array>
 #include <string>
+#include <random>
 #include <memory>
 #include <iostream>
 #include <algorithm>
@@ -54,25 +55,29 @@ enum Item
 {
     PASSAGE    = 0,
     RIGID      = 1,
-    WOOD       = 2,
+    WOOD       = 2 << 8,
     BOMB       = 3,
     // optimization I in docs
-    FLAMES     = 4 << 8,
+    FLAMES     = 4 << 16,
     FOG        = 5,
     EXTRABOMB  = 6,
     INCRRANGE  = 7,
     KICK       = 8,
     AGENTDUMMY = 9,
-    AGENT0 = 1 << 16,
-    AGENT1 = 2 << 16,
-    AGENT2 = 3 << 16,
-    AGENT3 = 4 << 16
+    AGENT0 = 1 << 24,
+    AGENT1 = 2 << 24,
+    AGENT2 = 3 << 24,
+    AGENT3 = 4 << 24
 };
 
-#define IS_POWERUP(x)  ((x) > 5 && (x) < 9)
-#define IS_WALKABLE(x) (IS_POWERUP((x)) || (x) == 0)
-#define IS_FLAME(x) (((x) >> 8) == 4)
-#define FLAME_SIG(x) ((x) - bboard::Item::FLAMES)
+#define IS_WOOD(x)       (((x) >> 8) == 2)
+#define IS_POWERUP(x)    ((x) > 5 && (x) < 9)
+#define IS_WALKABLE(x)   (IS_POWERUP((x)) || (x) == 0)
+#define IS_FLAME(x)      (((x) >> 16) == 4)
+
+#define FLAME_ID(x)      (((x) & 0xFFFF) >> 3)
+#define FLAME_POWFLAG(x) ((x) & 0b11)
+#define WOOD_POWFLAG(x)  ((x) & 0b11)
 
 /**
  * @brief The FixedQueue struct implements a extremely
@@ -355,6 +360,12 @@ struct State
     {
         board[y][x] = item;
     }
+
+    /**
+     * @brief BreakWood Returns the correct powerup
+     * for the given pow-flag
+     */
+    Item FlagItem(int powFlag);
 
     /**
      * @brief Kill Kills the specified agents

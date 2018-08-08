@@ -70,8 +70,7 @@ TEST_CASE("Move Towards Methods", "[strategy]")
         s->Kill(1, 2, 3);
         s->PutAgent(4, 5, 0);
         strategy::FillRMap(*s.get(), r, 0);
-
-        Move m1 = strategy::MoveTowardsPosition(r, {4, 0});
+        Move m1 = strategy::MoveTowardsPosition(r, {4, 1});
         Move m2 = strategy::MoveTowardsPosition(r, {3, 6});
         Move m3 = strategy::MoveTowardsPosition(r, {0,10});
 

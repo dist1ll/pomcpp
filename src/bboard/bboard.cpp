@@ -21,7 +21,7 @@ namespace bboard
  * @param signature An auxiliary integer less than 255
  * @return Could the flame be spawned?
  */
-inline bool SpawnFlameItem(State& s, int x, int y, uint8_t signature = 0)
+inline bool SpawnFlameItem(State& s, int x, int y, uint16_t signature = 0)
 {
     if(s.board[y][x] >= Item::AGENT0)
     {
@@ -43,14 +43,36 @@ inline bool SpawnFlameItem(State& s, int x, int y, uint8_t signature = 0)
 
     if(s.board[y][x] != Item::RIGID)
     {
-        bool wasWood = s.board[y][x] == Item::WOOD;
+        int old = s.board[y][x];
+        bool wasWood = IS_WOOD(old);
         s.board[y][x] = Item::FLAMES + signature;
+        if(wasWood)
+        {
+            s.board[y][x]+= WOOD_POWFLAG(old); // set the powerup flag
+        }
         return !wasWood; // if wood, then only destroy 1
     }
     else
     {
         return false;
     }
+}
+
+int ChooseItemOuter(int tmp)
+{
+    if(tmp > 2 || tmp == 0)
+    {
+        return Item::PASSAGE;
+    }
+    else if(tmp == 2)
+    {
+        return Item::WOOD;
+    }
+    else if(tmp == 1)
+    {
+        return Item::RIGID;
+    }
+    return Item::PASSAGE;
 }
 
 /**
@@ -104,7 +126,7 @@ void State::PopFlame()
     int x = f.position.x;
     int y = f.position.y;
 
-    int signature = x + BOARD_SIZE * y;
+    uint16_t signature = uint16_t(x + BOARD_SIZE * y);
 
     // iterate over both axis (from x-s to x+s // y-s to y+s)
     for(int i = -s; i <= s; i++)
@@ -112,21 +134,32 @@ void State::PopFlame()
         if(!IsOutOfBounds(x + i, y) && IS_FLAME(board[y][x + i]))
         {
             // only remove if this is my own flame
-            if((board[y][x + i] - Item::FLAMES) == signature)
+            int b = board[y][x + i];
+            if(FLAME_ID(b) == signature)
             {
-                board[y][x + i] = Item::PASSAGE;
+                board[y][x + i] = FlagItem(FLAME_POWFLAG(b));
             }
         }
         if(!IsOutOfBounds(x, y + i) && IS_FLAME(board[y + i][x]))
         {
-            if((board[y + i][x] - Item::FLAMES) == signature)
+            int b = board[y + i][x];
+            if(FLAME_ID(b) == signature)
             {
-                board[y + i][x] = Item::PASSAGE;
+                board[y + i][x] = FlagItem(FLAME_POWFLAG(b));
             }
         }
     }
 
     flames.PopElem();
+}
+
+Item State::FlagItem(int pwp)
+{
+    if     (pwp == 0) return Item::PASSAGE;
+    else if(pwp == 1) return Item::EXTRABOMB;
+    else if(pwp == 2) return Item::INCRRANGE;
+    else if(pwp == 3) return Item::KICK;
+    else              return Item::PASSAGE;
 }
 
 void State::ExplodeTopBomb()
@@ -145,7 +178,7 @@ void State::SpawnFlame(int x, int y, int strength)
     f.timeLeft = FLAME_LIFETIME;
 
     // unique flame id
-    uint8_t signature = uint8_t(x + BOARD_SIZE * y);
+    uint16_t signature = uint16_t((x + BOARD_SIZE * y) << 3);
 
     flames.count++;
 
@@ -252,13 +285,37 @@ void InitBoardItems(State& result, int seed)
 {
     std::mt19937_64 rng(seed);
     std::uniform_int_distribution<int> intDist(0,6);
+
+    FixedQueue<int, BOARD_SIZE * BOARD_SIZE> q;
+
     for(int i = 0; i < BOARD_SIZE; i++)
     {
         for(int  j = 0; j < BOARD_SIZE; j++)
         {
             int tmp = intDist(rng);
-            result.board[i][j] = tmp > 2 ? 0 : tmp;
+            result.board[i][j] = ChooseItemOuter(tmp);
+
+            if(IS_WOOD(result.board[i][j]))
+            {
+                q.AddElem(j + BOARD_SIZE * i);
+            }
         }
+    }
+
+    std::uniform_int_distribution<int> idxSample(0, q.count);
+    std::uniform_int_distribution<int> choosePwp(1, 4);
+    int total = 0;
+    while(true)
+    {
+        int idx = q[idxSample(rng)];
+        if((result.board[0][idx] & 0xFF) == 0)
+        {
+            result.board[0][idx] += choosePwp(rng);
+            total++;
+        }
+
+        if(total >= float(q.count)/2)
+            break;
     }
 }
 
@@ -337,8 +394,6 @@ std::string PrintItem(int item)
             return "   ";
         case Item::RIGID:
             return "[X]";
-        case Item::WOOD:
-            return FBLU(wood);
         case Item::BOMB:
             return " \u25CF ";
         case Item::EXTRABOMB:
@@ -347,6 +402,10 @@ std::string PrintItem(int item)
             return " \u24C7 ";
         case Item::KICK:
             return " \u24C0 ";
+    }
+    if(IS_WOOD(item))
+    {
+        return FBLU(wood);
     }
     if(IS_FLAME(item))
     {

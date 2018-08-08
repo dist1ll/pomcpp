@@ -313,6 +313,10 @@ bool IsAdjacentItem(const State& state, int agentID, int distance, Item item)
             if(util::IsOutOfBounds(x, y) ||
                     std::abs(x - originX) + std::abs(y - originY) > distance) continue;
 
+            if(IS_WOOD(item) && IS_WOOD(state.board[y][x]))
+            {
+                return true;
+            }
             if(state.board[y][x] == item)
             {
                 return true;

@@ -118,7 +118,7 @@ void Step(State* state, Move* moves)
         // execute move if the destination is free
         // (in the rare case of ouroboros, make the move even
         // if an agent occupies the spot)
-        if(itemOnDestination == 0 ||
+        if(itemOnDestination == Item::PASSAGE ||
                 (ouroboros && itemOnDestination >= Item::AGENT0))
         {
             // only override the position I came from if it has not been
