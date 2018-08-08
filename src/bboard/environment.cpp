@@ -15,7 +15,7 @@ void Pause(bool timeBased)
     }
     else
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(80));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
@@ -72,15 +72,44 @@ void Environment::StartGame(int timeSteps, bool render, bool stepByStep)
             if(listener)
                 listener(*this);
 
-            Pause(!stepByStep);
+            if(stepByStep)
+                Pause(false);
         }
-        this->Step();
+        this->Step(true);
     }
     Print();
     PrintGameResult(*this);
 }
 
-void Environment::Step()
+void ProxyAct(Move& writeBack, Agent& agent, State& state)
+{
+    writeBack = agent.act(&state);
+}
+
+void CollectMovesAsync(Move m[AGENT_COUNT], Environment& e)
+{
+    std::thread threads[AGENT_COUNT];
+    for(uint i = 0; i < AGENT_COUNT; i++)
+    {
+        if(!e.GetState().agents[i].dead)
+        {
+            threads[i] = std::thread(ProxyAct,
+                                     std::ref(m[i]),
+                                     std::ref(*e.GetAgent(i)),
+                                     std::ref(e.GetState()));
+        }
+    }
+    Pause(true); //competitive pause
+    for(uint i = 0; i < AGENT_COUNT; i++)
+    {
+        if(!e.GetState().agents[i].dead)
+        {
+            threads[i].join();
+        }
+    }
+}
+
+void Environment::Step(bool competitiveTimeLimit)
 {
     if(!hasStarted || finished)
     {
@@ -88,13 +117,23 @@ void Environment::Step()
     }
 
     Move m[AGENT_COUNT];
-    for(uint i = 0; i < AGENT_COUNT; i++)
+
+
+    if(competitiveTimeLimit)
     {
-        if(!state->agents[i].dead)
+        CollectMovesAsync(m, *this);
+    }
+    else
+    {
+        for(uint i = 0; i < AGENT_COUNT; i++)
         {
-            m[i] = agents[i]->act(state.get());
+            if(!state->agents[i].dead)
+            {
+                m[i] = agents[i]->act(state.get());
+            }
         }
     }
+
 
     bboard::Step(state.get(), m);
     state->timeStep++;
@@ -125,7 +164,7 @@ void Environment::Print(bool clear)
     PrintState(state.get());
 }
 
-const State& Environment::GetState() const
+State& Environment::GetState() const
 {
     return *state.get();
 }

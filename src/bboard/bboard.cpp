@@ -75,6 +75,19 @@ int ChooseItemOuter(int tmp)
     return Item::PASSAGE;
 }
 
+int ChooseItemInner(int tmp)
+{
+    if(tmp >= 2)
+    {
+        return Item::WOOD;
+    }
+    else if(tmp == 1)
+    {
+        return Item::RIGID;
+    }
+    return Item::PASSAGE;
+}
+
 /**
  * @brief PopBomb A proxy for FixedQueue::PopElem, but also
  * takes care of agent count

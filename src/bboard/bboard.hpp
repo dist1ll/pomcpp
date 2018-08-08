@@ -478,8 +478,11 @@ public:
 
     /**
      * @brief Step Executes a step, given by the params
+     * @param competitiveTimeLimit Set to true if the agents
+     * need to produce a response in less than 100ms (competition
+     * rule). Timed out agents will have the IDLE move.
      */
-    void Step();
+    void Step(bool competitiveTimeLimit = false);
 
     /**
      * @brief Print Pretty-prints the Environment
@@ -491,7 +494,7 @@ public:
      * @brief GetState Returns a reference to the current state of
      * the environment
      */
-    const State& GetState() const;
+    State& GetState() const;
 
     /**
      * @brief SetAgents Registers all agents that will participate
