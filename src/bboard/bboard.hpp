@@ -64,10 +64,10 @@ enum Item
     INCRRANGE  = 7,
     KICK       = 8,
     AGENTDUMMY = 9,
-    AGENT0 = 1 << 24,
-    AGENT1 = 2 << 24,
-    AGENT2 = 3 << 24,
-    AGENT3 = 4 << 24
+    AGENT0 = (1 << 24),
+    AGENT1 = (1 << 24) + 1,
+    AGENT2 = (1 << 24) + 2,
+    AGENT3 = (1 << 24) + 3
 };
 
 #define IS_WOOD(x)       (((x) >> 8) == 2)
