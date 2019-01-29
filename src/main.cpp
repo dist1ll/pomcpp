@@ -16,5 +16,3 @@ int main()
     env.StartGame(500, true);
 
 }
-
-

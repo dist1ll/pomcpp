@@ -5,6 +5,7 @@ build/
 # exclude personal IDE project files
 .qtcreator.*
 .creator.*
+*.qtcreator.*
 
 # remove pom files :fail:
 pom.files
