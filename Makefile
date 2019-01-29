@@ -8,6 +8,7 @@ BUILDDIR := build/src
 TESTBUILD := build/unit_test
 MAIN_TARGET := ./bin/exec
 TEST_TARGET := ./bin/test
+SHARED_TARGET := ./bin/shared.a
 
 MAIN_SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 TEST_SOURCES := $(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
@@ -37,7 +38,6 @@ test: $(TEST_OBJECTS)
 	@$(MAKE) main -s
 	@mkdir -p bin
 	@$(CC) $(CFLAGS) -std=$(STD) $^ -o $(TEST_TARGET) $(MAIN_OBJS_NOMAIN)
-
 
 # build main test files
 build/$(TESTDIR)/%.o: $(TESTDIR)/%.$(SRCEXT)

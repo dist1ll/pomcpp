@@ -52,6 +52,12 @@ void TickFlames(State& state);
 void TickBombs(State& state);
 
 /**
+ * @brief MoveBombsForward moves all bombs forward that have been
+ * kicked before by 1 position.
+ */
+void MoveBombsForward(State& state);
+
+/**
  * @brief ConsumePowerup Lets an agent consume a powerup
  * @param agentID The agent's ID that consumes the item
  * @param powerUp A powerup item. If it's something else,

@@ -16,6 +16,11 @@ void Step(State* state, Move* moves)
     util::TickFlames(*state);
     util::TickBombs(*state);
 
+    ////////////////////////////
+    //  Kicked Bomb Movement  //
+    ////////////////////////////
+
+
     ///////////////////////
     //  Player Movement  //
     ///////////////////////

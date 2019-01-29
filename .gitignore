@@ -4,3 +4,7 @@ build/
 
 # exclude personal IDE project files
 .qtcreator.*
+.creator.*
+
+# exclude submission folder, which holds the agent entry
+submission/
