@@ -53,7 +53,7 @@ bool IsAgentPos(bboard::State* state, int agent, int x, int y)
 
 TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
 {
-    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    auto s = std::make_unique<bboard::State>();
     s->PutAgentsInCorners(0, 1, 2, 3);
 
     bboard::Move id = bboard::Move::IDLE;
@@ -83,7 +83,7 @@ TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
 
 TEST_CASE("Basic Obstacle Collision", "[step function]")
 {
-    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    auto s = std::make_unique<bboard::State>();
     s->PutAgentsInCorners(0, 1, 2, 3);
 
     bboard::Move id = bboard::Move::IDLE;
@@ -102,7 +102,7 @@ TEST_CASE("Basic Obstacle Collision", "[step function]")
 
 TEST_CASE("Movement Against Flames", "[step function]")
 {
-    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    auto s = std::make_unique<bboard::State>();
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
 
@@ -119,7 +119,7 @@ TEST_CASE("Movement Against Flames", "[step function]")
 
 TEST_CASE("Destination Collision", "[step function]")
 {
-    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
+    auto sx = std::make_unique<bboard::State>();
     bboard::State* s = sx.get();
 
     bboard::Move id = bboard::Move::IDLE;
@@ -171,7 +171,7 @@ TEST_CASE("Destination Collision", "[step function]")
 
 TEST_CASE("Movement Dependency Handling", "[step function]")
 {
-    std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
+    auto sx = std::make_unique<bboard::State>();
     bboard::State* s = sx.get();
 
     bboard::Move id = bboard::Move::IDLE;
@@ -239,7 +239,7 @@ TEST_CASE("Movement Dependency Handling", "[step function]")
 
 TEST_CASE("Bomb Mechanics", "[step function]")
 {
-    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    auto s = std::make_unique<bboard::State>();
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
 
@@ -309,7 +309,7 @@ TEST_CASE("Bomb Mechanics", "[step function]")
 
 TEST_CASE("Bomb Explosion", "[step function]")
 {
-    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    auto s = std::make_unique<bboard::State>();
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
 
@@ -383,7 +383,7 @@ TEST_CASE("Bomb Explosion", "[step function]")
 
 TEST_CASE("Flame Mechanics", "[step function]")
 {
-    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    auto s = std::make_unique<bboard::State>();
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
     s->PutAgentsInCorners(0, 1, 2, 3);
@@ -428,7 +428,7 @@ TEST_CASE("Flame Mechanics", "[step function]")
 
 TEST_CASE("Chained Explosions", "[step function]")
 {
-    std::unique_ptr<bboard::State> s = std::make_unique<bboard::State>();
+    auto s = std::make_unique<bboard::State>();
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
     /*
@@ -468,5 +468,10 @@ TEST_CASE("Chained Explosions", "[step function]")
         REQUIRE(s->flames.count == 2);
     }
 
+
+}
+
+TEST_CASE("Bomb Kick Mechanics", "[step function]")
+{
 
 }

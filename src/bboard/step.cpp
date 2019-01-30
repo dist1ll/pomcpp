@@ -9,17 +9,11 @@ namespace bboard
 
 void Step(State* state, Move* moves)
 {
-    ///////////////////////
-    // Flames, Explosion //
-    ///////////////////////
 
+    ///////////////////
+    //    Flames     //
+    ///////////////////
     util::TickFlames(*state);
-    util::TickBombs(*state);
-
-    ////////////////////////////
-    //  Kicked Bomb Movement  //
-    ////////////////////////////
-
 
     ///////////////////////
     //  Player Movement  //
@@ -55,10 +49,9 @@ void Step(State* state, Move* moves)
         }
         else if(m == Move::BOMB)
         {
-            state->PlantBomb(state->agents[i].x, state->agents[i].y, i);
+            state->PlantBombModifiedLife(state->agents[i].x, state->agents[i].y, i, BOMB_LIFETIME + 1);
             continue;
         }
-
 
         int x = state->agents[i].x;
         int y = state->agents[i].y;
@@ -99,7 +92,6 @@ void Step(State* state, Move* moves)
                 {
                     state->board[y][x] = Item::PASSAGE;
                 }
-
             }
             continue;
         }
@@ -144,9 +136,19 @@ void Step(State* state, Move* moves)
             state->agents[i].x = desired.x;
             state->agents[i].y = desired.y;
         }
+        // if destination has a bomb, the player has bomb, check if the bomb
+        // can be kicked without problem
+        else if(itemOnDestination == Item::BOMB && state->agents[i].canKick)
+        {
+            // Bomb& bombToKick = *state->GetBomb(desired.x, desired.y);
 
+        }
     }
 
+    ///////////////
+    // Explosion //
+    ///////////////
+    util::TickBombs(*state);
 }
 
 }

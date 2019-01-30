@@ -112,6 +112,11 @@ inline bool IsOutOfBounds(const int& x, const int& y)
 
 void State::PlantBomb(int x, int y, int id, bool setItem)
 {
+    PlantBombModifiedLife(x, y,  id, BOMB_LIFETIME, setItem);
+}
+
+void State::PlantBombModifiedLife(int x, int y, int id, int lifeTime, bool setItem)
+{
     if(agents[id].bombCount >= agents[id].maxBombCount)
     {
         return;
@@ -122,12 +127,13 @@ void State::PlantBomb(int x, int y, int id, bool setItem)
     SetBombPosition(*b, x, y);
     SetBombStrength(*b, agents[id].bombStrength);
     // TODO: velocity
-    SetBombTime(*b, BOMB_LIFETIME);
+    SetBombTime(*b, lifeTime);
 
     if(setItem)
     {
         board[y][x] = Item::BOMB;
     }
+
     agents[id].bombCount++;
     bombs.count++;
 }
@@ -259,6 +265,18 @@ bool State::HasBomb(int x, int y)
         }
     }
     return false;
+}
+
+Bomb* State::GetBomb(int x, int y)
+{
+    for(int i = 0; i < bombs.count; i++)
+    {
+        if(BMB_POS_X(bombs[i]) == x && BMB_POS_Y(bombs[i]) == y)
+        {
+            return &bombs[i];
+        }
+    }
+    return nullptr;
 }
 
 void State::PutAgent(int x, int y, int agentID)

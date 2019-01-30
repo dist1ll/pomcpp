@@ -7,12 +7,5 @@ build/
 .creator.*
 *.qtcreator.*
 
-# remove pom files :fail:
-pom.files
-pom.creator
-pom.creator.user
-pom.config
-pom.includes
-
 # exclude submission folder, which holds the agent entry
 submission/

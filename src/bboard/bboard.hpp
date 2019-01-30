@@ -233,7 +233,8 @@ struct AgentInfo
  * [ 4,  8]  y-Position
  * [ 8, 12]  ID
  * [12, 16]  Strength
- * [16, 64]  Time
+ * [16, 20]  Time
+ * [20, 24]  Direction
  */
 typedef int Bomb;
 
@@ -328,7 +329,13 @@ struct State
      * @param y Y position of the bomb
      * @param setItem Should the bomb item be set on that position
      */
-    void PlantBomb(int x, int y, int id, bool setItem = false);
+    void PlantBomb(int x, int y, int id, bool setItem =  false);
+
+    /**
+     * @brief PlantBombModifiedLife Same as PlantBomb with the option
+     * to set the lifetime of the bomb.
+     */
+    void PlantBombModifiedLife(int x, int y, int id, int lifeTime = BOMB_LIFETIME, bool setItem = false);
 
     /**
      * @brief ExplodeTopBomb Explodes the bomb at the top of the
@@ -342,6 +349,12 @@ struct State
      * position
      */
     bool HasBomb(int x, int y);
+
+    /**
+     * @brief GetBomb Returns a bomb at the specified location or 0 if
+     * no bomb has that position
+     */
+    Bomb* GetBomb(int x, int y);
 
     /**
      * @brief SpawnFlames Spawns rays of flames at the
