@@ -159,9 +159,7 @@ void Environment::Step(bool competitiveTimeLimit)
 
 void Environment::Print(bool clear)
 {
-    if(clear)
-        std::cout << "\033c"; // clear console on linux
-    PrintState(state.get());
+    PrintState(state.get(), true);
 }
 
 State& Environment::GetState() const

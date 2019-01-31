@@ -473,5 +473,46 @@ TEST_CASE("Chained Explosions", "[step function]")
 
 TEST_CASE("Bomb Kick Mechanics", "[step function]")
 {
+    auto s = std::make_unique<bboard::State>();
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[4] = {id, id, id, id};
+    /*
+        SECTION("One Agent - One Bomb")
+        {
+            s->PutAgent(0, 0, 0);
+            s->Kill(1, 2, 3);
+            s->agents[0].canKick = true;
+            s->PlantBomb(1, 0, 0, true);
+            s->PutItem(6, 0, bboard::Item::FLAMES);
+            m[0] = bboard::Move::RIGHT;
+            bboard::PrintState(s.get(), true);
+            std::cin.get();
 
+            for(int i = 0; i < 14; i++)
+            {
+                bboard::Step(s.get(), m);
+                bboard::PrintState(s.get(), true);
+                std::cin.get();
+                m[0] = bboard::Move::IDLE;
+            }
+        }
+
+        SECTION("One Agent - One Bomb")
+        {
+            s->PutAgent(0, 0, 0);
+            s->Kill(1, 2, 3);
+            s->agents[0].canKick = true;
+            s->PlantBomb(1, 0, 0, true);
+            m[0] = bboard::Move::RIGHT;
+            bboard::PrintState(s.get(), true);
+            std::cin.get();
+
+            for(int i = 0; i < 14; i++)
+            {
+                bboard::Step(s.get(), m);
+                bboard::PrintState(s.get(), true);
+                std::cin.get();
+                m[0] = bboard::Move::IDLE;
+            }
+        }*/
 }

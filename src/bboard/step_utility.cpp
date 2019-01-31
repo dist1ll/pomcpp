@@ -29,6 +29,15 @@ Position DesiredPosition(int x, int y, Move move)
     }
     return p;
 }
+
+void FillPositions(State* s, Position p[AGENT_COUNT])
+{
+    for(int i = 0; i < AGENT_COUNT; i++)
+    {
+        p[i] = {s->agents[i].x, s->agents[i].y};
+    }
+}
+
 void FillDestPos(State* s, Move m[AGENT_COUNT], Position p[AGENT_COUNT])
 {
     for(int i = 0; i < AGENT_COUNT; i++)

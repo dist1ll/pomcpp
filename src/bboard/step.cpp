@@ -19,7 +19,10 @@ void Step(State* state, Move* moves)
     //  Player Movement  //
     ///////////////////////
 
+    Position oldPos[AGENT_COUNT];
     Position destPos[AGENT_COUNT];
+
+    util::FillPositions(state, oldPos);
     util::FillDestPos(state, moves, destPos);
     util::FixSwitchMove(state, destPos);
 
@@ -109,7 +112,7 @@ void Step(State* state, Move* moves)
         if(IS_POWERUP(itemOnDestination))
         {
             util::ConsumePowerup(*state, i, itemOnDestination);
-            itemOnDestination = 0;
+            itemOnDestination = Item::PASSAGE;
         }
 
         // execute move if the destination is free
@@ -128,7 +131,7 @@ void Step(State* state, Move* moves)
                 }
                 else
                 {
-                    state->board[y][x] = 0;
+                    state->board[y][x] = Item::PASSAGE;
                 }
 
             }
@@ -136,12 +139,65 @@ void Step(State* state, Move* moves)
             state->agents[i].x = desired.x;
             state->agents[i].y = desired.y;
         }
-        // if destination has a bomb, the player has bomb, check if the bomb
-        // can be kicked without problem
+        // if destination has a bomb & the player has bomb-kick, move the player on it.
+        // The idea is to move each player (on the bomb) and afterwards move the bombs.
+        // If the bombs can't be moved to their target location, the player that kicked
+        // it moves back. Since we have a dependency array we can move back every player
+        // that depends on the inital one (and if an agent that moved there this step
+        // blocked the bomb we can move him back as well).
         else if(itemOnDestination == Item::BOMB && state->agents[i].canKick)
         {
-            // Bomb& bombToKick = *state->GetBomb(desired.x, desired.y);
+            // a player that moves towards a bomb at this(!) point means that
+            // there was no DP collision, which means this agent is a root. So we can just
+            // override
+            if(state->HasBomb(x, y))
+            {
+                state->board[y][x] = Item::BOMB;
+            }
+            else
+            {
+                state->board[y][x] = Item::PASSAGE;
+            }
 
+            state->board[desired.y][desired.x] = Item::AGENT0 + i;
+            state->agents[i].x = desired.x;
+            state->agents[i].y = desired.y;
+
+            // start moving the kicked bomb by setting a velocity
+            // the first 5 values of Move and Direction are semantically identical
+            Bomb& b = *state->GetBomb(desired.x,  desired.y);
+            SetBombDirection(b, Direction(m));
+
+        }
+    }
+
+    // Move bombs
+    for(int i = 0; i < state->bombs.count; i++)
+    {
+        Bomb& b = state->bombs[i];
+
+        if(Direction(BMB_DIR(b)) == Direction::IDLE)
+        {
+            continue;
+        }
+
+        int bx = BMB_POS_X(b);
+        int by = BMB_POS_Y(b);
+
+        Position target = util::DesiredPosition(bx, by, Move(BMB_DIR(b)));
+
+        if(!util::IsOutOfBounds(target) && IS_WALKABLE((*state)[target]))
+        {
+            if(state->board[by][bx] == Item::BOMB)
+            {
+                state->board[by][bx] = Item::PASSAGE;
+            }
+            (*state)[target] = Item::BOMB;
+            SetBombPosition(b, target.x, target.y);
+        }
+        else
+        {
+            SetBombDirection(b, Direction::IDLE);
         }
     }
 

@@ -369,9 +369,13 @@ void StartGame(State* state, Agent* agents[AGENT_COUNT], int timeSteps)
     }
 }
 
-void PrintState(State* state)
+void PrintState(State* state, bool clearConsole)
 {
     std::string result = "";
+
+    // clears console on linux
+    if(clearConsole)
+        std::cout << "\033c";
 
     for(int y = 0; y < BOARD_SIZE; y++)
     {

@@ -15,6 +15,11 @@ namespace bboard::util
  */
 Position DesiredPosition(int x, int y, Move m);
 
+/**
+ * @brief FillPositions Fills an array of Positions with positions of
+ * all agents of the given state.
+ */
+void FillPositions(State* s, Position p[AGENT_COUNT]);
 
 /**
  * @brief FillDestPos Fills an array of destination positions.
