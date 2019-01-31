@@ -185,15 +185,25 @@ void Step(State* state, Move* moves)
         int by = BMB_POS_Y(b);
 
         Position target = util::DesiredPosition(bx, by, Move(BMB_DIR(b)));
+        int& itemOnTarget = (*state)[target];
 
-        if(!util::IsOutOfBounds(target) && IS_WALKABLE((*state)[target]))
+        if(!util::IsOutOfBounds(target))
         {
             if(state->board[by][bx] == Item::BOMB)
             {
                 state->board[by][bx] = Item::PASSAGE;
             }
-            (*state)[target] = Item::BOMB;
+
             SetBombPosition(b, target.x, target.y);
+
+            if(IS_WALKABLE(itemOnTarget))
+            {
+                itemOnTarget = Item::BOMB;
+            }
+            else if(IS_FLAME(itemOnTarget))
+            {
+                state->ExplodeBombAt(state->GetBombIndex(target.x, target.y));
+            }
         }
         else
         {

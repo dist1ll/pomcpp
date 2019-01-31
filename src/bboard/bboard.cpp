@@ -286,6 +286,18 @@ Bomb* State::GetBomb(int x, int y)
     return nullptr;
 }
 
+int State::GetBombIndex(int x, int y)
+{
+    for(int i = 0; i < bombs.count; i++)
+    {
+        if(BMB_POS_X(bombs[i]) == x && BMB_POS_Y(bombs[i]) == y)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void State::PutAgent(int x, int y, int agentID)
 {
     int b = Item::AGENT0 + agentID;

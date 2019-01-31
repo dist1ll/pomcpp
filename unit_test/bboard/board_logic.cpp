@@ -476,34 +476,48 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
     auto s = std::make_unique<bboard::State>();
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
-    /*
-        SECTION("One Agent - One Bomb")
-        {
-            s->PutAgent(0, 0, 0);
-            s->Kill(1, 2, 3);
-            s->agents[0].canKick = true;
-            s->PlantBomb(1, 0, 0, true);
-            s->PutItem(6, 0, bboard::Item::FLAMES);
-            m[0] = bboard::Move::RIGHT;
-            bboard::PrintState(s.get(), true);
-            std::cin.get();
 
-            for(int i = 0; i < 14; i++)
-            {
-                bboard::Step(s.get(), m);
-                bboard::PrintState(s.get(), true);
-                std::cin.get();
-                m[0] = bboard::Move::IDLE;
-            }
+    s->PutAgent(0, 0, 0);
+    s->agents[0].canKick = true;
+    s->PlantBomb(1, 0, 0, true);
+    m[0] = bboard::Move::RIGHT;
+
+    SECTION("One Agent - One Bomb")
+    {
+        s->Kill(1, 2, 3);
+        bboard::Step(s.get(), m);
+
+        REQUIRE_AGENT(s.get(), 0, 1, 0);
+        REQUIRE(s->board[0][2] == bboard::Item::BOMB);
+
+        for(int i = 0; i < 4; i++)
+        {
+            REQUIRE(s->board[0][2 + i] == bboard::Item::BOMB);
+            bboard::Step(s.get(), m);
+            m[0] = bboard::Move::IDLE;
         }
+    }
+    SECTION("Bomb kicked against Flame")
+    {
+        s->Kill(1, 2, 3);
+        s->PutItem(5, 0, bboard::Item::FLAMES);
+
+        bboard::Step(s.get(), m);
+        m[0] = bboard::Move::IDLE;
+
+        SeveralSteps(3,  s.get(),  m);
+
+        REQUIRE(IS_FLAME(s->board[0][5]));
+        REQUIRE(s->bombs.count == 0);
+        REQUIRE(s->flames.count == 1);
+        REQUIRE(s->flames[0].position == bboard::Position({5,0}));
+    }
+    /*
+
 
         SECTION("One Agent - One Bomb")
         {
-            s->PutAgent(0, 0, 0);
             s->Kill(1, 2, 3);
-            s->agents[0].canKick = true;
-            s->PlantBomb(1, 0, 0, true);
-            m[0] = bboard::Move::RIGHT;
             bboard::PrintState(s.get(), true);
             std::cin.get();
 

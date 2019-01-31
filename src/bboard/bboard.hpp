@@ -364,6 +364,12 @@ struct State
     Bomb* GetBomb(int x, int y);
 
     /**
+     * @brief GetBombIndex If a bomb is at position (x,y), then
+     * returns the index of the bomb in the bomb queue. -1 otherwise
+     */
+    int GetBombIndex(int x, int y);
+
+    /**
      * @brief SpawnFlames Spawns rays of flames at the
      * specified location.
      * @param x The x position of the origin of flames
