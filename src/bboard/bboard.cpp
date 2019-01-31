@@ -21,7 +21,7 @@ namespace bboard
  * @param signature An auxiliary integer less than 255
  * @return Could the flame be spawned?
  */
-inline bool SpawnFlameItem(State& s, int x, int y, uint16_t signature = 0)
+bool SpawnFlameItem(State& s, int x, int y, uint16_t signature = 0)
 {
     if(s.board[y][x] >= Item::AGENT0)
     {
@@ -33,9 +33,7 @@ inline bool SpawnFlameItem(State& s, int x, int y, uint16_t signature = 0)
         {
             if(BMB_POS(s.bombs[i]) == (x + (y << 4)))
             {
-                s.SpawnFlame(x, y, s.agents[BMB_ID(s.bombs[i])].bombStrength);
-                s.agents[BMB_ID(s.bombs[i])].bombCount--;
-                s.bombs.RemoveAt(i);
+                s.ExplodeBombAt(i);
                 break;
             }
         }
@@ -109,6 +107,15 @@ inline bool IsOutOfBounds(const int& x, const int& y)
 ///////////////////
 // State Methods //
 ///////////////////
+
+void State::ExplodeBombAt(int i)
+{
+    int x = BMB_POS_X(bombs[i]);
+    int y = BMB_POS_Y(bombs[i]);
+    SpawnFlame(x, y, agents[BMB_ID(bombs[i])].bombStrength);
+    agents[BMB_ID(bombs[i])].bombCount--;
+    bombs.RemoveAt(i);
+}
 
 void State::PlantBomb(int x, int y, int id, bool setItem)
 {

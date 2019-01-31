@@ -345,6 +345,13 @@ struct State
     void ExplodeTopBomb();
 
     /**
+     * @brief ExplodeTopBomb Explodes the bomb at the the specified index
+     * of the queue and spawns flames. This method is less performant
+     * than ExplodeTopBomb, so try to use only when necessary
+     */
+    void ExplodeBombAt(int index);
+
+    /**
      * @brief hasBomb Returns true if a bomb is at the specified
      * position
      */
