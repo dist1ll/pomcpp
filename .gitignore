@@ -1,5 +1,6 @@
-# exclude binaries and object files
+# exclude binaries, object files and static libraries
 bin/
+lib/
 build/
 
 # exclude personal IDE project files

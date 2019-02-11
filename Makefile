@@ -8,7 +8,7 @@ BUILDDIR := build/src
 TESTBUILD := build/unit_test
 MAIN_TARGET := ./bin/exec
 TEST_TARGET := ./bin/test
-SHARED_TARGET := ./bin/shared.a
+SLIB_TARGET := ./lib/pomlib.a
 
 MAIN_SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 TEST_SOURCES := $(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
@@ -33,6 +33,7 @@ all:    main test
 main: $(MAIN_OBJECTS)
 	@mkdir -p bin
 	@$(CC) $(CFLAGS) -std=$(STD) $^ -o $(MAIN_TARGET)
+	@ar rcs $(SLIB_TARGET) $^
 
 test: $(TEST_OBJECTS)
 	@$(MAKE) main -s
