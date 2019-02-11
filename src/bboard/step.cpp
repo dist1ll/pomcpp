@@ -185,9 +185,12 @@ void Step(State* state, Move* moves)
         int by = BMB_POS_Y(b);
 
         Position target = util::DesiredPosition(bx, by, Move(BMB_DIR(b)));
-        int& itemOnTarget = (*state)[target];
+        int& tItem = (*state)[target];
 
-        if(!util::IsOutOfBounds(target))
+        // bombs can't move through the following `static` objects: walls, boxes and upgrades.
+        bool staticMovementBlock = tItem == RIGID || IS_WOOD(tItem) || IS_POWERUP(tItem);
+
+        if(!util::IsOutOfBounds(target) && !staticMovementBlock)
         {
             if(state->board[by][bx] == Item::BOMB)
             {
@@ -196,11 +199,11 @@ void Step(State* state, Move* moves)
 
             SetBombPosition(b, target.x, target.y);
 
-            if(IS_WALKABLE(itemOnTarget))
+            if(IS_WALKABLE(tItem))
             {
-                itemOnTarget = Item::BOMB;
+                tItem = Item::BOMB;
             }
-            else if(IS_FLAME(itemOnTarget))
+            else if(IS_FLAME(tItem))
             {
                 state->ExplodeBombAt(state->GetBombIndex(target.x, target.y));
             }

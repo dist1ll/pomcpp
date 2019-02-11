@@ -36,8 +36,8 @@ Instead of using the shell scripts you can obviously use make commands and call/
 
 | Command | What it does |
 | ------- | ------------ |
-| `make` or `make all`  | Compiles and links both test and main source files |
-| `make main` | Compiles the main source to ./bin/exec  |
+| `make` or `make all`  | Compiles and links both test and main source files and creates a static library |
+| `make main` | Compiles the main source to ./bin/exec and creates a library in ./lib/pomlib.a |
 | `make test`  | Compiles the test source to ./bin/test  | 
 | `make clean`  | Removes ./bin and ./build  |
 | `make mclean`  | Removes ./bin/exec and ./build/src only |
@@ -51,6 +51,10 @@ $ export MAKEFLAGS="-j $(grep -c ^processor /proc/cpuinfo)"
 ```
 
 (or alternatively add it to your `${HOME}.profile`)
+
+## Use PommermanC++ as a Static Library
+
+Building the project with `make` compiles a static library in `./lib/pomlib.a`. This contains the `bboard` and `agents` namespace. Include the headers in `./src/...` and you're good to go.
 
 ## Project Structure
 
