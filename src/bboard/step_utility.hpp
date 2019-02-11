@@ -95,6 +95,22 @@ void PrintDependencyChain(int dependency[AGENT_COUNT], int chain[AGENT_COUNT]);
 bool HasDPCollision(const State& state, Position dp[AGENT_COUNT], int agentID);
 
 /**
+ * @brief HasBombCollision Checks wether a bomb collides with another bomb
+ * on the board
+ * @return True if the given bomb collides with another bomb
+ */
+bool HasBombCollision(const State& state, const Bomb& b);
+
+/**
+ * @brief ResolveBombMovementollision Checks if a specified bomb collides
+ * with another bomb(s). If that's the case, any bombs participating in the collision
+ * will keep their position and if the bomb was kicked in this round the agents
+ * will be bounced back to their old position (alongside any agents that moved
+ * to that agents spot in the meantime)
+ */
+void ResolveBombCollision(State& state, Bomb& b);
+
+/**
  * @brief IsOutOfBounds Checks wether a given position is out of bounds
  */
 inline bool IsOutOfBounds(const Position& pos)

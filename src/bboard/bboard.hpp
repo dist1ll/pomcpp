@@ -221,6 +221,7 @@ struct AgentInfo
 #define BMB_STRENGTH(x) (((x) & 0xF000) >> 12)  // [12,16[
 #define BMB_TIME(x)     (((x) & 0xF0000) >> 16) // [16,20[
 #define BMB_DIR(x)      (((x) & 0xF00000) >> 20)// [20,24[
+#define BMB_MOVED(x)    (((x) & 0xF000000) >> 24)// [24,28[
 
 /**
  * Represents all information about a single
@@ -245,6 +246,7 @@ const int cmask8_12  =  ~0xF00;
 const int cmask12_16 =  ~0xF000;
 const int cmask16_20 =  ~0xF0000;
 const int cmask20_24 =  ~0xF00000;
+const int cmask24_28 =  ~0xF000000;
 
 inline void ReduceBombTimer(Bomb& bomb)
 {
@@ -269,6 +271,10 @@ inline void SetBombTime(Bomb& bomb, int time)
 inline void SetBombDirection(Bomb& bomb, Direction dir)
 {
     bomb = (bomb & cmask20_24) + (int(dir) << 20);
+}
+inline void SetBombMovedFlag(Bomb& bomb, bool moved)
+{
+    bomb = (bomb & cmask20_24) + (int(moved) << 24);
 }
 
 /**

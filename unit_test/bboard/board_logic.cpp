@@ -516,19 +516,18 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
     SECTION("Bomb - Bomb Collision")
     {
         s->Kill(1, 2, 3);
-        s->PutItem(4,0,bboard::Item::WOOD);
-        //s->PlantBomb(7, 6, 0, true);
-        //bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
-        bboard::PrintState(s.get(), true);
-        std::cin.get();
+        s->PlantBomb(7, 6, 0, true);
+        bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
 
-        for(int i = 0; i < 14; i++)
+        for(int i = 0; i < 6; i++)
         {
             bboard::Step(s.get(), m);
-            bboard::PrintState(s.get(), true);
-            std::cin.get();
             m[0] = bboard::Move::IDLE;
         }
+
+        REQUIRE(BMB_POS_X(s->bombs[0]) == 6);
+        REQUIRE(BMB_POS_X(s->bombs[1]) == 7);
+        REQUIRE(BMB_POS_Y(s->bombs[1]) == 1);
     }
 
     /*
