@@ -286,6 +286,18 @@ Bomb* State::GetBomb(int x, int y)
     return nullptr;
 }
 
+int State::HasAgent(int x, int y)
+{
+    for(int i = 0; i < AGENT_COUNT; i++)
+    {
+        if(agents[i].x == x && agents[i].y == y)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 int State::GetBombIndex(int x, int y)
 {
     for(int i = 0; i < bombs.count; i++)

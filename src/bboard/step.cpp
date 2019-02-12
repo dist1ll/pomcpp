@@ -196,7 +196,7 @@ void Step(State* state, Move* moves)
         {
             if(util::HasBombCollision(*state, b, i))
             {
-                util::ResolveBombCollision(*state, b, i);
+                util::ResolveBombCollision(*state, moves, b, i);
                 continue;
             }
         }
@@ -211,7 +211,7 @@ void Step(State* state, Move* moves)
         {
             if(util::HasBombCollision(*state, b, i))
             {
-                util::ResolveBombCollision(*state, b, i);
+                util::ResolveBombCollision(*state, moves, b, i);
                 continue;
             }
 

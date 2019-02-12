@@ -16,10 +16,27 @@ namespace bboard::util
 Position DesiredPosition(int x, int y, Move m);
 
 /**
+ * @brief DesiredPosition moves in the opposite direction of the given Move
+ * Which position was the agent in if he made the Move m and landed in (x,y)?
+ */
+Position OriginPosition(int x, int y, Move m);
+
+/**
  * @brief DesiredPosition Returns the target position of the bomb. If it's
  * idle, the desired position will be its current position
  */
 Position DesiredPosition(const Bomb b);
+
+/**
+ * @brief RevertAgentMove Apply the reverse move on an agent in the state.
+ * That means (s, Move::LEFT, 0) would move the agent0 one step to the right (if possible)
+ *
+ * If the agent is reverted to a spot with a different agent, that second agent will bounce
+ * back to THEIR respective origin position. Effectively this method bounces back a complete
+ * chain recurisvely, starting from a given root.
+ * @return The position of the last agent that was bounced back in the chain.
+ */
+Position RevertAgentMoveRecursively(State& state, Move moves[AGENT_COUNT], int agentID);
 
 /**
  * @brief FillPositions Fills an array of Positions with positions of
@@ -118,7 +135,7 @@ bool HasBombCollision(const State& state, const Bomb& b, int index = 0);
  * @param index Only bombs with a queue index larger or equal to `index` will be
  * considered
  */
-void ResolveBombCollision(State& state, Bomb& b, int index = 0);
+void ResolveBombCollision(State& state, Move moves[AGENT_COUNT], Bomb& b, int index = 0);
 
 /**
  * @brief ResetBombFlags Resets the "moved" flag of each bomb in the state

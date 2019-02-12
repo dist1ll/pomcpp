@@ -424,6 +424,12 @@ struct State
     Bomb* GetBomb(int x, int y);
 
     /**
+     * @brief HasAgent Returns the index of the agent that occupies
+     * the given position. -1 if no agent is there
+     */
+    int HasAgent(int x, int y);
+
+    /**
      * @brief GetBombIndex If a bomb is at position (x,y), then
      * returns the index of the bomb in the bomb queue. -1 otherwise
      */

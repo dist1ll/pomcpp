@@ -30,9 +30,51 @@ Position DesiredPosition(int x, int y, Move move)
     return p;
 }
 
+Position OriginPosition(int x, int y, Move move)
+{
+    Position p;
+    p.x = x;
+    p.y = y;
+    if(move == Move::DOWN)
+    {
+        p.y -= 1;
+    }
+    else if(move == Move::UP)
+    {
+        p.y += 1;
+    }
+    else if(move == Move::RIGHT)
+    {
+        p.x -= 1;
+    }
+    else if(move == Move::LEFT)
+    {
+        p.x += 1;
+    }
+    return p;
+}
+
 Position DesiredPosition(const Bomb b)
 {
     return DesiredPosition(BMB_POS_X(b), BMB_POS_Y(b), Move(BMB_DIR(b)));
+}
+
+Position RevertAgentMoveRecursively(State& state, Move moves[AGENT_COUNT], int agentID)
+{
+    AgentInfo& agent = state.agents[agentID];
+    Position origin = OriginPosition(agent.x, agent.y, moves[agentID]);
+
+    if(!IsOutOfBounds(origin))
+    {
+        agent.x = origin.x;
+        agent.y = origin.y;
+        state[origin] = Item::AGENT0 + agentID;
+        return origin;
+    }
+    else
+    {
+        return {agent.x, agent.y};
+    }
 }
 
 void FillPositions(State* s, Position p[AGENT_COUNT])
@@ -192,10 +234,11 @@ bool HasBombCollision(const State& state, const Bomb& b, int index)
     return false;
 }
 
-void ResolveBombCollision(State& state, Bomb& b, int index)
+void ResolveBombCollision(State& state, Move moves[AGENT_COUNT], Bomb& b, int index)
 {
     Bomb collidees[4]; //more than 4 bombs cannot collide
     Position bmbTarget = util::DesiredPosition(b);
+    bool hasCollided = false;
 
     for(int i = index; i < state.bombs.count; i++)
     {
@@ -204,10 +247,25 @@ void ResolveBombCollision(State& state, Bomb& b, int index)
         if(b != state.bombs[i] && target == bmbTarget)
         {
             SetBombDirection(state.bombs[i], Direction::IDLE);
+            hasCollided = true;
+        }
+    }
+    if(hasCollided)
+    {
+        if(Direction(BMB_DIR(b)) != Direction::IDLE)
+        {
+            SetBombDirection(b, Direction::IDLE);
+            int index = state.HasAgent(BMB_POS_X(b), BMB_POS_Y(b));
+            // move != idle means the agent moved on it this turn
+            if(index > -1 && moves[index] != Move::IDLE)
+            {
+                Position origin = RevertAgentMoveRecursively(state, moves, index);
+                state.board[BMB_POS_Y(b)][BMB_POS_X(b)] = Item::BOMB;
+            }
+
         }
     }
 
-    SetBombDirection(b, Direction::IDLE);
 }
 
 void ResetBombFlags(State& state)
