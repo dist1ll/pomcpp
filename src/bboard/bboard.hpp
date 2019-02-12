@@ -70,14 +70,18 @@ enum Item
     AGENT3 = (1 << 24) + 3
 };
 
-#define IS_WOOD(x)       (((x) >> 8) == 2)
-#define IS_POWERUP(x)    ((x) > 5 && (x) < 9)
-#define IS_WALKABLE(x)   (IS_POWERUP((x)) || (x) == 0)
-#define IS_FLAME(x)      (((x) >> 16) == 4)
 
-#define FLAME_ID(x)      (((x) & 0xFFFF) >> 3)
-#define FLAME_POWFLAG(x) ((x) & 0b11)
-#define WOOD_POWFLAG(x)  ((x) & 0b11)
+#define IS_WOOD(x)             (((x) >> 8) == 2)
+#define IS_POWERUP(x)          ((x) > 5 && (x) < 9)
+#define IS_WALKABLE(x)         (IS_POWERUP((x)) || (x) == 0)
+#define IS_FLAME(x)            (((x) >> 16) == 4)
+#define IS_AGENT(x)            ((x) >= (1 << 24))
+// bombs can't move through the following `static` objects: walls, boxes and upgrades.
+#define IS_STATIC_MOV_BLOCK(x) (IS_WOOD((x)) || IS_POWERUP((x)) || ((x) == 1))
+
+#define FLAME_ID(x)            (((x) & 0xFFFF) >> 3)
+#define FLAME_POWFLAG(x)       ((x) & 0b11)
+#define WOOD_POWFLAG(x)        ((x) & 0b11)
 
 /**
  * @brief The FixedQueue struct implements a extremely

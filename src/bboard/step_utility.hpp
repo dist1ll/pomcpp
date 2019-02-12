@@ -16,6 +16,12 @@ namespace bboard::util
 Position DesiredPosition(int x, int y, Move m);
 
 /**
+ * @brief DesiredPosition Returns the target position of the bomb. If it's
+ * idle, the desired position will be its current position
+ */
+Position DesiredPosition(const Bomb b);
+
+/**
  * @brief FillPositions Fills an array of Positions with positions of
  * all agents of the given state.
  */

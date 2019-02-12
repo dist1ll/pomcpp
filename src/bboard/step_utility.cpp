@@ -30,6 +30,11 @@ Position DesiredPosition(int x, int y, Move move)
     return p;
 }
 
+Position DesiredPosition(const Bomb b)
+{
+    return DesiredPosition(BMB_POS_X(b), BMB_POS_Y(b), Move(BMB_DIR(b)));
+}
+
 void FillPositions(State* s, Position p[AGENT_COUNT])
 {
     for(int i = 0; i < AGENT_COUNT; i++)
@@ -173,14 +178,11 @@ bool HasDPCollision(const State& state, Position dp[AGENT_COUNT], int agentID)
 
 bool HasBombCollision(const State& state, const Bomb& b, int index)
 {
-    Position bmbTarget = util::DesiredPosition(BMB_POS_X(b), BMB_POS_Y(b), Move(BMB_DIR(b)));
+    Position bmbTarget = util::DesiredPosition(b);
 
     for(int i = index; i < state.bombs.count; i++)
     {
-        int bx = BMB_POS_X(state.bombs[i]);
-        int by = BMB_POS_Y(state.bombs[i]);
-
-        Position target = util::DesiredPosition(bx, by, Move(BMB_DIR(state.bombs[i])));
+        Position target = util::DesiredPosition(state.bombs[i]);
 
         if(b != state.bombs[i] && target == bmbTarget)
         {
@@ -193,15 +195,11 @@ bool HasBombCollision(const State& state, const Bomb& b, int index)
 void ResolveBombCollision(State& state, Bomb& b, int index)
 {
     Bomb collidees[4]; //more than 4 bombs cannot collide
-    Position bmbTarget = util::DesiredPosition(BMB_POS_X(b), BMB_POS_Y(b), Move(BMB_DIR(b)));
+    Position bmbTarget = util::DesiredPosition(b);
 
     for(int i = index; i < state.bombs.count; i++)
     {
-
-        int bx = BMB_POS_X(state.bombs[i]);
-        int by = BMB_POS_Y(state.bombs[i]);
-
-        Position target = util::DesiredPosition(bx, by, Move(BMB_DIR(state.bombs[i])));
+        Position target = util::DesiredPosition(state.bombs[i]);
 
         if(b != state.bombs[i] && target == bmbTarget)
         {

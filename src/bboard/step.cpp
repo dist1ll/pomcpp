@@ -174,26 +174,40 @@ void Step(State* state, Move* moves)
     // Before moving bombs, reset their "moved" flags
     util::ResetBombFlags(*state);
 
+    // Set bomb directions to idle if they collide with an agent or a static obstacle
+    for(int i = 0; i < state->bombs.count; i++)
+    {
+        Bomb& b = state->bombs[i];
+        Position target = util::DesiredPosition(b);
+        int tItem = (*state)[target];
+        if(IS_STATIC_MOV_BLOCK(tItem) || IS_AGENT(tItem))
+        {
+            SetBombDirection(b, Direction::IDLE);
+        }
+
+    }
+
     // Move bombs
     for(int i = 0; i < state->bombs.count; i++)
     {
         Bomb& b = state->bombs[i];
 
-        if(Direction(BMB_DIR(b)) == Direction::IDLE)
+        if(Move(BMB_DIR(b)) == Move::IDLE)
         {
-            continue;
+            if(util::HasBombCollision(*state, b, i))
+            {
+                util::ResolveBombCollision(*state, b, i);
+                continue;
+            }
         }
 
         int bx = BMB_POS_X(b);
         int by = BMB_POS_Y(b);
 
-        Position target = util::DesiredPosition(bx, by, Move(BMB_DIR(b)));
+        Position target = util::DesiredPosition(b);
         int& tItem = (*state)[target];
 
-        // bombs can't move through the following `static` objects: walls, boxes and upgrades.
-        bool staticMovementBlock = tItem == RIGID || IS_WOOD(tItem) || IS_POWERUP(tItem);
-
-        if(!util::IsOutOfBounds(target) && !staticMovementBlock)
+        if(!util::IsOutOfBounds(target) && !IS_STATIC_MOV_BLOCK(tItem))
         {
             if(util::HasBombCollision(*state, b, i))
             {
