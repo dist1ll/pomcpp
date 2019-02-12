@@ -8,5 +8,8 @@ build/
 .creator.*
 *.qtcreator.*
 
+# exclude autosave files from qtcreator
+*.autosave
+
 # exclude submission folder, which holds the agent entry
 submission/

@@ -3,6 +3,7 @@
 #include "catch.hpp"
 #include "bboard.hpp"
 
+using namespace bboard;
 /**
  * @brief REQUIRE_AGENT Proxy REQUIRE-Assertion to test
  * valid position on board AND agent arrays.
@@ -530,10 +531,41 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         REQUIRE(BMB_POS_Y(s->bombs[1]) == 2);
     }
 
+    SECTION("Bomb - Bomb Static collision")
+    {
+        s->Kill(1, 2, 3);
+        s->PlantBomb(7, 6, 0, true);
+        s->PutItem(7, 0, bboard::Item::WOOD);
+        bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
+        //bboard::PrintState(s.get(), true);
+        //std::cin.get();
 
+        for(int i = 0; i < 14; i++)
+        {
+            bboard::Step(s.get(), m);
+            //bboard::PrintState(s.get(), true);
+            //std::cin.get();
+            m[0] = bboard::Move::IDLE;
+        }
+    }
     /*
 
+    SECTION("One Agent - One Bomb")
+    {
+        s->Kill(1, 2, 3);
+        s->PlantBomb(7, 6, 0, true);
+        bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
+        bboard::PrintState(s.get(), true);
+        std::cin.get();
 
+        for(int i = 0; i < 14; i++)
+        {
+            bboard::Step(s.get(), m);
+            bboard::PrintState(s.get(), true);
+            std::cin.get();
+            m[0] = bboard::Move::IDLE;
+        }
+    }
         SECTION("One Agent - One Bomb")
         {
             s->Kill(1, 2, 3);

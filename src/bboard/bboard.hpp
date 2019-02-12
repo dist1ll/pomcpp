@@ -70,18 +70,43 @@ enum Item
     AGENT3 = (1 << 24) + 3
 };
 
-
-#define IS_WOOD(x)             (((x) >> 8) == 2)
-#define IS_POWERUP(x)          ((x) > 5 && (x) < 9)
-#define IS_WALKABLE(x)         (IS_POWERUP((x)) || (x) == 0)
-#define IS_FLAME(x)            (((x) >> 16) == 4)
-#define IS_AGENT(x)            ((x) >= (1 << 24))
+inline bool IS_WOOD(int x)
+{
+    return (((x) >> 8) == 2);
+}
+inline bool IS_POWERUP(int x)
+{
+    return ((x) > 5 && (x) < 9);
+}
+inline bool IS_WALKABLE(int x)
+{
+    return (IS_POWERUP((x)) || (x) == 0);
+}
+inline bool IS_FLAME(int x)
+{
+    return (((x) >> 16) == 4);
+}
+inline bool IS_AGENT(int x)
+{
+    return ((x) >= (1 << 24));
+}
 // bombs can't move through the following `static` objects: walls, boxes and upgrades.
-#define IS_STATIC_MOV_BLOCK(x) (IS_WOOD((x)) || IS_POWERUP((x)) || ((x) == 1))
-
-#define FLAME_ID(x)            (((x) & 0xFFFF) >> 3)
-#define FLAME_POWFLAG(x)       ((x) & 0b11)
-#define WOOD_POWFLAG(x)        ((x) & 0b11)
+inline bool IS_STATIC_MOV_BLOCK(int x)
+{
+    return (IS_WOOD((x)) || IS_POWERUP((x)) || ((x) == 1));
+}
+inline int FLAME_ID(int x)
+{
+    return (((x) & 0xFFFF) >> 3);
+}
+inline int FLAME_POWFLAG(int x)
+{
+    return ((x) & 0b11);
+}
+inline int WOOD_POWFLAG(int x)
+{
+    return ((x) & 0b11);
+}
 
 /**
  * @brief The FixedQueue struct implements a extremely
@@ -216,17 +241,6 @@ struct AgentInfo
     bool dead = false;
 };
 
-
-// BOMB MACROS
-#define BMB_POS(x)      (((x) & 0xFF))          // [ 0, 8[
-#define BMB_POS_X(x)    (((x) & 0xF))           // [ 0, 4[
-#define BMB_POS_Y(x)    (((x) & 0xF0) >> 4)     // [ 4, 8[
-#define BMB_ID(x)       (((x) & 0xF00) >> 8)    // [ 8,12[
-#define BMB_STRENGTH(x) (((x) & 0xF000) >> 12)  // [12,16[
-#define BMB_TIME(x)     (((x) & 0xF0000) >> 16) // [16,20[
-#define BMB_DIR(x)      (((x) & 0xF00000) >> 20)// [20,24[
-#define BMB_MOVED(x)    (((x) & 0xF000000) >> 24)// [24,28[
-
 /**
  * Represents all information about a single
  * bomb on the board.
@@ -242,6 +256,42 @@ struct AgentInfo
  * [20, 24]  Direction
  */
 typedef int Bomb;
+
+// BOMB INFO
+// ACCESS ALL PARTS OF THE BOMB INTEGER (EVERYTHING ENCODED
+// INTO 4 BIT WIDE FIELDS)
+inline int BMB_POS(const Bomb x)
+{
+    return (((x) & 0xFF));            // [ 0, 8[
+}
+inline int BMB_POS_X(const Bomb x)
+{
+    return (((x) & 0xF));             // [ 0, 4[
+}
+inline int BMB_POS_Y(const Bomb x)
+{
+    return (((x) & 0xF0) >> 4);       // [ 4, 8[
+}
+inline int BMB_ID(const Bomb x)
+{
+    return (((x) & 0xF00) >> 8);      // [ 8,12[
+}
+inline int BMB_STRENGTH(const Bomb x)
+{
+    return (((x) & 0xF000) >> 12);    // [12,16[
+}
+inline int BMB_TIME(const Bomb x)
+{
+    return (((x) & 0xF0000) >> 16);   // [16,20[
+}
+inline int BMB_DIR(const Bomb x)
+{
+    return (((x) & 0xF00000) >> 20);  // [20,24[
+}
+inline int BMB_MOVED(const Bomb x)
+{
+    return (((x) & 0xF000000) >> 24); // [24,28[
+}
 
 // inverted bit-mask
 const int cmask0_4   =  ~0xF;
