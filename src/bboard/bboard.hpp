@@ -274,7 +274,7 @@ inline void SetBombDirection(Bomb& bomb, Direction dir)
 }
 inline void SetBombMovedFlag(Bomb& bomb, bool moved)
 {
-    bomb = (bomb & cmask20_24) + (int(moved) << 24);
+    bomb = (bomb & cmask24_28) + (int(moved) << 24);
 }
 
 /**

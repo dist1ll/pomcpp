@@ -97,9 +97,11 @@ bool HasDPCollision(const State& state, Position dp[AGENT_COUNT], int agentID);
 /**
  * @brief HasBombCollision Checks wether a bomb collides with another bomb
  * on the board
+ * @param index Only bombs with a queue index larger or equal to `index` will be
+ * considered
  * @return True if the given bomb collides with another bomb
  */
-bool HasBombCollision(const State& state, const Bomb& b);
+bool HasBombCollision(const State& state, const Bomb& b, int index = 0);
 
 /**
  * @brief ResolveBombMovementollision Checks if a specified bomb collides
@@ -107,8 +109,16 @@ bool HasBombCollision(const State& state, const Bomb& b);
  * will keep their position and if the bomb was kicked in this round the agents
  * will be bounced back to their old position (alongside any agents that moved
  * to that agents spot in the meantime)
+ * @param index Only bombs with a queue index larger or equal to `index` will be
+ * considered
  */
-void ResolveBombCollision(State& state, Bomb& b);
+void ResolveBombCollision(State& state, Bomb& b, int index = 0);
+
+/**
+ * @brief ResetBombFlags Resets the "moved" flag of each bomb in the state
+ * back to false.
+ */
+void ResetBombFlags(State& state);
 
 /**
  * @brief IsOutOfBounds Checks wether a given position is out of bounds

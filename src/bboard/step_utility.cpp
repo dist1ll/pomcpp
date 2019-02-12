@@ -171,11 +171,11 @@ bool HasDPCollision(const State& state, Position dp[AGENT_COUNT], int agentID)
     return false;
 }
 
-bool HasBombCollision(const State& state, const Bomb& b)
+bool HasBombCollision(const State& state, const Bomb& b, int index)
 {
     Position bmbTarget = util::DesiredPosition(BMB_POS_X(b), BMB_POS_Y(b), Move(BMB_DIR(b)));
 
-    for(int i = 0; i < state.bombs.count; i++)
+    for(int i = index; i < state.bombs.count; i++)
     {
         int bx = BMB_POS_X(state.bombs[i]);
         int by = BMB_POS_Y(state.bombs[i]);
@@ -190,12 +190,12 @@ bool HasBombCollision(const State& state, const Bomb& b)
     return false;
 }
 
-void ResolveBombCollision(State& state, Bomb& b)
+void ResolveBombCollision(State& state, Bomb& b, int index)
 {
     Bomb collidees[4]; //more than 4 bombs cannot collide
     Position bmbTarget = util::DesiredPosition(BMB_POS_X(b), BMB_POS_Y(b), Move(BMB_DIR(b)));
 
-    for(int i = 0; i < state.bombs.count; i++)
+    for(int i = index; i < state.bombs.count; i++)
     {
 
         int bx = BMB_POS_X(state.bombs[i]);
@@ -210,6 +210,14 @@ void ResolveBombCollision(State& state, Bomb& b)
     }
 
     SetBombDirection(b, Direction::IDLE);
+}
+
+void ResetBombFlags(State& state)
+{
+    for(int i = 0; i < state.bombs.count; i++)
+    {
+        SetBombMovedFlag(state.bombs[i], false);
+    }
 }
 
 void PrintDependency(int dependency[AGENT_COUNT])

@@ -477,9 +477,9 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
 
-    s->PutAgent(0, 0, 0);
+    s->PutAgent(0, 1, 0);
     s->agents[0].canKick = true;
-    s->PlantBomb(1, 0, 0, true);
+    s->PlantBomb(1, 1, 0, true);
     s->agents[0].maxBombCount = bboard::MAX_BOMBS_PER_AGENT;
     m[0] = bboard::Move::RIGHT;
 
@@ -488,12 +488,12 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         s->Kill(1, 2, 3);
         bboard::Step(s.get(), m);
 
-        REQUIRE_AGENT(s.get(), 0, 1, 0);
-        REQUIRE(s->board[0][2] == bboard::Item::BOMB);
+        REQUIRE_AGENT(s.get(), 0, 1, 1);
+        REQUIRE(s->board[1][2] == bboard::Item::BOMB);
 
         for(int i = 0; i < 4; i++)
         {
-            REQUIRE(s->board[0][2 + i] == bboard::Item::BOMB);
+            REQUIRE(s->board[1][2 + i] == bboard::Item::BOMB);
             bboard::Step(s.get(), m);
             m[0] = bboard::Move::IDLE;
         }
@@ -501,22 +501,22 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
     SECTION("Bomb kicked against Flame")
     {
         s->Kill(1, 2, 3);
-        s->PutItem(5, 0, bboard::Item::FLAMES);
+        s->PutItem(5, 1, bboard::Item::FLAMES);
 
         bboard::Step(s.get(), m);
         m[0] = bboard::Move::IDLE;
 
         SeveralSteps(3,  s.get(),  m);
 
-        REQUIRE(IS_FLAME(s->board[0][5]));
+        REQUIRE(IS_FLAME(s->board[1][5]));
         REQUIRE(s->bombs.count == 0);
         REQUIRE(s->flames.count == 1);
-        REQUIRE(s->flames[0].position == bboard::Position({5,0}));
+        REQUIRE(s->flames[0].position == bboard::Position({5,1}));
     }
     SECTION("Bomb - Bomb Collision")
     {
         s->Kill(1, 2, 3);
-        s->PlantBomb(7, 6, 0, true);
+        s->PlantBomb(7, 7, 0, true);
         bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
 
         for(int i = 0; i < 6; i++)
@@ -527,8 +527,9 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
 
         REQUIRE(BMB_POS_X(s->bombs[0]) == 6);
         REQUIRE(BMB_POS_X(s->bombs[1]) == 7);
-        REQUIRE(BMB_POS_Y(s->bombs[1]) == 1);
+        REQUIRE(BMB_POS_Y(s->bombs[1]) == 2);
     }
+
 
     /*
 
