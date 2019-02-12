@@ -1,8 +1,6 @@
-# Multi-Agent Reinforcement Learning @ NIPS 2018
+# Pommerman C++ Environment
 
-This repository is an open-source implementation of a Multi-Agent Reinforcement Learning Agent that will participate in the NIPS 2018 [Pommerman challenge](https://www.pommerman.com/). For a full list of availble competitions this year at the NIPS conference, see the [competition track](https://nips.cc/Conferences/2018/CompetitionTrack).
-
-This repository also provides a re-implementation for the environment. This is how the C++ backend currently looks like: 
+This repository is an open-source re-implementation of the [Pommerman](https://www.pommerman.com/) multi-agent RL environment. Its aim is to provide a blazing fast alternative to the current python backend - ideally to make computationally expensive methods like tree search a feasible. The simulation has no heap allocations. This is how the C++ side currently looks like.
 
 ![gif of the game](docs/gifs/08_08.gif)
 
@@ -13,13 +11,12 @@ To compile and run this project from source you will require
 - Linux Distribution (Tested on Ubuntu 18.04)
 - GCC 7.3.0
 - MAKE 4.1
-- CUDA 9 (not yet necessary, will be updated)
 
 ## Setup
 
 #### Download
 
-This project uses the [playground environment](https://github.com/MultiAgentLearning/playground) as a submodule. To fully clone the repository use
+To fully clone the repository use
 ```
 # git version 2.13+
 $ git clone --recurse-submodules https://github.com/m2q/nips2018-agent.git
@@ -27,6 +24,7 @@ $ git clone --recurse-submodules https://github.com/m2q/nips2018-agent.git
 # git version 2.12 or less
 $ git clone --recursive https://github.com/m2q/nips2018-agent.git
 ```
+
 #### Compilation
 
 * Use `./run.sh` to **compile** the main application and run it.
@@ -145,9 +143,9 @@ bboard::Move MyNewAgent::act(bboard::State* state)
 ## Citing This Repo
 
 ```
-@misc{Alic2018nips,
+@misc{Alic2018,
   author = {Alic, Adrian},
-  title = {Distributed Async MARL Competition Entry},
+  title = {Pommerman C++ Implementation},
   year = {2018},
   publisher = {GitHub},
   journal = {GitHub repository},
