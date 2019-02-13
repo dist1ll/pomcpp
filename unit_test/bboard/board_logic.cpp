@@ -547,21 +547,19 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         REQUIRE(BMB_POS_X(s->bombs[1]) == 7);
         REQUIRE(BMB_POS_Y(s->bombs[1]) == 1);
     }
-    SECTION("Bounce Back Agent Simple")
+    SECTION("Bounce Back Agent")
     {
-        s->Kill(1, 2, 3);
+        s->Kill(2, 3);
+        s->PutAgent(0, 2, 1);
+        m[1] = Move::UP;
         s->PlantBomb(2, 2, 0, true);
         bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
-        //bboard::PrintState(s.get(), true);
-        //std::cin.get();
+        bboard::Step(s.get(), m);
 
-        for(int i = 0; i < 5; i++)
-        {
-            bboard::Step(s.get(), m);
-            //bboard::PrintState(s.get(), true);
-            //std::cin.get();
-            m[0] = bboard::Move::IDLE;
-        }
+        REQUIRE_AGENT(s.get(), 0, 0, 1);
+        REQUIRE_AGENT(s.get(), 1, 0, 2);
+        REQUIRE(BMB_POS_X(s->bombs[0]) == 1);
+        REQUIRE(BMB_POS_X(s->bombs[1]) == 2);
     }
     /*
 

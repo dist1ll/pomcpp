@@ -66,9 +66,15 @@ Position RevertAgentMoveRecursively(State& state, Move moves[AGENT_COUNT], int a
 
     if(!IsOutOfBounds(origin))
     {
+        int indexOrigin = state.HasAgent(origin.x, origin.y);
         agent.x = origin.x;
         agent.y = origin.y;
         state[origin] = Item::AGENT0 + agentID;
+
+        if(indexOrigin != -1)
+        {
+            return RevertAgentMoveRecursively(state, moves, indexOrigin);
+        }
         return origin;
     }
     else
