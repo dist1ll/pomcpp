@@ -286,7 +286,7 @@ Bomb* State::GetBomb(int x, int y)
     return nullptr;
 }
 
-int State::HasAgent(int x, int y)
+int State::GetAgent(int x, int y)
 {
     for(int i = 0; i < AGENT_COUNT; i++)
     {

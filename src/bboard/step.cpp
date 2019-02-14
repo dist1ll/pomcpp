@@ -6,7 +6,6 @@
 namespace bboard
 {
 
-
 void Step(State* state, Move* moves)
 {
 
@@ -187,6 +186,10 @@ void Step(State* state, Move* moves)
 
     }
 
+    // Fill array of desired positions
+    Position bombDestinations[MAX_BOMBS];
+    util::FillBombDestPos(state, bombDestinations);
+
     // Move bombs
     for(int i = 0; i < state->bombs.count; i++)
     {
@@ -196,7 +199,7 @@ void Step(State* state, Move* moves)
         {
             if(util::HasBombCollision(*state, b, i))
             {
-                util::ResolveBombCollision(*state, moves, b, i);
+                util::ResolveBombCollision(*state, moves, bombDestinations, i);
                 continue;
             }
         }
@@ -211,7 +214,7 @@ void Step(State* state, Move* moves)
         {
             if(util::HasBombCollision(*state, b, i))
             {
-                util::ResolveBombCollision(*state, moves, b, i);
+                util::ResolveBombCollision(*state, moves, bombDestinations, i);
                 continue;
             }
 

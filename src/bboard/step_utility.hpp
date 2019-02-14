@@ -28,15 +28,14 @@ Position OriginPosition(int x, int y, Move m);
 Position DesiredPosition(const Bomb b);
 
 /**
- * @brief RevertAgentMove Apply the reverse move on an agent in the state.
- * That means (s, Move::LEFT, 0) would move the agent0 one step to the right (if possible)
- *
- * If the agent is reverted to a spot with a different agent, that second agent will bounce
- * back to THEIR respective origin position. Effectively this method bounces back a complete
- * chain recurisvely, starting from a given root.
- * @return The position of the last agent that was bounced back in the chain.
+ * @brief RevertAgentMove Moves back a specified agent and bounces back every
+ * agent or bomb that stands in its way recursively.
+ * The bomb dest is an array of desired destination positions of bombs. That way
+ * we don't need to read the direction and find out if they've been alraedy moved
+ * @return The position of the last agent/bomb that was bounced back in the chain.
  */
-Position RevertAgentMoveRecursively(State& state, Move moves[AGENT_COUNT], int agentID);
+Position AgentBombChainReversion(State& state, Move moves[AGENT_COUNT],
+                                 Position bombDest[MAX_BOMBS], int agentID);
 
 /**
  * @brief FillPositions Fills an array of Positions with positions of
@@ -51,6 +50,12 @@ void FillPositions(State* s, Position p[AGENT_COUNT]);
  * @param p The array to be filled wih dest positions
  */
 void FillDestPos(State* s, Move m[AGENT_COUNT], Position p[AGENT_COUNT]);
+
+/**
+ * @brief FillBombDestPos Fills the given array p with all desired bomb
+ * positions that moving bombs are anticipating
+ */
+void FillBombDestPos(State* s, Position p[MAX_BOMBS]);
 
 /**
  * @brief FixSwitchMove Fixes the desired positions if the agents want
@@ -135,7 +140,8 @@ bool HasBombCollision(const State& state, const Bomb& b, int index = 0);
  * @param index Only bombs with a queue index larger or equal to `index` will be
  * considered
  */
-void ResolveBombCollision(State& state, Move moves[AGENT_COUNT], Bomb& b, int index = 0);
+void ResolveBombCollision(State& state, Move moves[AGENT_COUNT],
+                          Position bombDest[MAX_BOMBS], int index = 0);
 
 /**
  * @brief ResetBombFlags Resets the "moved" flag of each bomb in the state
