@@ -98,6 +98,13 @@ Position AgentBombChainReversion(State& state, Move moves[AGENT_COUNT],
 
             Position originBomb = OriginPosition(bombDest.x, bombDest.y, Move(BMB_DIR(b)));
 
+            // this is the case when an agent gets bounced back to a bomb he laid
+            if(originBomb == bombDest)
+            {
+                state[originBomb] = Item::AGENT0 + agentID;
+                return originBomb;
+            }
+
             int hasAgent = state.GetAgent(originBomb.x, originBomb.y);
             SetBombDirection(b, Direction::IDLE);
             SetBombPosition(b, originBomb.x, originBomb.y);
@@ -310,7 +317,7 @@ void ResolveBombCollision(State& state, Move moves[AGENT_COUNT],
             SetBombDirection(b, Direction::IDLE);
             int index = state.GetAgent(BMB_POS_X(b), BMB_POS_Y(b));
             // move != idle means the agent moved on it this turn
-            if(index > -1 && moves[index] != Move::IDLE)
+            if(index > -1 && moves[index] != Move::IDLE && moves[index] != Move::BOMB)
             {
                 Position origin = AgentBombChainReversion(state, moves, destBombs, index);
                 state.board[BMB_POS_Y(b)][BMB_POS_X(b)] = Item::BOMB;

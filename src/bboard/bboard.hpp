@@ -239,6 +239,11 @@ struct AgentInfo
 
     bool canKick = false;
     bool dead = false;
+
+    Position GetPos()
+    {
+        return {x, y};
+    }
 };
 
 /**

@@ -258,7 +258,7 @@ TEST_CASE("Bomb Mechanics", "[step function]")
     SECTION("Bomb Movement Block Simple")
     {
         s->PutAgentsInCorners(0, 1, 2, 3);
-        s->PutItem(1, 0, bboard::Item::BOMB);
+        s->PlantBomb(1, 0, 0);
 
         m[0] = bboard::Move::RIGHT;
         bboard::Step(s.get(), m);
@@ -298,7 +298,6 @@ TEST_CASE("Bomb Mechanics", "[step function]")
         m[2] = bboard::Move::LEFT;
         m[3] = bboard::Move::UP;
         bboard::Step(s.get(), m);
-
         //everyone planted bombs, you can't move
         REQUIRE_AGENT(s.get(), 0, 0, 0);
         REQUIRE_AGENT(s.get(), 1, 1, 0);
@@ -578,31 +577,28 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         REQUIRE(s->board[3][0] == Item::BOMB);
         REQUIRE(s->board[1][1] == Item::BOMB);
         REQUIRE(s->board[2][2] == Item::BOMB);
-    }/*
+    }
     SECTION("Bounce Back Super Complex Chain")
     {
         s->Kill(3);
-        s->agents[2].canKick = true;
         s->PutAgent(0, 2, 1);
         s->PutAgent(1, 3, 2);
         s->PutItem(2, 1, Item::RIGID);
         m[1] = Move::UP;
-        //m[2] = Move::LEFT;
+        m[2] = Move::BOMB;
         s->PlantBomb(0, 3, 0, true);
         bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
 
-        bboard::PrintState(s.get(), true);
-        std::cin.get();
-
-        for(int i = 0; i < 5; i++)
+        for(int i = 0; i < 3; i++)
         {
+            //bboard::PrintState(s.get(), false);
+            //std::cin.get();
             bboard::Step(s.get(), m);
-            bboard::PrintState(s.get(), true);
-            std::cin.get();
             m[0] = m[1] = bboard::Move::IDLE;
+            m[2] = Move::LEFT;
         }
     }
-
+    /*
     SECTION("Bounce Back Complex Chain")
     {
         s->Kill(2, 3);

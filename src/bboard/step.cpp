@@ -166,7 +166,21 @@ void Step(State* state, Move* moves)
             // the first 5 values of Move and Direction are semantically identical
             Bomb& b = *state->GetBomb(desired.x,  desired.y);
             SetBombDirection(b, Direction(m));
+        }
+        else if(itemOnDestination == Item::BOMB && !state->agents[i].canKick)
+        {
+            if(state->HasBomb(x, y))
+            {
+                state->board[y][x] = Item::BOMB;
+            }
+            else
+            {
+                state->board[y][x] = Item::PASSAGE;
+            }
 
+            state->board[desired.y][desired.x] = Item::AGENT0 + i;
+            state->agents[i].x = desired.x;
+            state->agents[i].y = desired.y;
         }
     }
 
@@ -181,21 +195,30 @@ void Step(State* state, Move* moves)
     for(int i = 0; i < state->bombs.count; i++)
     {
         Bomb& b = state->bombs[i];
+        int bx = BMB_POS_X(b);
+        int by = BMB_POS_Y(b);
 
-        if(Direction(BMB_DIR(b)) == Direction::IDLE)
-        {
-            continue;
-        }
         Position target = util::DesiredPosition(b);
         int tItem = (*state)[target];
         if(IS_STATIC_MOV_BLOCK(tItem) || IS_AGENT(tItem))
         {
             SetBombDirection(b, Direction::IDLE);
-            int indexAgent = state->GetAgent(BMB_POS_X(b), BMB_POS_Y(b));
-            if(indexAgent > -1 && moves[indexAgent] != Move::IDLE)
+            int indexAgent = state->GetAgent(bx, by);
+            if(indexAgent > -1
+                    && moves[indexAgent] != Move::IDLE
+                    && moves[indexAgent] != Move::BOMB
+                    // if the agents is where he came from he probably got bounced
+                    // back to the bomb he was already standing on.
+                    && !(state->agents[i].GetPos() == oldPos[indexAgent]))
+
             {
+
                 util::AgentBombChainReversion(*state, moves, bombDestinations, indexAgent);
-                state->board[BMB_POS_Y(b)][BMB_POS_X(b)] = Item::BOMB;
+                if(state->GetAgent(bx, by) == -1)
+                {
+                    state->board[by][bx] = Item::BOMB;
+                }
+
             }
         }
 
