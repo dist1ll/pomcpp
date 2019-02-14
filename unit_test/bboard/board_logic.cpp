@@ -578,8 +578,31 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         REQUIRE(s->board[3][0] == Item::BOMB);
         REQUIRE(s->board[1][1] == Item::BOMB);
         REQUIRE(s->board[2][2] == Item::BOMB);
+    }/*
+    SECTION("Bounce Back Super Complex Chain")
+    {
+        s->Kill(3);
+        s->agents[2].canKick = true;
+        s->PutAgent(0, 2, 1);
+        s->PutAgent(1, 3, 2);
+        s->PutItem(2, 1, Item::RIGID);
+        m[1] = Move::UP;
+        //m[2] = Move::LEFT;
+        s->PlantBomb(0, 3, 0, true);
+        bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
+
+        bboard::PrintState(s.get(), true);
+        std::cin.get();
+
+        for(int i = 0; i < 5; i++)
+        {
+            bboard::Step(s.get(), m);
+            bboard::PrintState(s.get(), true);
+            std::cin.get();
+            m[0] = m[1] = bboard::Move::IDLE;
+        }
     }
-    /*
+
     SECTION("Bounce Back Complex Chain")
     {
         s->Kill(2, 3);

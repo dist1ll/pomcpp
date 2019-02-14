@@ -173,22 +173,33 @@ void Step(State* state, Move* moves)
     // Before moving bombs, reset their "moved" flags
     util::ResetBombFlags(*state);
 
+    // Fill array of desired positions
+    Position bombDestinations[MAX_BOMBS];
+    util::FillBombDestPos(state, bombDestinations);
+
     // Set bomb directions to idle if they collide with an agent or a static obstacle
     for(int i = 0; i < state->bombs.count; i++)
     {
         Bomb& b = state->bombs[i];
+
+        if(Direction(BMB_DIR(b)) == Direction::IDLE)
+        {
+            continue;
+        }
         Position target = util::DesiredPosition(b);
         int tItem = (*state)[target];
         if(IS_STATIC_MOV_BLOCK(tItem) || IS_AGENT(tItem))
         {
             SetBombDirection(b, Direction::IDLE);
+            int indexAgent = state->GetAgent(BMB_POS_X(b), BMB_POS_Y(b));
+            if(indexAgent > -1 && moves[indexAgent] != Move::IDLE)
+            {
+                util::AgentBombChainReversion(*state, moves, bombDestinations, indexAgent);
+                state->board[BMB_POS_Y(b)][BMB_POS_X(b)] = Item::BOMB;
+            }
         }
 
     }
-
-    // Fill array of desired positions
-    Position bombDestinations[MAX_BOMBS];
-    util::FillBombDestPos(state, bombDestinations);
 
     // Move bombs
     for(int i = 0; i < state->bombs.count; i++)
