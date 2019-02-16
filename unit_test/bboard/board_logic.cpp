@@ -598,6 +598,20 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
             m[2] = Move::LEFT;
         }
     }
+
+    SECTION("Bounce Back Wall")
+    {
+        s->Kill(1, 3);
+        s->PutAgent(1, 3, 2);
+        s->PutItem(2, 1, Item::RIGID);
+        m[2] = Move::LEFT;
+        s->agents[2].canKick = true;
+        s->PlantBomb(0, 3, 0, true);
+        bboard::Step(s.get(), m);
+
+        REQUIRE_AGENT(s.get(), 2, 1, 3);
+        REQUIRE(s->board[3][0] == Item::BOMB);
+    }
     /*
     SECTION("Bounce Back Complex Chain")
     {

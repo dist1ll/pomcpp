@@ -199,8 +199,10 @@ void Step(State* state, Move* moves)
         int by = BMB_POS_Y(b);
 
         Position target = util::DesiredPosition(b);
-        int tItem = (*state)[target];
-        if(IS_STATIC_MOV_BLOCK(tItem) || IS_AGENT(tItem))
+
+        if(util::IsOutOfBounds(target) ||
+                IS_STATIC_MOV_BLOCK((*state)[target]) ||
+                IS_AGENT((*state)[target]))
         {
             SetBombDirection(b, Direction::IDLE);
             int indexAgent = state->GetAgent(bx, by);

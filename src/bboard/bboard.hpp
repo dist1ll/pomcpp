@@ -109,10 +109,8 @@ inline int WOOD_POWFLAG(int x)
 }
 
 /**
- * @brief The FixedQueue struct implements a extremely
- * fast fixed-size queue, operating on a cicular buffer.
- *
- * Remove (pop) and adds are done with index shifting.
+ * @brief The FixedQueue struct implements a fixed-size queue,
+ * operating on a cicular buffer.
  */
 template<typename T, int TSize>
 struct FixedQueue

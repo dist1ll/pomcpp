@@ -9,10 +9,15 @@ int main()
 {
 
     agents::SimpleAgent r[4];
-    std::array<bboard::Agent*, 4> agents = {&r[0], &r[1], &r[2], &r[3]};
+    agents::RandomAgent g[4];
+    std::array<bboard::Agent*, 4> agents = {&r[0], &r[1], &g[2], &g[3]};
 
     bboard::Environment env;
     env.MakeGame(agents);
+
+    for(bboard::AgentInfo& agentInfo : env.GetState().agents)
+        agentInfo.canKick = true;
+
     env.StartGame(500, true);
 
 }

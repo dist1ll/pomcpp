@@ -290,7 +290,7 @@ int State::GetAgent(int x, int y)
 {
     for(int i = 0; i < AGENT_COUNT; i++)
     {
-        if(agents[i].x == x && agents[i].y == y)
+        if(!agents[i].dead && agents[i].x == x && agents[i].y == y)
         {
             return i;
         }
