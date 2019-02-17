@@ -28,12 +28,17 @@ INCL2 := $(SRCDIR)/$(MODULE2)
 
 INC := -I src/bboard -I src/agents
 
-all:    main test
-	
+all:    main test lib
+
+lib : $(MAIN_OBJECTS)
+	@mkdir -p lib
+	@ar rcs $(SLIB_TARGET) $^
+	@echo "Building Library"
+	@$(MAKE) main -s
+
 main: $(MAIN_OBJECTS)
 	@mkdir -p bin
 	@$(CC) $(CFLAGS) -std=$(STD) $^ -o $(MAIN_TARGET)
-	@ar rcs $(SLIB_TARGET) $^
 
 test: $(TEST_OBJECTS)
 	@$(MAKE) main -s

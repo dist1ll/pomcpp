@@ -10,7 +10,7 @@ int main()
 
     agents::SimpleAgent r[4];
     agents::RandomAgent g[4];
-    std::array<bboard::Agent*, 4> agents = {&r[0], &r[1], &g[2], &g[3]};
+    std::array<bboard::Agent*, 4> agents = {&g[0], &g[1], &g[2], &g[3]};
 
     bboard::Environment env;
     env.MakeGame(agents);
