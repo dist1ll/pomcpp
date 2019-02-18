@@ -9,6 +9,7 @@ TESTBUILD := build/unit_test
 MAIN_TARGET := ./bin/exec
 TEST_TARGET := ./bin/test
 SLIB_TARGET := ./lib/pomlib.a
+INCLD := include
 
 MAIN_SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 TEST_SOURCES := $(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
@@ -23,10 +24,7 @@ TEST_OBJECTS := $(TWITCH)
 MODULE1 := bboard
 MODULE2 := agents
 
-INCL1 := $(SRCDIR)/$(MODULE1)
-INCL2 := $(SRCDIR)/$(MODULE2)
-
-INC := -I src/bboard -I src/agents
+INC := -I include/
 
 all:    main test lib
 
@@ -73,7 +71,7 @@ build/src/$(MODULE2)/%.o: src/$(MODULE2)/%.$(SRCEXT)
 
 clean:
 	@echo " Cleaning..."; 
-	@echo " $(RM) -r $(BUILDDIR) $(MAIN_TARGET)"; $(RM) -r $(BUILDDIR) $(MAIN_TARGET)
+	@echo " $(RM) -r $(BUILDDIR) $(MAIN_TARGET) $(SLIB_TARGET)"; $(RM) -r $(BUILDDIR) $(MAIN_TARGET) $(SLIB_TARGET)
 	@echo " Clean test files except test_main"; find $(TESTBUILD) $(TEST_TARGET) -type f -not -name 'test_main.o' -print0 | xargs -0 $(RM) --
 	@echo
 # only cleans main
