@@ -120,7 +120,7 @@ agents.hpp (excerpt)
  */
 struct MyNewAgent : bboard::Agent
 {
-    bboard::Move act(bboard::State* state) override;
+    bboard::Move act(const bboard::State* state) override;
 };
 ```
 
@@ -132,7 +132,7 @@ fsm_agent.cpp
 namespace agents
 {
 
-bboard::Move MyNewAgent::act(bboard::State* state)
+bboard::Move MyNewAgent::act(const bboard::State* state)
 {
     // TODO: Implement your logic
     return bboard::Move::IDLE;
