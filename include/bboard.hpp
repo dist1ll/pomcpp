@@ -558,6 +558,8 @@ private:
     bool threading = false;
     int threadCount = 1;
 
+    Move lastMoves[AGENT_COUNT];
+
 public:
 
     Environment();
@@ -632,6 +634,12 @@ public:
      * the agent's ID that won
      */
     int GetWinner();
+
+    /**
+     * @brief GetLastMove Returns the last move made by the given agent.
+     * (Disregard if agent is dead)
+     */
+    Move GetLastMove(int agentID);
 
 };
 
