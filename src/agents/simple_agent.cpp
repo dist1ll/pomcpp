@@ -21,6 +21,32 @@ SimpleAgent::SimpleAgent()
     intDist = std::uniform_int_distribution<int>(0, 4); // no bombs
 }
 
+bool _HasRPLoop(SimpleAgent& me)
+{
+    for(int i = 0; i < me.recentPositions.count / 2; i++)
+    {
+        if(!(me.recentPositions[i] == me.recentPositions[i + 2]))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+Move _MoveSafeOneSpace(SimpleAgent& me, const State* state)
+{
+    const AgentInfo& a = state->agents[me.id];
+    me.moveQueue.count = 0;
+    SafeDirections(*state, me.moveQueue, a.x, a.y);
+    SortDirections(me.moveQueue, me.recentPositions, a.x, a.y);
+
+    if(me.moveQueue.count == 0)
+        return Move::IDLE;
+    else
+        return me.moveQueue[me.intDist(me.rng) % 2];
+}
+
 
 Move _Decide(SimpleAgent& me, const State* state)
 {
@@ -29,22 +55,49 @@ Move _Decide(SimpleAgent& me, const State* state)
 
     me.danger = IsInDanger(*state, me.id);
 
-    if(me.danger > 0)
+    if(me.danger > 0) // ignore danger if not too high
     {
-        return MoveTowardsSafePlace(*state, me.r, me.danger);
+        Move m = MoveTowardsSafePlace(*state, me.r, me.danger);
+        Position p = util::DesiredPosition(a.x, a.y, m);
+        if(!util::IsOutOfBounds(p.x, p.y) && IS_WALKABLE(state->board[p.y][p.x]) &&
+                _safe_condition(IsInDanger(*state, p.x, p.y), 2))
+        {
+            return m;
+        }
+        else // move towards safe direction
+        {
+            return _MoveSafeOneSpace(me, state);
+        }
+
     }
 
     if(a.bombCount < a.maxBombCount)
     {
-        if(IsAdjacentEnemy(*state, me.id, 2)
-                || IsAdjacentItem(*state, me.id, 1, Item::WOOD))
+        //prioritize enemy destruction
+        if(IsAdjacentEnemy(*state, me.id, 1))
         {
             return Move::BOMB;
         }
-
+        // if you're stuck in a loop try to break out by randomly selecting
+        // an action ( we could IDLE but the mirroring of agents is tricky)
+        if(IsAdjacentEnemy(*state, me.id, 7) && _HasRPLoop(me))
+        {
+            return Move(me.intDist(me.rng) % 4);
+        }
         if(IsAdjacentEnemy(*state, me.id, 7))
         {
-            return MoveTowardsEnemy(*state, me.r, 7);
+            Move m = MoveTowardsEnemy(*state, me.r, 7);
+            Position p = util::DesiredPosition(a.x, a.y, m);
+            if(!util::IsOutOfBounds(p.x, p.y) && IS_WALKABLE(state->board[p.y][p.x]) &&
+                    _safe_condition(IsInDanger(*state, p.x, p.y), 5))
+            {
+                return m;
+            }
+        }
+
+        if(IsAdjacentItem(*state, me.id, 1, Item::WOOD))
+        {
+            return Move::BOMB;
         }
     }
     me.moveQueue.count = 0;

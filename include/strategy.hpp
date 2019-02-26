@@ -87,7 +87,10 @@ Move MoveTowardsPosition(const RMap& r, const Position& position);
 /**
  * @brief MoveTowardsSafePlace Returns the direction towards one
  * of the closest points from the source that is safe from explosions.
- * (In the given radius)
+ * (In the given radius). Note: Doesn't guarantee that the agent doesn't
+ * die along the way by other dangers. Only considers the imminent danger
+ * in his current position.
+ *
  * @param r The filled RMap
  * @param radius The search radius
  * @return IDLE if no safe place could be found
@@ -129,17 +132,19 @@ void SortDirections(FixedQueue<Move, MOVE_COUNT>& q,
                     FixedQueue<Position, X>& p, int x, int y)
 {
     int moves = q.count;
-    for(int _ = 0; _ < moves; _++)
+    int totalRemoves = 0;
+
+    for(int i = 0; i < moves && totalRemoves < MOVE_COUNT; i++)
     {
-        int i = _;
         Position pos = util::DesiredPosition(x, y, q[i]);
         for(int j = 0; j < p.count; j++)
         {
             if(pos == p[j])
             {
-                q.AddElem(q[i]);
                 q.RemoveAt(i);
+                q.AddElem(q[i]);
                 i--;
+                totalRemoves++;
                 break;
             }
         }
@@ -176,6 +181,9 @@ void PrintMap(RMap& r);
  * @brief PrintMap Pretty-prints the path from-to
  */
 void PrintPath(RMap& r, Position from, Position to);
+
+
+bool _safe_condition(int danger, int min = 2);
 
 }
 

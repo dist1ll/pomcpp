@@ -48,6 +48,7 @@ struct LazyAgent : bboard::Agent
 };
 
 
+
 /**
  * @brief Selects Idle for every action
  */
@@ -64,7 +65,10 @@ struct SimpleAgent : bboard::Agent
     int danger = 0;
     bboard::strategy::RMap r;
     bboard::FixedQueue<bboard::Move, bboard::MOVE_COUNT> moveQueue;
-    bboard::FixedQueue<bboard::Position, 4> recentPositions;
+
+    // capacity of recent positions
+    static const int rpCapacity = 4;
+    bboard::FixedQueue<bboard::Position, rpCapacity> recentPositions;
 
     bboard::Move act(const bboard::State* state) override;
 

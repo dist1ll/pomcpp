@@ -130,7 +130,7 @@ Move MoveTowardsSafePlace(const State& state, const RMap& r, int radius)
             if(util::IsOutOfBounds({x, y}) ||
                     std::abs(x - originX) + std::abs(y - originY) > radius) continue;
 
-            if(r.GetDistance(x, y) != 0 && !IsInDanger(state, x, y))
+            if(r.GetDistance(x, y) != 0 && _safe_condition(IsInDanger(state, x, y)))
             {
                 return MoveTowardsPosition(r, {x, y});
             }
@@ -189,21 +189,32 @@ bool _CheckPos(const State& state, int x, int y)
     return !util::IsOutOfBounds(x, y) && IS_WALKABLE(state.board[y][x]);
 }
 
+bool _safe_condition(int danger, int min)
+{
+    return danger == 0 || danger >= min;
+}
 void SafeDirections(const State& state, FixedQueue<Move, MOVE_COUNT>& q, int x, int y)
 {
-    if(_CheckPos(state, x + 1, y) && !IsInDanger(state, x + 1, y))
+    int d = IsInDanger(state, x + 1, y);
+    if(_CheckPos(state, x + 1, y) && _safe_condition(d))
     {
         q.AddElem(Move::RIGHT);
     }
-    if(_CheckPos(state, x - 1, y) && !IsInDanger(state, x - 1, y))
+
+    d = IsInDanger(state, x - 1, y);
+    if(_CheckPos(state, x - 1, y) && _safe_condition(d))
     {
         q.AddElem(Move::LEFT);
     }
-    if(_CheckPos(state, x, y + 1) && !IsInDanger(state, x, y + 1))
+
+    d = IsInDanger(state, x, y + 1);
+    if(_CheckPos(state, x, y + 1) && _safe_condition(d))
     {
         q.AddElem(Move::DOWN);
     }
-    if(_CheckPos(state, x, y - 1) && !IsInDanger(state, x, y - 1))
+
+    d = IsInDanger(state, x, y - 1);
+    if(_CheckPos(state, x, y - 1) && _safe_condition(d))
     {
         q.AddElem(Move::UP);
     }
