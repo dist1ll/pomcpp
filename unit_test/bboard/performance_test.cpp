@@ -1,5 +1,6 @@
 #include <cmath>
 #include <thread>
+#include <future>
 #include <chrono>
 #include <utility>
 #include <iostream>
@@ -28,35 +29,42 @@ double timeMethod(int times, F func, Args&&... args)
 
 void Proxy(bboard::Environment& s)
 {
-    s.Step();
+    if(!s.IsDone())
+    {
+        s.Step();
+    }
 }
 
-void ProxyConcurrent(int times)
+#define TESTING_AGENT agents::SimpleAgent
+
+void ProxyConcurrent(std::promise<int> && steps, int times)
 {
-    agents::HarmlessAgent a;
+    TESTING_AGENT a;
     bboard::Environment env;
     env.MakeGame({&a, &a, &a, &a});
-    for(int i = 0; i < times; i++)
+    for(int i = 0; i < times && !env.IsDone(); i++)
     {
         env.Step();
     }
+    steps.set_value(env.GetState().timeStep);
 }
 
 TEST_CASE("Step Function", "[performance]")
 {
-    agents::HarmlessAgent b;
-
+    TESTING_AGENT b;
     int times = 1000;
     double t = -1;
+    int totalSteps = 0;
 
     for(int _ = 0; _ < 10; _++)
     {
-        agents::HarmlessAgent a[4];
+        TESTING_AGENT a[4];
         bboard::Environment env;
         env.MakeGame({&a[0], &a[1], &a[2], &a[3]});
         if(!THREADING)
         {
             t += timeMethod(times, Proxy, env);
+            totalSteps += env.GetState().timeStep; //update the amount
         }
         else
         {
@@ -64,15 +72,21 @@ TEST_CASE("Step Function", "[performance]")
 
             std::chrono::duration<double, std::milli> total;
             auto t1 = std::chrono::high_resolution_clock::now();
+
+            std::promise<int> p[THREAD_COUNT];
+            std::future<int> f[THREAD_COUNT];
+
             for(uint i = 0; i < THREAD_COUNT; i++)
             {
-                threads[i] = std::thread(ProxyConcurrent, times);
+                f[i] = p[i].get_future();
+                threads[i] = std::thread(ProxyConcurrent, std::move(p[i]), times);
             }
 
             // join all
             for(uint i = 0; i < THREAD_COUNT; i++)
             {
                 threads[i].join();
+                totalSteps += f[i].get();
             }
 
             total = std::chrono::high_resolution_clock::now() - t1;
@@ -80,19 +94,18 @@ TEST_CASE("Step Function", "[performance]")
         }
     }
     t /= 10;
+    totalSteps /= 10;
 
-    std::string tst = "Test Results:";
+    std::string tst = "Test Results:\n";
     std::cout << std::endl
-              << FGRN(tst) << std::endl
+              << FGRN(tst)
               << "Iteration count (100ms):         ";
-    if(THREADING)
-        RecursiveCommas(std::cout, uint(std::floor(times/(t/100.0))) * THREAD_COUNT);
-    else
-        RecursiveCommas(std::cout, uint(std::floor(times/(t/100.0))));
+
+    RecursiveCommas(std::cout, uint(std::floor(totalSteps/(t/100.0))));
     std::cout << std::endl
               << "Tested with:                     "
               << type_name<decltype(b)>()
-              << std::endl << std::endl;
+              << "\nTime: " << t/100.0 << "\n";
 
     REQUIRE(1);
 }
