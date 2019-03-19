@@ -566,7 +566,7 @@ public:
     /**
      * @brief MakeGame Initializes the state
      */
-    void MakeGame(std::array<Agent*, AGENT_COUNT> a);
+    void MakeGame(std::array<Agent*, AGENT_COUNT> a, bool randomizePositions = false);
 
     /**
      * @brief StartGame starts a game and prints in the terminal output

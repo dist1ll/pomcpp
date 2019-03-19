@@ -1,6 +1,7 @@
 #include <thread>
 #include <chrono>
 #include <functional>
+#include <algorithm>
 
 #include "bboard.hpp"
 
@@ -49,10 +50,16 @@ Environment::Environment()
     state = std::make_unique<State>();
 }
 
-void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a)
+void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, bool random)
 {
     bboard::InitBoardItems(*state.get());
-    state->PutAgentsInCorners(0, 1, 2, 3);
+
+    std::array<int, 4> f = {0, 1, 2, 3};
+    if(random)
+    {
+        std::random_shuffle(std::begin(f), std::end(f));
+    }
+    state->PutAgentsInCorners(f[0], f[1], f[2], f[3]);
 
     SetAgents(a);
     hasStarted = true;

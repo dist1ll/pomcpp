@@ -102,6 +102,7 @@ TEST_CASE("Step Function", "[performance]")
               << "Iteration count (100ms):         ";
 
     RecursiveCommas(std::cout, uint(std::floor(totalSteps/(t/100.0))));
+
     std::cout << std::endl
               << "Tested with:                     "
               << type_name<decltype(b)>()

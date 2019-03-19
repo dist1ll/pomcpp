@@ -13,7 +13,7 @@ int main()
     std::array<bboard::Agent*, 4> agents = {&r[0], &g[1], &g[2], &g[3]};
 
     bboard::Environment env;
-    env.MakeGame(agents);
+    env.MakeGame(agents, true);
 
     for(bboard::AgentInfo& agentInfo : env.GetState().agents)
     {
