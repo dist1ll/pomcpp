@@ -19,10 +19,10 @@ To compile and run this project from source you will require
 To fully clone the repository use
 ```
 # git version 2.13+
-$ git clone --recurse-submodules https://github.com/m2q/nips2018-agent.git
+$ git clone --recurse-submodules https://github.com/m2q/pomcpp.git
 
 # git version 2.12 or less
-$ git clone --recursive https://github.com/m2q/nips2018-agent.git
+$ git clone --recursive https://github.com/m2q/pomcpp.git
 ```
 
 #### Compilation
