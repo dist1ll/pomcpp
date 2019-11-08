@@ -4,6 +4,10 @@ This repository is an open-source re-implementation of the [Pommerman](https://w
 
 ![gif of the game](docs/gifs/08_08.gif)
 
+## Contributors
+
+Special thanks to [Márton Görög (gorogm)](https://github.com/gorogm) for providing insights, bug fixes and crucial test cases.
+
 ## Prerequisites
 
 To compile and run this project from source you will require
