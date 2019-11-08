@@ -612,6 +612,26 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         REQUIRE_AGENT(s.get(), 2, 1, 3);
         REQUIRE(s->board[3][0] == Item::BOMB);
     }
+    SECTION("Stepping on bombs") // Provided by M?rton G?r?g
+    {
+        s->PutAgent(6, 3, 0);
+        s->PutAgent(6, 4, 1);
+        s->PutAgent(6, 5, 2);
+        m[0] = m[1] = m[2] = bboard::Move::IDLE;
+
+
+        s->PlantBomb(5, 6, 3, true);
+        s->PlantBomb(6, 6, 2, true);
+        s->PutAgent(6, 6, 3);
+
+        m[3] = bboard::Move::IDLE;
+        bboard::Step(s.get(), m);
+        REQUIRE_AGENT(s.get(), 3, 6, 6);
+
+        m[3] = bboard::Move::LEFT;
+        bboard::Step(s.get(), m);
+        REQUIRE_AGENT(s.get(), 3, 6, 6);
+    }
     /*
     SECTION("Bounce Back Complex Chain")
     {
