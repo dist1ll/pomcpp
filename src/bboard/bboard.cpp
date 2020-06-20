@@ -110,11 +110,16 @@ inline bool IsOutOfBounds(const int& x, const int& y)
 
 void State::ExplodeBombAt(int i)
 {
-    int x = BMB_POS_X(bombs[i]);
-    int y = BMB_POS_Y(bombs[i]);
-    SpawnFlame(x, y, agents[BMB_ID(bombs[i])].bombStrength);
-    agents[BMB_ID(bombs[i])].bombCount--;
+    Bomb b = bombs[i];
+
+    // remove the bomb
+    agents[BMB_ID(b)].bombCount--;
     bombs.RemoveAt(i);
+
+    // spawn flames, this may trigger other explosions
+    int x = BMB_POS_X(b);
+    int y = BMB_POS_Y(b);
+    SpawnFlame(x, y, agents[BMB_ID(b)].bombStrength);
 }
 
 void State::PlantBomb(int x, int y, int id, bool setItem)
