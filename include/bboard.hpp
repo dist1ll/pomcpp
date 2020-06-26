@@ -18,10 +18,10 @@ const int BOARD_SIZE  = 11;
 
 static_assert (BOARD_SIZE <= 15, "Board positions must fit into 8-bit");
 
-const int BOMB_LIFETIME = 10;
+const int BOMB_LIFETIME = 9;
 const int BOMB_DEFAULT_STRENGTH = 1;
 
-const int FLAME_LIFETIME = 4;
+const int FLAME_LIFETIME = 3;
 
 const int MAX_BOMBS_PER_AGENT = 5;
 const int MAX_BOMBS = AGENT_COUNT * MAX_BOMBS_PER_AGENT;
