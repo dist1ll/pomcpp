@@ -425,12 +425,10 @@ void PrintState(State* state, bool clearConsole)
         // Print AgentInfo
         if(y < AGENT_COUNT)
         {
-            int i = y;
-            std::printf("Agent %d: %s %d  %s %d  %s %d",
-                        i,
-                        PrintItem(Item::EXTRABOMB).c_str(),state->agents[i].maxBombCount,
-                        PrintItem(Item::INCRRANGE).c_str(),state->agents[i].bombStrength,
-                        PrintItem(Item::KICK).c_str(),state->agents[i].canKick);
+            std::cout << "Agent " << y << ": ";
+            std::cout << PrintItem(Item::EXTRABOMB) << ": " << state->agents[y].maxBombCount << " ";
+            std::cout << PrintItem(Item::INCRRANGE) << ": " << state->agents[y].bombStrength << " ";
+            std::cout << PrintItem(Item::KICK) << ": " << state->agents[y].canKick << " ";
         }
         else if(y == AGENT_COUNT + 1)
         {
