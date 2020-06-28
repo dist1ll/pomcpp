@@ -119,7 +119,7 @@ void State::ExplodeBombAt(int i)
     // spawn flames, this may trigger other explosions
     int x = BMB_POS_X(b);
     int y = BMB_POS_Y(b);
-    SpawnFlame(x, y, agents[BMB_ID(b)].bombStrength);
+    SpawnFlame(x, y, BMB_STRENGTH(b));
 }
 
 void State::PlantBomb(int x, int y, int id, bool setItem)
