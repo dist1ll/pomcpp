@@ -2,6 +2,7 @@
 #include <chrono>
 #include <functional>
 #include <algorithm>
+#include <random>
 
 #include "bboard.hpp"
 
@@ -55,9 +56,11 @@ void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, bool random)
     bboard::InitBoardItems(*state.get());
 
     std::array<int, 4> f = {0, 1, 2, 3};
+
     if(random)
     {
-        std::random_shuffle(std::begin(f), std::end(f));
+        auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+        std::shuffle(f.begin(), f.end(), std::default_random_engine(seed));
     }
     state->PutAgentsInCorners(f[0], f[1], f[2], f[3]);
 
