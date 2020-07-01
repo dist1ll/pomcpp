@@ -138,7 +138,8 @@ void State::PlantBombModifiedLife(int x, int y, int id, int lifeTime, bool setIt
     SetBombID(*b, id);
     SetBombPosition(*b, x, y);
     SetBombStrength(*b, agents[id].bombStrength);
-    // TODO: velocity
+    SetBombDirection(*b, Direction::IDLE);
+    SetBombMovedFlag(*b, false);
     SetBombTime(*b, lifeTime);
 
     if(setItem)
