@@ -151,20 +151,37 @@ void FillBombDestPos(State* s, Position p[MAX_BOMBS])
     }
 }
 
-void FixSwitchMove(State* s, Position d[AGENT_COUNT])
+void FixDestPos(State* s, Position d[AGENT_COUNT])
 {
+    bool fixDest[AGENT_COUNT];
+    std::fill_n(fixDest, AGENT_COUNT, false);
+
     for(int i = 0; i < AGENT_COUNT; i++)
     {
-        for(int j = i; j < AGENT_COUNT; j++)
+        // skip dead agents
+        if (s->agents[i].dead)
+            continue;
+
+        for(int j = i + 1; j < AGENT_COUNT; j++)
         {
-            if(d[i].x == s->agents[j].x && d[i].y == s->agents[j].y &&
-                    d[j].x == s->agents[i].x && d[j].y == s->agents[i].y)
+            // skip dead agents
+            if (s->agents[j].dead)
+                continue;
+
+            // forbid moving to the same position and switching positions
+            if(d[i] == d[j] || (d[i].x == s->agents[j].x && d[i].y == s->agents[j].y &&
+                    d[j].x == s->agents[i].x && d[j].y == s->agents[i].y))
             {
-                d[i].x = s->agents[i].x;
-                d[i].y = s->agents[i].y;
-                d[j].x = s->agents[j].x;
-                d[j].y = s->agents[j].y;
+                fixDest[i] = true;
+                fixDest[j] = true;
             }
+        }
+    }
+
+    for (int i = 0; i < AGENT_COUNT; i++) {
+        if(fixDest[i]) {
+            d[i].x = s->agents[i].x;
+            d[i].y = s->agents[i].y;
         }
     }
 }

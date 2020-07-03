@@ -58,12 +58,12 @@ void FillDestPos(State* s, Move m[AGENT_COUNT], Position p[AGENT_COUNT]);
 void FillBombDestPos(State* s, Position p[MAX_BOMBS]);
 
 /**
- * @brief FixSwitchMove Fixes the desired positions if the agents want
- * switch places in one step.
+ * @brief FixDestPos Reverts the desired positions if the agents want
+ * to switch places or move to the same position.
  * @param s The state
  * @param desiredPositions an array of desired positions
  */
-void FixSwitchMove(State* s, Position desiredPositions[AGENT_COUNT]);
+void FixDestPos(State* s, Position desiredPositions[AGENT_COUNT]);
 
 /**
  * TODO: Fill doc for dependency resolving

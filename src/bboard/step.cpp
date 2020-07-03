@@ -23,7 +23,7 @@ void Step(State* state, Move* moves)
 
     util::FillPositions(state, oldPos);
     util::FillDestPos(state, moves, destPos);
-    util::FixSwitchMove(state, destPos);
+    util::FixDestPos(state, destPos);
 
     int dependency[AGENT_COUNT] = {-1, -1, -1, -1};
     int roots[AGENT_COUNT] = {-1, -1, -1, -1};
