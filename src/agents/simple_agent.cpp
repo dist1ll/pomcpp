@@ -44,7 +44,7 @@ Move _MoveSafeOneSpace(SimpleAgent& me, const State* state)
     if(me.moveQueue.count == 0)
         return Move::IDLE;
     else
-        return me.moveQueue[me.intDist(me.rng) % 2];
+        return me.moveQueue[me.intDist(me.rng) % std::min(2, me.moveQueue.count)];
 }
 
 
@@ -110,7 +110,7 @@ Move _Decide(SimpleAgent& me, const State* state)
     }
     else
     {
-        return me.moveQueue[me.intDist(me.rng) % 2];
+        return me.moveQueue[me.intDist(me.rng) % std::min(2, me.moveQueue.count)];
     }
 }
 Move SimpleAgent::act(const State* state)
