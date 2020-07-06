@@ -58,6 +58,7 @@ struct SimpleAgent : bboard::Agent
     std::uniform_int_distribution<int> intDist;
 
     SimpleAgent();
+    SimpleAgent(long seed);
 
     //////////////
     // Specific //

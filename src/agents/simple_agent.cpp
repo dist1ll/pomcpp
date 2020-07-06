@@ -21,6 +21,12 @@ SimpleAgent::SimpleAgent()
     intDist = std::uniform_int_distribution<int>(0, 4); // no bombs
 }
 
+SimpleAgent::SimpleAgent(long seed)
+{
+    rng = std::mt19937_64(seed);
+    intDist = std::uniform_int_distribution<int>(0, 4); // no bombs
+}
+
 bool _HasRPLoop(SimpleAgent& me)
 {
     for(int i = 0; i < me.recentPositions.count / 2; i++)
