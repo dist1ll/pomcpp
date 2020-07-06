@@ -490,17 +490,22 @@ struct State
         Kill(args...);
     }
     /**
-     * @brief PutAgents Places agents with given IDs
-     * clockwise on the board, starting from top left.
+     * @brief PutAgents Places agents with given IDs clockwise in the corners of
+     * the board, starting from top left.
+     * @param a0 The id of the first agent.
+     * @param a1 The id of the second agent.
+     * @param a2 The id of the third agent.
+     * @param a3 The id of the fourth agent.
+     * @param padding The padding to the walls (>= 0).
      */
-    void PutAgentsInCorners(int a0, int a1, int a2, int a3);
+    void PutAgentsInCorners(int a0, int a1, int a2, int a3, int padding);
 
     /**
      * @brief PutAgentsInCorners Places a specified agent
      * on the specified location and updates agent positions
-     * @param a0 The agent ID (from 0 to AGENT_COUNT)
      * @param x x-position of the agent.
      * @param y y-position of the agent.
+     * @param agentID The agent ID (from 0 to AGENT_COUNT)
      */
     void PutAgent(int x, int y, int agentID);
 };
@@ -566,7 +571,7 @@ public:
     /**
      * @brief MakeGame Initializes the state
      */
-    void MakeGame(std::array<Agent*, AGENT_COUNT> a, bool randomizePositions = false);
+    void MakeGame(std::array<Agent*, AGENT_COUNT> a, long seed = 0x1337, bool randomizePositions = false);
 
     /**
      * @brief StartGame starts a game and prints in the terminal output
@@ -644,21 +649,16 @@ public:
 };
 
 /**
- * @brief InitBoardItems Puts boxes, rigid objects and powerups on
- * the field without adding/creating agents
- * @param seed The random seed for the item generator
+ * @brief InitBoardItems Puts boxes, rigid objects, powerups and agents on the board.
+ * @param seed The random seed for the item generator.
+ * @param randomAgentPositions Whether to randomly set the agent positions.
+ * @param numRigid The number of rigid blocks on the board.
+ * @param numWood The number of wooden blocks on the board.
+ * @param numItems The number of powerups on the board (must be <= numWood).
+ * @param padding The padding of the agents to the walls.
+ * @param breathingRoomSize The size of the "breathing room" between agents.
  */
-void InitBoardItems(State& state, int seed = 0x1337);
-
-/**
- * @brief InitState Returns an meaningfully initialized state
- * @param state State
- * @param a0 Agent no. that should be at top left
- * @param a1 Agent no. that should be top right
- * @param a2 Agent no. that should be bottom right
- * @param a3 Agent no. that should be bottom left
- */
-void InitState(State* state, int a0, int a1, int a2, int a3);
+void InitBoard(State& state, long seed, bool randomAgentPositions, int numRigid=36, int numWood=36, int numPowerUps=20, int padding=1, int breathingRoomSize=3);
 
 /**
  * @brief Applies given moves to the given board state.

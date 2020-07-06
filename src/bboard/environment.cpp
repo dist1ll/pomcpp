@@ -51,19 +51,9 @@ Environment::Environment()
     state = std::make_unique<State>();
 }
 
-void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, bool random)
+void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, long seed, bool randomizePositions)
 {
-    bboard::InitBoardItems(*state.get());
-
-    std::array<int, 4> f = {0, 1, 2, 3};
-
-    if(random)
-    {
-        auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-        std::shuffle(f.begin(), f.end(), std::default_random_engine(seed));
-    }
-    state->PutAgentsInCorners(f[0], f[1], f[2], f[3]);
-
+    bboard::InitBoard(*state.get(), seed, randomizePositions);
     SetAgents(a);
     hasStarted = true;
 }

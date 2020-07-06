@@ -56,36 +56,6 @@ bool SpawnFlameItem(State& s, int x, int y, uint16_t signature = 0)
     }
 }
 
-int ChooseItemOuter(int tmp)
-{
-    if(tmp > 2 || tmp == 0)
-    {
-        return Item::PASSAGE;
-    }
-    else if(tmp == 2)
-    {
-        return Item::WOOD;
-    }
-    else if(tmp == 1)
-    {
-        return Item::RIGID;
-    }
-    return Item::PASSAGE;
-}
-
-int ChooseItemInner(int tmp)
-{
-    if(tmp >= 2)
-    {
-        return Item::WOOD;
-    }
-    else if(tmp == 1)
-    {
-        return Item::RIGID;
-    }
-    return Item::PASSAGE;
-}
-
 /**
  * @brief PopBomb A proxy for FixedQueue::PopElem, but also
  * takes care of agent count
@@ -318,72 +288,170 @@ int State::GetBombIndex(int x, int y)
 
 void State::PutAgent(int x, int y, int agentID)
 {
-    int b = Item::AGENT0 + agentID;
-    board[y][x] = b;
+    board[y][x] = Item::AGENT0 + agentID;
 
     agents[agentID].x = x;
     agents[agentID].y = y;
 }
 
-void State::PutAgentsInCorners(int a0, int a1, int a2, int a3)
+void State::PutAgentsInCorners(int a0, int a1, int a2, int a3, int padding)
 {
-    int b = Item::AGENT0;
+    const int min = padding;
+    const int max = BOARD_SIZE - (1 + padding);
 
-    board[0][0] = b + a0;
-    board[0][BOARD_SIZE - 1] = b + a1;
-    board[BOARD_SIZE - 1][BOARD_SIZE - 1] = b + a2;
-    board[BOARD_SIZE - 1][0] = b + a3;
-
-    agents[a1].x = agents[a2].x = BOARD_SIZE - 1;
-    agents[a2].y = agents[a3].y = BOARD_SIZE - 1;
+    PutAgent(min, min, a0);
+    PutAgent(min, max, a1);
+    PutAgent(max, max, a2);
+    PutAgent(max, min, a3);
 }
 
 //////////////////////
 // bboard namespace //
 //////////////////////
 
-void InitState(State* result, int a0, int a1, int a2, int a3)
+inline int _invert(const int boardPos)
 {
-    // Randomly put obstacles
-    InitBoardItems(*result);
-    result->PutAgentsInCorners(a0, a1, a2, a3);
+    return BOARD_SIZE - 1 - boardPos;
 }
 
-void InitBoardItems(State& result, int seed)
+/**
+ * Selects a random element arr[i] with i in range [0, count - 1]
+ * and swaps arr[i] with arr[0]. This means arr[1:count-1] will
+ * contain the elements which were not returned yet. Repeated use
+ * with incremented arr start pointer allows for random and unique
+ * in-place selection.
+ *
+ * @tparam preserveElements Can be disabled to save a copy operation,
+ * arr[0] will not be set correctly. Only use this when you no longer
+ * need the elements after they were selected.
+ * @tparam T Type of the array.
+ * @tparam Type of the random number generator.
+ *
+ * @param arr A pointer to the start of the array.
+ * @param count The number of remaining elements.
+ * @param rng A number generator. Has to return values >= 0.
+ * @return A random element between arr[0] and arr[count - 1].
+ */
+template<bool preserveElements=true, typename T, typename RNG>
+inline T _selectRandomInPlace(T* arr, int count, RNG& rng)
 {
-    std::mt19937_64 rng(seed);
-    std::uniform_int_distribution<int> intDist(0,6);
+    // get a random index in [0, count - 1]
+    const int index = rng() % count;
 
-    FixedQueue<int, BOARD_SIZE * BOARD_SIZE> q;
+    // select value
+    const T b = *(arr + index);
 
+    // remember the value at arr[0] which we did not select
+    *(arr + index) = *arr;
+    if (preserveElements)
+    {
+        // do a regular swap if we want to preserve all elements in arr
+        *arr = b;
+    }
+
+    // return the selected element
+    return b;
+}
+
+void InitBoard(State& state, long seed, bool randomAgentPositions, int numRigid, int numWood, int numPowerUps, int padding, int breathingRoomSize)
+{
+    std::mt19937 rng(seed);
+
+    // initialize everything as passages
+    std::fill_n(&state.board[0][0], BOARD_SIZE * BOARD_SIZE, (int)Item::PASSAGE);
+
+    // insert agents at their respective positions
+    std::array<int, 4> f = {0, 1, 2, 3};
+    if(randomAgentPositions)
+    {
+        std::shuffle(f.begin(), f.end(), rng);
+    }
+    state.PutAgentsInCorners(f[0], f[1], f[2], f[3], padding);
+
+    // create the board
+
+    std::vector<Position> woodCoordinates;
+    woodCoordinates.reserve(numWood);
+
+    std::vector<Position> coordinates;
+    coordinates.reserve(BOARD_SIZE * (BOARD_SIZE - 4) + 8 * padding + 4);
+
+    // create a "breathing room" around agents of length freeSpaceUntil
+    // and place wooden boxes to form passages between them.
+    // The board will look like this (with padding to walls):
+    //            |   padding    |
+    // padding - [1][ ][x][x][ ][2] - padding
+    //           [ ][?]      [?][ ] <- this is the breathing room
+    //           [x]   [?][?]   [x]    (vertical and horizontal space)
+    //           [x]   [?][?]   [x] <- these are the wooden boxes separating
+    //           [ ][?]      [?][ ]    the players' breathing rooms
+    // padding - [4][ ][x][x][ ][3] - padding
+    //            |   padding    |
+
+    int tmpNorm = -1;
     for(int i = 0; i < BOARD_SIZE; i++)
     {
         for(int  j = 0; j < BOARD_SIZE; j++)
         {
-            int tmp = intDist(rng);
-            result.board[i][j] = ChooseItemOuter(tmp);
-
-            if(IS_WOOD(result.board[i][j]))
-            {
-                q.AddElem(j + BOARD_SIZE * i);
+            if (i == padding || _invert(i) == padding) {
+                tmpNorm = std::min(j, _invert(j));
             }
+            else if (j == padding || _invert(j) == padding) {
+                tmpNorm = std::min(i, _invert(i));
+            }
+
+            if(tmpNorm != -1) {
+                // breathing room
+                if (tmpNorm >= padding && tmpNorm <= breathingRoomSize) {
+                    tmpNorm = -1;
+                    continue;
+                }
+                // wooden boxes
+                else if (tmpNorm > padding) {
+                    tmpNorm = -1;
+                    state.board[i][j] = Item::WOOD;
+                    woodCoordinates.push_back((Position) {i, j});
+                    numWood--;
+                    continue;
+                }
+            }
+
+            // remember this coordinate, we can randomly add stuff later
+            coordinates.push_back((Position) {i, j});
         }
     }
 
-    std::uniform_int_distribution<int> idxSample(0, q.count);
-    std::uniform_int_distribution<int> choosePwp(1, 4);
-    int total = 0;
-    while(true)
-    {
-        int idx = q[idxSample(rng)];
-        if((result.board[0][idx] & 0xFF) == 0)
-        {
-            result.board[0][idx] += choosePwp(rng);
-            total++;
-        }
+    int i = 0;
+    // create rigid walls
+    while (numRigid > 0) {
+        // select random coordinate
+        Position coord = _selectRandomInPlace<false>(coordinates.data() + i, coordinates.size() - i, rng);
+        i++;
 
-        if(total >= float(q.count)/2)
-            break;
+        // create wall
+        state.board[coord.y][coord.x] = Item::RIGID;
+        numRigid--;
+    }
+
+    // create wooden blocks (keep index)
+    while (numWood > 0) {
+        Position coord = _selectRandomInPlace<false>(coordinates.data() + i, coordinates.size() - i, rng);
+        i++;
+
+        state.board[coord.y][coord.x] = Item::WOOD;
+        woodCoordinates.push_back(coord);
+        numWood--;
+    }
+
+    i = 0;
+    std::uniform_int_distribution<int> choosePwp(1, 3);
+    // insert items
+    while (numPowerUps > 0) {
+        Position coord = _selectRandomInPlace<false>(woodCoordinates.data() + i, woodCoordinates.size() - i, rng);
+        i++;
+
+        state.board[coord.y][coord.x] = Item::WOOD + choosePwp(rng);
+        numPowerUps--;
     }
 }
 
