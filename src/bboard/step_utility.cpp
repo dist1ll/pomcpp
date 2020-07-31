@@ -387,5 +387,126 @@ void PrintDependencyChain(int dependency[AGENT_COUNT], int chain[AGENT_COUNT])
     }
 }
 
+int GetWinningTeam(const State& state)
+{
+    // no team has won when there are no agents left
+    if(state.aliveAgents == 0)
+    {
+        return 0;
+    }
+
+    int winningTeamCandidate = 0;
+
+    for(int i = 0; i < AGENT_COUNT; i++)
+    {
+        AgentInfo info = state.agents[i];
+        if (!info.dead)
+        {
+            if (state.aliveAgents == 1)
+            {
+                // return the team of the last agent
+                // - warning: could also be 0 (no team)
+                return info.team;
+            }
+
+            // agent is in some team and there are > 1 alive agents
+            if (info.team != 0)
+            {
+                if (winningTeamCandidate == 0)
+                {
+                    winningTeamCandidate = info.team;
+                }
+                else if (winningTeamCandidate == info.team)
+                {
+                    continue;
+                }
+                else
+                {
+                    // winning team is different than own team!
+                    // -> this means there are at least two alive
+                    // agents from different teams
+                    return 0;
+                }
+            }
+        }
+    }
+
+    // return the winning team
+    return winningTeamCandidate;
+}
+
+void CheckTerminalState(State& state)
+{
+    int winningTeam = 0;
+    if(state.aliveAgents == 0)
+    {
+        // nobody won when all agents are dead
+        state.finished = true;
+        state.isDraw = true;
+
+        for(int i = 0; i < AGENT_COUNT; i++)
+        {
+            state.agents[i].won = false;
+        }
+    }
+    else if(state.aliveAgents == 1)
+    {
+        // a single agent won the game (?)
+
+        state.finished = true;
+        state.isDraw = false;
+
+        for(int i = 0; i < AGENT_COUNT; i++)
+        {
+            AgentInfo& info = state.agents[i];
+            if (info.dead)
+            {
+                info.won = false;
+            }
+            else
+            {
+                info.won = true;
+                // the agent might be in some team
+                winningTeam = info.team;
+                // if not, that is the winning agent
+                if(winningTeam == 0)
+                {
+                    state.winningAgent = i;
+                }
+
+                break;
+            }
+        }
+    }
+    else
+    {
+        // there are >= 2 agents alive, check if there
+        // is a winning team
+        winningTeam = util::GetWinningTeam(state);
+    }
+
+    // all agents in the winning team have won
+    if(winningTeam != 0)
+    {
+        state.finished = true;
+        state.isDraw = false;
+
+        for(int i = 0; i < AGENT_COUNT; i++)
+        {
+            AgentInfo& info = state.agents[i];
+            if (info.team == winningTeam)
+            {
+                info.won = true;
+            }
+            else
+            {
+                info.won = false;
+            }
+        }
+    }
+
+    state.winningTeam = winningTeam;
+}
+
 
 }

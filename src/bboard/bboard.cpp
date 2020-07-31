@@ -300,9 +300,9 @@ void State::PutAgentsInCorners(int a0, int a1, int a2, int a3, int padding)
     const int max = BOARD_SIZE - (1 + padding);
 
     PutAgent(min, min, a0);
-    PutAgent(min, max, a1);
+    PutAgent(max, min, a1);
     PutAgent(max, max, a2);
-    PutAgent(max, min, a3);
+    PutAgent(min, max, a3);
 }
 
 //////////////////////
@@ -556,6 +556,7 @@ std::string PrintItem(int item)
     }
     else
     {
+        throw "FOOOO!";
         return "[?]";
     }
 }

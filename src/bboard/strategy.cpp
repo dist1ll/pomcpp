@@ -300,7 +300,10 @@ bool IsAdjacentEnemy(const State& state, int agentID, int distance)
 
     for(int i = 0; i < bboard::AGENT_COUNT; i++)
     {
+        // ignore self and dead agents
         if(i == agentID || state.agents[i].dead) continue;
+        // ignore team
+        if(a.team != 0 && a.team == state.agents[i].team) continue;
 
         // manhattan dist
         if((std::abs(state.agents[i].x - a.x) +

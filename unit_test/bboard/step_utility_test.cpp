@@ -31,8 +31,8 @@ void REQUIRE_POS(bboard::Position* p, int idx, int x, int y)
 
 void REQUIRE_POS(bboard::Position p, int x, int y)
 {
-    bboard::Position q = {x, y};
-    REQUIRE((p == q));
+    REQUIRE(p.x == x);
+    REQUIRE(p.y == y);
 }
 
 TEST_CASE("Destination position filling", "[step utilities]")
@@ -75,12 +75,12 @@ TEST_CASE("Fix Switch Position", "[step utilities]")
     s->PutAgent(3, 0, 3);
 
     bboard::util::FillDestPos(s, m, des);
-    bboard::util::FixSwitchMove(s, des);
+    bboard::util::FixDestPos(s, des);
 
-    REQUIRE_POS(des[0], 1, 0);
+    REQUIRE_POS(des[0], s->agents[0].x, s->agents[0].y);
     REQUIRE_POS(des[1], s->agents[1].x, s->agents[1].y);
     REQUIRE_POS(des[2], s->agents[2].x, s->agents[2].y);
-    REQUIRE_POS(des[3], 2, 0);
+    REQUIRE_POS(des[3], s->agents[3].x, s->agents[3].y);
 }
 
 TEST_CASE("Dependency Resolving", "[step utilities]")

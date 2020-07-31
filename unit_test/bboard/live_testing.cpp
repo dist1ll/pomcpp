@@ -1,4 +1,5 @@
 #include "catch.hpp"
+#include "colors.hpp"
 #include "bboard.hpp"
 #include "agents.hpp"
 #include "strategy.hpp"
@@ -14,20 +15,122 @@ void PrintAgentInfo(const bboard::Environment& env)
     a.PrintDetailedInfo();
 }
 
+void REQUIRE_CORRECT_RESULT_FFA(bboard::Environment& env)
+{
+    if(env.IsDone())
+    {
+        // no winning team
+        REQUIRE(env.GetWinningTeam() == 0);
+
+        int winningAgent = env.GetWinningAgent();
+        if(winningAgent != -1)
+        {
+            // either exactly one winner
+            REQUIRE(env.GetState().agents[winningAgent].won == true);
+            for(int i = 0; i < bboard::AGENT_COUNT; i++)
+            {
+                if(i == winningAgent) continue;
+
+                REQUIRE(env.GetState().agents[i].won == false);
+            }
+        }
+        else
+        {
+            // or no winners
+            REQUIRE(env.IsDraw() == true);
+        }
+    }
+    else
+    {
+        // at least two agents are still alive
+        REQUIRE(env.GetState().aliveAgents >= 2);
+    }
+}
+
+void REQUIRE_CORRECT_RESULT_TEAMS(bboard::Environment& env)
+{
+    if(env.IsDone())
+    {
+        // there is no single winning agent, we only consider teams
+        REQUIRE(env.GetWinningAgent() == -1);
+
+        int winningTeam = env.GetWinningTeam();
+        if(winningTeam != 0)
+        {
+            for(int i = 0; i < bboard::AGENT_COUNT; i++)
+            {
+                bboard::AgentInfo info = env.GetState().agents[i];
+                // an agent has won iff he is in the winning team
+                REQUIRE(info.won == (info.team == winningTeam));
+            }
+        }
+        else
+        {
+            // or no winners
+            REQUIRE(env.IsDraw() == true);
+        }
+    }
+    else
+    {
+        // at least two agents are still alive
+        REQUIRE(env.GetState().aliveAgents >= 2);
+    }
+}
+
+std::array<SimpleAgent, 4> createAgents(std::mt19937& rng)
+{
+    return {SimpleAgent(rng()), SimpleAgent(rng()), SimpleAgent(rng()), SimpleAgent(rng())};
+}
+
 TEST_CASE("Test Simple Agent", "[live testing]")
 {
-    SimpleAgent simpleton;
-    std::array<SimpleAgent, 3> r;
+    int numGames = 100;
 
-    // create an environment
-    bboard::Environment e;
+    int seed = 42;
+    std::mt19937 rng(seed);
 
-    // invokes function after every step for debugging
-    e.SetStepListener(PrintAgentInfo<0>);
+    std::string tst = "Testing " + std::to_string(numGames) + " live games\n";
+    std::cout << std::endl
+              << FGRN(tst);
 
-    // initializes the game/board/agents
-    e.MakeGame({&simpleton, &r[0], &r[1], &r[2]});
+    SECTION("Free For All")
+    {
+        std::cout << "Mode \"FreeForAll\"... " << std::flush;
+        for(int i = 0; i < numGames; i++)
+        {
+            std::array<SimpleAgent, 4> r = createAgents(rng);
 
-    // starts the game with the specified params
-    e.StartGame(500, true, true);
+            // create an environment
+            bboard::Environment e;
+
+            // initializes the game/board/agents
+            e.MakeGame({&r[0], &r[1], &r[2], &r[3]}, bboard::GameMode::FreeForAll, (int)rng());
+
+            // starts the game with the specified params
+            e.RunGame(800, true, false);
+
+            REQUIRE_CORRECT_RESULT_FFA(e);
+        }
+        std::cout << "done." << std::endl;
+    }
+    SECTION("Teams")
+    {
+        std::cout << "Mode \"TwoTeams\"... " << std::flush;
+        for(int i = 0; i < numGames; i++)
+        {
+            std::array<SimpleAgent, 4> r = createAgents(rng);
+
+            // create an environment
+            bboard::Environment e;
+
+            // initializes the game/board/agents
+            e.MakeGame({&r[0], &r[1], &r[2], &r[3]}, bboard::GameMode::TwoTeams, (int)rng());
+
+            // starts the game with the specified params
+            e.RunGame(800, true, false);
+
+            REQUIRE_CORRECT_RESULT_TEAMS(e);
+        }
+        std::cout << "done." << std::endl;
+    }
 }

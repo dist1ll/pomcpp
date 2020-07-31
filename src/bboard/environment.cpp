@@ -9,40 +9,60 @@
 namespace bboard
 {
 
-void Pause(bool timeBased)
-{
-    if(!timeBased)
-    {
-        std::cin.get();
-    }
-    else
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-}
-
-void PrintGameResult(Environment& env)
+void Environment::PrintGameResult()
 {
     std::cout << std::endl;
 
-    if(env.IsDone())
+    if(IsDone())
     {
-        if(env.IsDraw())
+        if(IsDraw())
         {
-            std::cout << "Draw! All agents are dead"
+            std::cout << "Draw! All agents are dead."
                       << std::endl;
         }
         else
         {
-            std::cout << "Finished! The winner is Agent "
-                      << env.GetWinner() << std::endl;
-        }
+            std::cout << "Finished! ";
+            int winningAgent = GetWinningAgent();
+            int winningTeam = GetWinningTeam();
 
+            if(winningAgent != -1)
+            {
+                std::cout << "Winning agent: " << winningAgent;
+            }
+            else if(winningTeam != 0)
+            {
+                std::cout << "Winning team: " << winningTeam << " (";
+
+                // list agents in team
+                bool first = true;
+                for(int i = 0; i < AGENT_COUNT; i++)
+                {
+                    if(state->agents->team == winningTeam)
+                    {
+                        if(!first)
+                        {
+                            std::cout << ", ";
+                        }
+
+                        std::cout << i;
+                        first = false;
+                    }
+                }
+
+                std::cout << ")";
+            }
+            else
+            {
+                std::cout << "Undefined result!";
+            }
+
+            std::cout << std::endl;
+        }
     }
     else
     {
-        std::cout << "Draw! Max timesteps reached "
-                  << std::endl;
+        std::cout << "Not done!" << std::endl;
     }
 }
 
@@ -51,33 +71,66 @@ Environment::Environment()
     state = std::make_unique<State>();
 }
 
-void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, long seed, bool randomizePositions)
+void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, GameMode gameMode, long seed, bool randomizePositions)
 {
     bboard::InitBoard(*state.get(), seed, randomizePositions);
+
+    switch (gameMode)
+    {
+        case GameMode::FreeForAll:
+            for(int i = 0; i < AGENT_COUNT; i++)
+            {
+                state->agents[i].team = 0;
+            }
+            break;
+        case GameMode::TwoTeams:
+            for(int i = 0; i < AGENT_COUNT / 2; i++)
+            {
+                state->agents[i].team = 1;
+            }
+            for(int i = AGENT_COUNT / 2; i < AGENT_COUNT; i++)
+            {
+                state->agents[i].team = 2;
+            }
+            break;
+    }
+
     SetAgents(a);
     hasStarted = true;
 }
 
-void Environment::StartGame(int timeSteps, bool render, bool stepByStep)
+void Environment::RunGame(int steps, bool asyncAct, bool render, bool renderClear, bool renderInteractive, int renderWaitMs)
 {
-    state->timeStep = 0;
-    while(!this->IsDone() && state->timeStep < timeSteps)
+    int startSteps = state->timeStep;
+    while(!IsDone() && (steps <= 0 || state->timeStep - startSteps < steps))
     {
-
         if(render)
-        {
-            Print();
+        {   
+            Print(renderClear);
 
             if(listener)
                 listener(*this);
 
-            if(stepByStep)
-                Pause(false);
+            if(renderInteractive)
+                std::cin.get();
+
+            if(renderWaitMs > 0)
+                std::this_thread::sleep_for(std::chrono::milliseconds(renderWaitMs));
+
+            if(!renderClear)
+            {
+                std::cout << std::endl;
+            }
         }
-        this->Step(true);
+
+        Step(asyncAct);
     }
-    Print();
-    PrintGameResult(*this);
+
+    if (render)
+    {
+        Print(renderClear);
+        PrintGameResult();
+    }
 }
 
 void ProxyAct(Move& writeBack, Agent& agent, State& state)
@@ -98,7 +151,8 @@ void CollectMovesAsync(Move m[AGENT_COUNT], Environment& e)
                                      std::ref(e.GetState()));
         }
     }
-    Pause(true); //competitive pause
+
+    // join threads
     for(uint i = 0; i < AGENT_COUNT; i++)
     {
         if(!e.GetState().agents[i].dead)
@@ -113,17 +167,16 @@ Move Environment::GetLastMove(int agentID)
     return lastMoves[agentID];
 }
 
-void Environment::Step(bool competitiveTimeLimit)
+void Environment::Step(bool asyncAct)
 {
-    if(!hasStarted || finished)
+    if(IsDone())
     {
         return;
     }
 
     Move m[AGENT_COUNT];
 
-
-    if(competitiveTimeLimit)
+    if(asyncAct)
     {
         CollectMovesAsync(m, *this);
     }
@@ -140,30 +193,12 @@ void Environment::Step(bool competitiveTimeLimit)
     }
 
     bboard::Step(state.get(), m);
-    state->timeStep++;
-
-    if(state->aliveAgents == 1)
-    {
-        finished = true;
-        for(int i = 0; i < AGENT_COUNT; i++)
-        {
-            if(!state->agents[i].dead)
-            {
-                agentWon = i;
-                // teamwon = team of agent
-            }
-        }
-    }
-    if(state->aliveAgents == 0)
-    {
-        finished = true;
-        isDraw = true;
-    }
 }
 
 void Environment::Print(bool clear)
 {
-    PrintState(state.get(), true);
+    std::cout << "Step " << state->timeStep << std::endl;
+    PrintState(state.get(), clear);
 }
 
 State& Environment::GetState() const
@@ -182,22 +217,28 @@ void Environment::SetAgents(std::array<Agent*, AGENT_COUNT> agents)
     {
         agents[i]->id = int(i);
     }
+
     this->agents = agents;
 }
 
 bool Environment::IsDone()
 {
-    return finished;
+    return state->finished;
 }
 
 bool Environment::IsDraw()
 {
-    return isDraw;
+    return state->isDraw;
 }
 
-int Environment::GetWinner()
+int Environment::GetWinningAgent()
 {
-    return agentWon;
+    return state->winningAgent;
+}
+
+int Environment::GetWinningTeam()
+{
+    return state->winningTeam;
 }
 
 void Environment::SetStepListener(const std::function<void(const Environment&)>& f)

@@ -230,13 +230,24 @@ struct AgentInfo
     int x;
     int y;
 
-    // power-ups
     int bombCount = 0;
+    bool dead = false;
+
     int maxBombCount = 1;
     int bombStrength = BOMB_DEFAULT_STRENGTH;
-
     bool canKick = false;
-    bool dead = false;
+
+    /**
+     * @brief team An id for the team this agents belongs to.
+     * The value 0 represents that the agent is in NO team.
+     */
+    int team = 0;
+
+    /**
+     * @brief won Agents win if they are either in the winning team
+     * (all agents of other teams are dead) or the only agent alive.
+     */
+    bool won = false;
 
     Position GetPos()
     {
@@ -368,6 +379,20 @@ struct State
 
     int timeStep = 0;
     int aliveAgents = AGENT_COUNT;
+
+    bool finished = false;
+    bool isDraw = false;
+
+    /**
+     * @brief winningTeam The winning team (0 if no team has won)
+     */
+    int winningTeam = 0;
+
+    /**
+     * @brief winningAgent The single winning agent (-1 if no agent has won
+     * or when the winning agents are in a team).
+     */
+    int winningAgent = -1;
 
     /**
      * @brief agents Array of all agents and their properties
@@ -537,6 +562,14 @@ struct Agent
     virtual Move act(const State* state) = 0;
 };
 
+/**
+ * @brief The GameMode used in the environment.
+ */
+enum class GameMode
+{
+    FreeForAll,
+    TwoTeams
+};
 
 /**
  * @brief The Environment struct holds all information about a
@@ -553,12 +586,8 @@ private:
     std::function<void(const Environment&)> listener;
 
     // Current State
-    bool finished = false;
     bool hasStarted = false;
-    bool isDraw = false;
-
-    int agentWon = -1; // FFA
-    int teamWon = -1; // Team
+    bool hasFinished = false;
 
     bool threading = false;
     int threadCount = 1;
@@ -571,18 +600,19 @@ public:
     /**
      * @brief MakeGame Initializes the state
      */
-    void MakeGame(std::array<Agent*, AGENT_COUNT> a, long seed = 0x1337, bool randomizePositions = false);
+    void MakeGame(std::array<Agent*, AGENT_COUNT> a, GameMode gameMode = GameMode::FreeForAll, long seed = 0x1337, bool randomizePositions = false);
 
     /**
-     * @brief StartGame starts a game and prints in the terminal output
+     * @brief RunGame simulates some steps in the game.
      * (blocking)
-     * @param timeSteps maximum of time steps after which the game ends
-     * @param render True if the game should be rendered (and played out with
-     * delay)
-     * @param stepByStep For debugging purposes.If true, pauses execution
-     * after each step. (Press enter to continue)
+     * @param steps The number of simulated steps. The environment will run until IsDone() for values <= 0.
+     * @param asyncMoves Whether to collect the moves asynchronously
+     * @param render True if the game should be rendered
+     * @param renderClear Whether to clear the console output after each frame
+     * @param renderInteractive Whether to wait for user input at each rendered frame
+     * @param renderWaitMs The amount of ms to wait after each frame has been rendered
      */
-    void StartGame(int timeSteps, bool render=true, bool stepByStep = false);
+    void RunGame(int steps, bool asyncMoves = false, bool render = false, bool renderClear = false, bool renderInteractive = false, int renderWaitMs = 100);
 
     /**
      * @brief Step Executes a step, given by the params
@@ -599,6 +629,11 @@ public:
     void Print(bool clear = true);
 
     /**
+     * @brief PrintGameResult Prints the result of the game.
+     */
+    void PrintGameResult();
+
+    /**
      * @brief GetState Returns a reference to the current state of
      * the environment
      */
@@ -608,6 +643,7 @@ public:
      * @brief SetAgents Registers all agents that will participate
      * in this game
      * @param a An array of agent pointers (with correct length)
+     * the team assignment
      */
     void SetAgents(std::array<Agent*, AGENT_COUNT> agents);
 
@@ -635,10 +671,15 @@ public:
     bool IsDraw();
 
     /**
-     * @brief GetWinner If the game was won by someone, return
-     * the agent's ID that won
+     * @brief GetUniqueWinner returns the id of the agent who won the game (if that agent is in no team).
+     * -1 if there is no unique winner without a team.
      */
-    int GetWinner();
+    int GetWinningAgent();
+
+    /**
+     * @brief GetWinningTeam returns the winning team (0 if no team has won the game).
+     */
+    int GetWinningTeam();
 
     /**
      * @brief GetLastMove Returns the last move made by the given agent.

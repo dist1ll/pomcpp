@@ -165,6 +165,21 @@ inline bool IsOutOfBounds(const int& x, const int& y)
     return x < 0 || y < 0 || x >= BOARD_SIZE || y >= BOARD_SIZE;
 }
 
+/**
+ * @brief GetWinningTeam Get the winning team of the provided state.
+ * @param state The state
+ * @return 0 when there is no winner or the winner is in no team, team
+ * id of the winning team otherwise
+ */
+int GetWinningTeam(const State& state);
+
+/**
+ * @brief CheckTerminalState Checks whether the state is a terminal state
+ * (some agent/team won) and updates the state attributes accordingly.
+ * @param state The state
+ */
+void CheckTerminalState(State& state);
+
 }
 
 #endif // STEP_UTILITY_H

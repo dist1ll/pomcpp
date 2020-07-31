@@ -55,7 +55,7 @@ bool IsAgentPos(bboard::State* state, int agent, int x, int y)
 TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
 {
     auto s = std::make_unique<bboard::State>();
-    s->PutAgentsInCorners(0, 1, 2, 3);
+    s->PutAgentsInCorners(0, 1, 2, 3, 0);
 
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
@@ -79,13 +79,12 @@ TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
     m[3] = bboard::Move::UP;
     bboard::Step(s.get(), m);
     REQUIRE_AGENT(s.get(), 3, 0, 9);
-
 }
 
 TEST_CASE("Basic Obstacle Collision", "[step function]")
 {
     auto s = std::make_unique<bboard::State>();
-    s->PutAgentsInCorners(0, 1, 2, 3);
+    s->PutAgentsInCorners(0, 1, 2, 3, 0);
 
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
@@ -107,7 +106,7 @@ TEST_CASE("Movement Against Flames", "[step function]")
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
 
-    s->PutAgentsInCorners(0, 1, 2, 3);
+    s->PutAgentsInCorners(0, 1, 2, 3, 0);
     s->SpawnFlame(1,1,2);
 
     m[0] = bboard::Move::RIGHT;
@@ -246,7 +245,7 @@ TEST_CASE("Bomb Mechanics", "[step function]")
 
     SECTION("Standard Bomb Laying")
     {
-        s->PutAgentsInCorners(0, 1, 2, 3);
+        s->PutAgentsInCorners(0, 1, 2, 3, 0);
         m[0] = bboard::Move::BOMB;
         bboard::Step(s.get(), m);
         REQUIRE(s->board[0][0] == bboard::Item::AGENT0);
@@ -257,7 +256,7 @@ TEST_CASE("Bomb Mechanics", "[step function]")
     }
     SECTION("Bomb Movement Block Simple")
     {
-        s->PutAgentsInCorners(0, 1, 2, 3);
+        s->PutAgentsInCorners(0, 1, 2, 3, 0);
         s->PlantBomb(1, 0, 0);
 
         m[0] = bboard::Move::RIGHT;
@@ -386,7 +385,7 @@ TEST_CASE("Flame Mechanics", "[step function]")
     auto s = std::make_unique<bboard::State>();
     bboard::Move id = bboard::Move::IDLE;
     bboard::Move m[4] = {id, id, id, id};
-    s->PutAgentsInCorners(0, 1, 2, 3);
+    s->PutAgentsInCorners(0, 1, 2, 3, 0);
 
 
     SECTION("Correct Lifetime Calculation")
@@ -439,7 +438,7 @@ TEST_CASE("Chained Explosions", "[step function]")
 
     SECTION("Two Bombs")
     {
-        s->PutAgentsInCorners(0, 1, 2, 3);
+        s->PutAgentsInCorners(0, 1, 2, 3, 0);
         s->PlantBomb(5, 5, 0, true);
         bboard::Step(s.get(), m);
         s->PlantBomb(4, 5, 1, true);

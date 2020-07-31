@@ -8,6 +8,11 @@ namespace bboard
 
 void Step(State* state, Move* moves)
 {
+    // do not execute step on terminal states
+    if(state->finished)
+        return;
+
+    int aliveAgentsBefore = state->aliveAgents;
 
     ///////////////////
     //    Flames     //
@@ -281,6 +286,15 @@ void Step(State* state, Move* moves)
     // Explosion //
     ///////////////
     util::TickBombs(*state);
+
+    // advance timestep
+    state->timeStep++;
+
+    if(aliveAgentsBefore != state->aliveAgents)
+    {
+        // the number of agents has changed, check if some agent(s) won the game
+        util::CheckTerminalState(*state);
+    }
 }
 
 }
