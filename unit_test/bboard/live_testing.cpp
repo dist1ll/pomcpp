@@ -74,6 +74,29 @@ void REQUIRE_CORRECT_RESULT_TEAMS(bboard::Environment& env)
     {
         // at least two agents are still alive
         REQUIRE(env.GetState().aliveAgents >= 2);
+
+        int team0 = 0;
+        bool foundTwoTeams = false;
+        // they have to be in two different teams
+        for(int i = 0; i < bboard::AGENT_COUNT; i++)
+        {
+            bboard::AgentInfo info = env.GetState().agents[i];
+            if(!info.dead && info.team != 0)
+            {
+                if (team0 == 0)
+                {
+                    team0 = info.team;
+                    continue;
+                }
+                else if(team0 != info.team)
+                {
+                    foundTwoTeams = true;
+                    break;
+                }
+            }
+        }
+
+        REQUIRE(foundTwoTeams);
     }
 }
 
