@@ -73,9 +73,17 @@ Environment::Environment()
 
 void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, GameMode gameMode, long seed, bool randomizePositions)
 {
+    if(hasStarted)
+    {
+        // reset state
+        *state.get() = State();
+    }
+
+    this->gameMode = gameMode;
+
     bboard::InitBoard(*state.get(), seed, randomizePositions);
 
-    switch (gameMode)
+    switch(gameMode)
     {
         case GameMode::FreeForAll:
             for(int i = 0; i < AGENT_COUNT; i++)

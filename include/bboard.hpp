@@ -195,6 +195,21 @@ struct Position
     int y;
 };
 
+inline bool InViewRange(int x1, int y1, int x2, int y2, int range)
+{
+    return std::abs(x1 - x2) <= range && std::abs(y1 - y2) <= range;
+}
+
+inline bool InViewRange(const Position& p1, int x2, int y2, int range)
+{
+    return InViewRange(p1.x, p1.y, x2, y2, range);
+}
+
+inline bool InViewRange(const Position& p1, const Position& p2, int range)
+{
+    return InViewRange(p1.x, p1.y, p2.x, p2.y, range);
+}
+
 inline bool operator==(const Position& here, const Position& other)
 {
     return here.x == other.x && here.y == other.y;
@@ -572,6 +587,64 @@ enum class GameMode
 };
 
 /**
+ * @brief Defines which agent information is in an observation.
+ */
+enum class AgentInfoVisibility
+{
+    All,
+    InView,
+    OnlySelf
+};
+
+/**
+ * @brief Parameters which define how agents observe the environment.
+ */
+struct ObservationParameters
+{
+    /**
+     * @brief Whether the observation includes meta information about other agents.
+     */
+    AgentInfoVisibility agentInfoVisibility = AgentInfoVisibility::All;
+
+    /**
+     * @brief Whether to include powerup information hidden inside wooden boxes.
+     */
+    bool exposePowerUps = true;
+
+    /**
+     * @brief Whether to limit the view of the agents according to agentViewSize.
+     */
+    bool agentPartialMapView = false;
+
+    /**
+     * @brief The number of blocks the agents can see in each direction.
+     */
+    int agentViewSize = 4;
+};
+
+/**
+ * @brief The observation of an agent.
+ */
+struct Observation
+{
+    int board[BOARD_SIZE][BOARD_SIZE];
+    FixedQueue<Bomb, MAX_BOMBS> bombs;
+    FixedQueue<Flame, MAX_BOMBS> flames;
+
+    FixedQueue<AgentInfo, AGENT_COUNT> agentInfos;
+    int agentIDMapping[AGENT_COUNT];
+
+    /**
+     * @brief GetObservation Creates an observation for some agent based on a state.
+     * @param state The current state of the environment
+     * @param agentID The id of the agent for which the observation is created
+     * @param obsParams The parameters which define which information the observation will contain
+     * @param observation The object which will be used to save the observation
+     */
+    static void Get(const State& state, const uint agentID, const ObservationParameters obsParams, Observation& observation);
+};
+
+/**
  * @brief The Environment struct holds all information about a
  * Game (current state, participating agents) and takes care of
  * distributing observations to the correct agents.
@@ -585,6 +658,8 @@ private:
     std::array<Agent*, AGENT_COUNT> agents;
     std::function<void(const Environment&)> listener;
 
+    GameMode gameMode;
+
     // Current State
     bool hasStarted = false;
     bool hasFinished = false;
@@ -597,6 +672,7 @@ private:
 public:
 
     Environment();
+
     /**
      * @brief MakeGame Initializes the state
      */
