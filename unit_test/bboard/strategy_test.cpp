@@ -49,8 +49,8 @@ void InitBoardItems(State& result, int seed)
         }
     }
 
-    std::uniform_int_distribution<int> idxSample(0, q.count);
-    std::uniform_int_distribution<int> choosePwp(1, 4);
+    std::uniform_int_distribution<int> idxSample(0, q.count - 1);
+    std::uniform_int_distribution<int> choosePwp(1, 3);
     int total = 0;
     while(true)
     {
