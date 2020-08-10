@@ -16,7 +16,7 @@ inline void copyBoardTo(const State& state, Observation& observation)
     observation.flames = state.flames;
 }
 
-inline void copyAgentsTo(const State& state, Observation& observation)
+inline void copyAgentInfosTo(const State& state, Observation& observation)
 {
     observation.agentInfos.count = 0;
     for(int i = 0; i < AGENT_COUNT; i++)
@@ -29,11 +29,29 @@ inline void copyAgentsTo(const State& state, Observation& observation)
 inline void copyTo(const State& state, Observation& observation)
 {
     copyBoardTo(state, observation);
-    copyAgentsTo(state, observation);
+    copyAgentInfosTo(state, observation);
+}
+
+inline void setAgentArrays(const State& state, const uint ownAgentID, Observation& observation)
+{
+    AgentInfo self = state.agents[ownAgentID];
+    observation.isAlive[ownAgentID] = !self.dead;
+    observation.isEnemy[ownAgentID] = false;
+
+    for(uint i = 0; i < AGENT_COUNT; i++)
+    {
+        if(i == ownAgentID) continue;
+
+        AgentInfo info = state.agents[i];
+        observation.isAlive[i] = !info.dead;
+        observation.isEnemy[i] = info.team == 0 || info.team != self.team;
+    }
 }
 
 void Observation::Get(const State& state, const uint agentID, const ObservationParameters obsParams, Observation& observation)
 {
+    setAgentArrays(state, agentID, observation);
+
     // fully observable environment
     if(obsParams.exposePowerUps && !obsParams.agentPartialMapView && obsParams.agentInfoVisibility == AgentInfoVisibility::All)
     {
@@ -144,7 +162,7 @@ void Observation::Get(const State& state, const uint agentID, const ObservationP
 
     switch (obsParams.agentInfoVisibility) {
         case bboard::AgentInfoVisibility::All:
-            copyAgentsTo(state, observation);
+            copyAgentInfosTo(state, observation);
             break;
 
         case bboard::AgentInfoVisibility::OnlySelf:

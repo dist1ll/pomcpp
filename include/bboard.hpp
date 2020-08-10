@@ -634,6 +634,9 @@ struct Observation
     FixedQueue<AgentInfo, AGENT_COUNT> agentInfos;
     int agentIDMapping[AGENT_COUNT];
 
+    bool isAlive[AGENT_COUNT];
+    bool isEnemy[AGENT_COUNT];
+
     /**
      * @brief GetObservation Creates an observation for some agent based on a state.
      * @param state The current state of the environment

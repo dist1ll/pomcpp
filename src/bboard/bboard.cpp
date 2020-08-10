@@ -556,7 +556,6 @@ std::string PrintItem(int item)
     }
     else
     {
-        throw "FOOOO!";
         return "[?]";
     }
 }
