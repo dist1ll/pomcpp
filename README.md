@@ -1,6 +1,7 @@
 # Pommerman C++ Environment
 
-![Build Badge](https://github.com/tomatenbrei/pomcpp/workflows/build/badge.svg) ![Test badge](https://github.com/tomatenbrei/pomcpp/workflows/test/badge.svg)
+[![Build Badge](https://github.com/tomatenbrei/pomcpp/workflows/build/badge.svg)](https://github.com/tomatenbrei/pomcpp/actions?query=workflow%3Abuild) 
+[![Test badge](https://github.com/tomatenbrei/pomcpp/workflows/test/badge.svg)](https://github.com/tomatenbrei/pomcpp/actions?query=workflow%3Atest)
 
 This repository is an open-source re-implementation of the [Pommerman](https://www.pommerman.com/) multi-agent RL environment. Its aim is to provide a blazing fast alternative to the current python backend - ideally to make computationally expensive methods like tree search a feasible. The simulation has no heap allocations. This is how the C++ side currently looks like.
 
