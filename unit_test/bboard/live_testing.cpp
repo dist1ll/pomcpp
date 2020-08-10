@@ -156,4 +156,7 @@ TEST_CASE("Test Simple Agent", "[live testing]")
         }
         std::cout << "done." << std::endl;
     }
+
+    // test
+    REQUIRE(false);
 }
