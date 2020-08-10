@@ -1,4 +1,4 @@
-name: main workflow
+name: test
 
 on:
   push:
@@ -13,5 +13,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: make
-      run: make all
+    - run: make test
+    - run: ./bin/test
