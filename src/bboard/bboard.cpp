@@ -157,11 +157,22 @@ void State::PopFlame()
 
 Item State::FlagItem(int pwp)
 {
-    if     (pwp == 0) return Item::PASSAGE;
-    else if(pwp == 1) return Item::EXTRABOMB;
-    else if(pwp == 2) return Item::INCRRANGE;
-    else if(pwp == 3) return Item::KICK;
-    else              return Item::PASSAGE;
+    switch (pwp) {
+        case 1: return Item::EXTRABOMB;
+        case 2: return Item::INCRRANGE;
+        case 3: return Item::KICK;
+        default: return Item::PASSAGE;
+    }
+}
+
+int State::ItemFlag(Item item)
+{
+    switch (item) {
+        case Item::EXTRABOMB: return 1;
+        case Item::INCRRANGE: return 2;
+        case Item::KICK: return 3;
+        default: return 0;
+    }
 }
 
 void State::ExplodeTopBomb()

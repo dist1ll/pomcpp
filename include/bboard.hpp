@@ -503,10 +503,16 @@ struct State
     }
 
     /**
-     * @brief BreakWood Returns the correct powerup
+     * @brief FlagItem Returns the correct powerup
      * for the given pow-flag
      */
-    Item FlagItem(int powFlag);
+    static Item FlagItem(int powFlag);
+
+    /**
+     * @brief ItemFlag Returns the correct pow-flag
+     * for the given item
+     */
+    static int ItemFlag(Item item);
 
     /**
      * @brief Kill Kills the specified agents
