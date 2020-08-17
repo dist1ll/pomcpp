@@ -4,6 +4,8 @@
 #include "agents.hpp"
 #include "strategy.hpp"
 
+#include "testing_utilities.hpp"
+
 using namespace agents;
 
 template <int AGENT>
@@ -100,11 +102,6 @@ void REQUIRE_CORRECT_RESULT_TEAMS(bboard::Environment& env)
     }
 }
 
-std::array<SimpleAgent, 4> createAgents(std::mt19937& rng)
-{
-    return {SimpleAgent(rng()), SimpleAgent(rng()), SimpleAgent(rng()), SimpleAgent(rng())};
-}
-
 TEST_CASE("Test Simple Agent", "[live testing]")
 {
     int numGames = 100;
@@ -121,7 +118,7 @@ TEST_CASE("Test Simple Agent", "[live testing]")
         std::cout << "Mode \"FreeForAll\"... " << std::flush;
         for(int i = 0; i < numGames; i++)
         {
-            std::array<SimpleAgent, 4> r = createAgents(rng);
+            std::array<SimpleAgent, 4> r = CreateAgents(rng);
 
             // create an environment
             bboard::Environment e;
@@ -130,7 +127,7 @@ TEST_CASE("Test Simple Agent", "[live testing]")
             e.MakeGame({&r[0], &r[1], &r[2], &r[3]}, bboard::GameMode::FreeForAll, (int)rng());
 
             // starts the game with the specified params
-            e.RunGame(800, true, false);
+            e.RunGame(800, false, false);
 
             REQUIRE_CORRECT_RESULT_FFA(e);
         }
@@ -141,7 +138,7 @@ TEST_CASE("Test Simple Agent", "[live testing]")
         std::cout << "Mode \"TwoTeams\"... " << std::flush;
         for(int i = 0; i < numGames; i++)
         {
-            std::array<SimpleAgent, 4> r = createAgents(rng);
+            std::array<SimpleAgent, 4> r = CreateAgents(rng);
 
             // create an environment
             bboard::Environment e;
@@ -150,7 +147,7 @@ TEST_CASE("Test Simple Agent", "[live testing]")
             e.MakeGame({&r[0], &r[1], &r[2], &r[3]}, bboard::GameMode::TwoTeams, (int)rng());
 
             // starts the game with the specified params
-            e.RunGame(800, true, false);
+            e.RunGame(800, false, false);
 
             REQUIRE_CORRECT_RESULT_TEAMS(e);
         }

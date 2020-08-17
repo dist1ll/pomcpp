@@ -9,6 +9,14 @@
 #include <iomanip>
 
 #include "bboard.hpp"
+#include "agents.hpp"
+
+using namespace agents;
+
+inline std::array<SimpleAgent, 4> CreateAgents(std::mt19937& rng)
+{
+    return {SimpleAgent(rng()), SimpleAgent(rng()), SimpleAgent(rng()), SimpleAgent(rng())};
+}
 
 template<class T>
 void RecursiveCommas(std::ostream& os, T n)
