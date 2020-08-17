@@ -1,5 +1,5 @@
 CC := $(CXX)
-CFLAGS := -pthread
+CFLAGS := -pthread -O3 -DNDEBUG
 STD := c++17
 SRCEXT := cpp
 SRCDIR := src
@@ -28,7 +28,7 @@ INC := -I include/
 
 all:    main test lib
 
-lib : $(MAIN_OBJECTS)
+lib : $(MAIN_OBJS_NOMAIN)
 	@mkdir -p lib
 	@ar rcs $(SLIB_TARGET) $^
 	@echo "Building Library"
@@ -57,15 +57,15 @@ build/$(TESTDIR)/$(MODULE1)/%.o: $(TESTDIR)/$(MODULE1)/%.$(SRCEXT)
 
 # build main files
 build/src/%.o: $(SRCDIR)/%.$(SRCEXT)
-	@echo "Building main"
+	@echo "Building main: " $@
 	@mkdir -p $(BUILDDIR)
 	@$(CC) $(CFLAGS) -std=$(STD) -c -o $@ $< $(INC)
 build/src/$(MODULE1)/%.o: src/$(MODULE1)/%.$(SRCEXT)
-	@echo "Building bboard"
+	@echo "Building bboard: " $@
 	@mkdir -p $(BUILDDIR) -p $(BUILDDIR)/$(MODULE1)
 	@$(CC) $(CFLAGS) -std=$(STD) -c -o $@ $< $(INC)
 build/src/$(MODULE2)/%.o: src/$(MODULE2)/%.$(SRCEXT)
-	@echo "Building agents"
+	@echo "Building agents: $@"
 	@mkdir -p $(BUILDDIR) -p $(BUILDDIR)/$(MODULE2)
 	@$(CC) $(CFLAGS) -std=$(STD) -c -o $@ $< $(INC)
 
