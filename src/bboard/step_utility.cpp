@@ -221,20 +221,13 @@ int ResolveDependencies(State* s, Position des[AGENT_COUNT],
     return rootCount;
 }
 
-
 void TickFlames(State& state)
 {
-    for(int i = 0; i < state.flames.count; i++)
+    state.currentFlameTime--;
+    state.flames[0].timeLeft--;
+    if(state.flames[0].timeLeft <= 0)
     {
-        state.flames[i].timeLeft--;
-    }
-    int flameCount = state.flames.count;
-    for(int i = 0; i < flameCount; i++)
-    {
-        if(state.flames[0].timeLeft == 0)
-        {
-            state.PopFlame();
-        }
+        state.PopFlames();
     }
 }
 

@@ -14,46 +14,99 @@ namespace bboard
 /////////////////////////
 
 /**
+ * @brief _removeFlameDuplicate Remove the flame located at (x, y) but remember its timeLeft.
+ */
+template <int count>
+void _removeFlameDuplicate(FixedQueue<Flame, count>& flames, int boardItem, int x, int y)
+{
+    if(IS_FLAME(boardItem))
+    {
+        if(flames.count == 1)
+        {
+            // the single flame is completely replaced
+            flames.count = 0;
+            return;
+        }
+
+        // remove the old flame object for this position
+        int flameId = bboard::FLAME_ID(boardItem);
+        // start from the back to save time finding the correct index
+        for(int i = std::min(flames.count - 1, flameId); i >= 0; i--)
+        {
+            Flame& f = flames[i];
+            if(f.position.x == x && f.position.y == y)
+            {
+                if(i == 0)
+                {
+                    flames.PopElem();
+                    flames[0].timeLeft += f.timeLeft;
+                }
+                else
+                {
+                    flames[i - 1].timeLeft += f.timeLeft;
+                    flames.RemoveAt(i);
+                }
+
+                break;
+            }
+        }
+    }
+}
+
+/**
  * @brief SpawnFlameItem Spawns a single flame item on the board
  * @param s The state on which the flames should be spawned
  * @param x The x position of the fire
  * @param y The y position of the fire
  * @param signature An auxiliary integer less than 255
- * @return Could the flame be spawned?
+ * @return Should we continue spawing flames in that direction?
  */
-bool SpawnFlameItem(State& s, int x, int y, uint16_t signature = 0)
+bool SpawnFlameItem(State& s, int x, int y)
 {
-    if(s.board[y][x] >= Item::AGENT0)
+    int boardItem = s.board[y][x];
+
+    // stop at rigid blocks
+    if (boardItem == Item::RIGID)
+        return false;
+
+    if(boardItem >= Item::AGENT0)
     {
-        s.Kill(s.board[y][x] - Item::AGENT0);
+        s.Kill(boardItem - Item::AGENT0);
     }
-    if(s.board[y][x] == Item::BOMB || s.board[y][x] >= Item::AGENT0)
+
+    if(boardItem == Item::BOMB || boardItem >= Item::AGENT0)
     {
         for(int i = 0; i < s.bombs.count; i++)
         {
             if(BMB_POS(s.bombs[i]) == (x + (y << 4)))
             {
                 s.ExplodeBombAt(i);
-                break;
+                return true;
             }
         }
     }
 
-    if(s.board[y][x] != Item::RIGID)
+    _removeFlameDuplicate(s.flames, boardItem, x, y);
+
+    Flame& newFlame = s.flames.NextPos();
+    newFlame.position.x = x;
+    newFlame.position.y = y;
+    // optimization: directly triggered by previous flame
+    newFlame.timeLeft = 0;
+
+    // update the map
+    s.board[y][x] = Item::FLAME + (s.flames.count << 3);
+    s.flames.count++;
+
+    if(IS_WOOD(boardItem))
     {
-        int old = s.board[y][x];
-        bool wasWood = IS_WOOD(old);
-        s.board[y][x] = Item::FLAMES + signature;
-        if(wasWood)
-        {
-            s.board[y][x]+= WOOD_POWFLAG(old); // set the powerup flag
-        }
-        return !wasWood; // if wood, then only destroy 1
-    }
-    else
-    {
+        // set the powerup flag
+        s.board[y][x] += WOOD_POWFLAG(boardItem);
+        // stop here
         return false;
     }
+
+    return true;
 }
 
 /**
@@ -89,7 +142,7 @@ void State::ExplodeBombAt(int i)
     // spawn flames, this may trigger other explosions
     int x = BMB_POS_X(b);
     int y = BMB_POS_Y(b);
-    SpawnFlame(x, y, BMB_STRENGTH(b));
+    SpawnFlames(x, y, BMB_STRENGTH(b));
 }
 
 void State::PlantBomb(int x, int y, int id, bool setItem)
@@ -121,38 +174,16 @@ void State::PlantBombModifiedLife(int x, int y, int id, int lifeTime, bool setIt
     bombs.count++;
 }
 
-void State::PopFlame()
+void State::PopFlames()
 {
-    Flame& f = flames[0];
-    const int s = f.strength;
-    int x = f.position.x;
-    int y = f.position.y;
-
-    uint16_t signature = uint16_t(x + BOARD_SIZE * y);
-
-    // iterate over both axis (from x-s to x+s // y-s to y+s)
-    for(int i = -s; i <= s; i++)
-    {
-        if(!IsOutOfBounds(x + i, y) && IS_FLAME(board[y][x + i]))
-        {
-            // only remove if this is my own flame
-            int b = board[y][x + i];
-            if(FLAME_ID(b) == signature)
-            {
-                board[y][x + i] = FlagItem(FLAME_POWFLAG(b));
-            }
-        }
-        if(!IsOutOfBounds(x, y + i) && IS_FLAME(board[y + i][x]))
-        {
-            int b = board[y + i][x];
-            if(FLAME_ID(b) == signature)
-            {
-                board[y + i][x] = FlagItem(FLAME_POWFLAG(b));
-            }
-        }
+    while (flames.count > 0 && flames[0].timeLeft <= 0) {
+        Flame& f = flames[0];
+        // get the item behind the flame (can be 0 for passage)
+        bboard::Item newItem = FlagItem(FLAME_POWFLAG(board[f.position.y][f.position.x]));
+        // remove the flame
+        board[f.position.y][f.position.x] = newItem;
+        flames.PopElem();
     }
-
-    flames.PopElem();
 }
 
 Item State::FlagItem(int pwp)
@@ -178,38 +209,52 @@ int State::ItemFlag(Item item)
 void State::ExplodeTopBomb()
 {
     Bomb& c = bombs[0];
-    SpawnFlame(BMB_POS_X(c), BMB_POS_Y(c), BMB_STRENGTH(c));
+    SpawnFlames(BMB_POS_X(c), BMB_POS_Y(c), BMB_STRENGTH(c));
     PopBomb(*this);
 }
 
-void State::SpawnFlame(int x, int y, int strength)
+void State::SpawnFlames(int x, int y, int strength)
 {
+    // replace existing flames at origin (x, y)
+    int boardItem = board[y][x];
+    _removeFlameDuplicate(flames, boardItem, x, y);
+
+    // spawn flame object in origin
     Flame& f = flames.NextPos();
     f.position.x = x;
     f.position.y = y;
-    f.strength = strength;
-    f.timeLeft = FLAME_LIFETIME;
-
-    // unique flame id
-    uint16_t signature = uint16_t((x + BOARD_SIZE * y) << 3);
-
-    flames.count++;
-
-    // kill agent possibly in origin
-    if(board[y][x] >= Item::AGENT0)
+    // optimization: we treat the flames as a queue with
+    // remaining wait times
+    if(flames.count == 0)
     {
-        Kill(board[y][x] - Item::AGENT0);
+        f.timeLeft = FLAME_LIFETIME;
+    }
+    else
+    {
+        f.timeLeft = FLAME_LIFETIME - currentFlameTime;
+    }
+
+    currentFlameTime = FLAME_LIFETIME;
+
+    // kill agent in origin
+    if(boardItem >= Item::AGENT0)
+    {
+        Kill(boardItem - Item::AGENT0);
     }
 
     // override origin
-    board[y][x] = Item::FLAMES + signature;
+    board[y][x] = Item::FLAME + (flames.count << 3);
+
+    flames.count++;
+
+    // spawn subflames
 
     // right
     for(int i = 1; i <= strength; i++)
     {
         if(x + i >= BOARD_SIZE) break; // bounds
 
-        if(!SpawnFlameItem(*this, x + i, y, signature))
+        if(!SpawnFlameItem(*this, x + i, y))
         {
             break;
         }
@@ -220,7 +265,7 @@ void State::SpawnFlame(int x, int y, int strength)
     {
         if(x - i < 0) break; // bounds
 
-        if(!SpawnFlameItem(*this, x - i, y, signature))
+        if(!SpawnFlameItem(*this, x - i, y))
         {
             break;
         }
@@ -231,7 +276,7 @@ void State::SpawnFlame(int x, int y, int strength)
     {
         if(y + i >= BOARD_SIZE) break; // bounds
 
-        if(!SpawnFlameItem(*this, x, y + i, signature))
+        if(!SpawnFlameItem(*this, x, y + i))
         {
             break;
         }
@@ -242,7 +287,7 @@ void State::SpawnFlame(int x, int y, int strength)
     {
         if(y - i < 0) break; // bounds
 
-        if(!SpawnFlameItem(*this, x, y - i, signature))
+        if(!SpawnFlameItem(*this, x, y - i))
         {
             break;
         }
@@ -522,9 +567,14 @@ void PrintState(State* state, bool clearConsole)
         else if(y == AGENT_COUNT + 2)
         {
             std::cout << "Flames: [  ";
+            int cumulativeTime = 0;
             for(int i = 0; i < state->flames.count; i++)
             {
-                std::cout << state->flames[i].timeLeft << "  ";
+                if(state->flames[i].timeLeft != 0)
+                {
+                    cumulativeTime += state->flames[i].timeLeft;
+                    std::cout << cumulativeTime << "  ";
+                }
             }
             std::cout << "]";
         }

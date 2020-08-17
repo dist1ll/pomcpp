@@ -110,7 +110,7 @@ TEST_CASE("Step Function", "[performance]")
 
 TEST_CASE("Episode Steps", "[performance]")
 {
-    int numEpisodes = 500;
+    int numEpisodes = 2000;
     int totalSteps = 0;
 
     int seed = 42;

@@ -38,9 +38,10 @@ void TestQueue(FixedQueue<Bomb, 10>& queue)
     REQUIRE(queue.count == 4);
     REQUIRE(queue[3] == 7);
 }
+
 TEST_CASE("Fixed Size Queue", "[general]")
 {
-    FixedQueue<Bomb, 10>& queue = *std::make_unique<FixedQueue<Bomb, 10>>().get();
+    FixedQueue<Bomb, 10> queue;
     SECTION("Index 0")
     {
         queue.index = 0;
@@ -56,6 +57,4 @@ TEST_CASE("Fixed Size Queue", "[general]")
         queue.index = 2;
         TestQueue(queue);
     }
-
-
 }

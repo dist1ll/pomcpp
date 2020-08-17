@@ -107,7 +107,7 @@ TEST_CASE("Movement Against Flames", "[step function]")
     bboard::Move m[4] = {id, id, id, id};
 
     s->PutAgentsInCorners(0, 1, 2, 3, 0);
-    s->SpawnFlame(1,1,2);
+    s->SpawnFlames(1,1,2);
 
     m[0] = bboard::Move::RIGHT;
 
@@ -390,7 +390,7 @@ TEST_CASE("Flame Mechanics", "[step function]")
 
     SECTION("Correct Lifetime Calculation")
     {
-        s->SpawnFlame(5,5,4);
+        s->SpawnFlames(5,5,4);
         bboard::Step(s.get(), m);
 
         SeveralSteps(bboard::FLAME_LIFETIME - 2, s.get(), m);
@@ -400,7 +400,7 @@ TEST_CASE("Flame Mechanics", "[step function]")
     }
     SECTION("Vanish Flame Completely")
     {
-        s->SpawnFlame(5,5,4);
+        s->SpawnFlames(5,5,4);
         bboard::Step(s.get(), m);
 
         for(int i = 0; i <= 4; i++)
@@ -413,15 +413,42 @@ TEST_CASE("Flame Mechanics", "[step function]")
     }
     SECTION("Only Vanish Your Own Flame")
     {
-        s->SpawnFlame(5,5,4);
+        s->SpawnFlames(5,5,4);
         bboard::Step(s.get(), m);
 
-        s->SpawnFlame(6, 6, 4);
+        s->SpawnFlames(6, 6, 4);
         SeveralSteps(bboard::FLAME_LIFETIME - 1, s.get(), m);
 
         REQUIRE(IS_FLAME(s->board[5][6]));
         REQUIRE(IS_FLAME(s->board[6][5]));
         REQUIRE(!IS_FLAME(s->board[5][5]));
+
+        bboard::Step(s.get(), m);
+
+        REQUIRE(!IS_FLAME(s->board[5][6]));
+        REQUIRE(!IS_FLAME(s->board[6][5]));
+    }
+
+    SECTION("Only Vanish Your Own Flame II")
+    {
+        s->SpawnFlames(5, 5, 4);
+        bboard::Step(s.get(), m);
+
+        REQUIRE(IS_FLAME(s->board[1][5]));
+        REQUIRE(IS_FLAME(s->board[2][5]));
+
+        s->SpawnFlames(5, 6, 4);
+
+        SeveralSteps(bboard::FLAME_LIFETIME - 1, s.get(), m);
+
+        REQUIRE(!IS_FLAME(s->board[1][5]));
+        REQUIRE(IS_FLAME(s->board[6][5]));
+        REQUIRE(IS_FLAME(s->board[2][5]));
+        REQUIRE(IS_FLAME(s->board[7][5]));
+
+        bboard::Step(s.get(), m);
+
+        REQUIRE(!IS_FLAME(s->board[2][5]));
     }
 }
 
@@ -464,10 +491,8 @@ TEST_CASE("Chained Explosions", "[step function]")
         REQUIRE(s->bombs.count == 2);
         bboard::Step(s.get(), m);
         REQUIRE(s->bombs.count == 0);
-        REQUIRE(s->flames.count == 2);
+        REQUIRE(s->flames.count == 8);
     }
-
-
 }
 
 TEST_CASE("Bomb Kick Mechanics", "[step function]")
@@ -500,7 +525,7 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
     SECTION("Bomb kicked against Flame")
     {
         s->Kill(1, 2, 3);
-        s->PutItem(5, 1, bboard::Item::FLAMES);
+        s->PutItem(5, 1, bboard::Item::FLAME);
 
         bboard::Step(s.get(), m);
         m[0] = bboard::Move::IDLE;
@@ -509,7 +534,7 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
 
         REQUIRE(IS_FLAME(s->board[1][5]));
         REQUIRE(s->bombs.count == 0);
-        REQUIRE(s->flames.count == 1);
+        REQUIRE(s->flames.count == 5);
         REQUIRE(s->flames[0].position == bboard::Position({5,1}));
     }
     SECTION("Bomb - Bomb Collision")
