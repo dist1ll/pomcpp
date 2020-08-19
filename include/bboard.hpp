@@ -367,6 +367,7 @@ struct Flame
 {
     Position position;
     int timeLeft;
+    int destroyedWoodAtTimeStep = -1;
 };
 
 /**

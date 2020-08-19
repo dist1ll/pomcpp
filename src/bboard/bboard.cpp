@@ -14,21 +14,23 @@ namespace bboard
 /////////////////////////
 
 /**
- * @brief _removeFlameDuplicate Remove the flame located at (x, y) but remember its timeLeft.
+ * @brief _cleanFlameSpawnPosition Checks whether a flame can be spawned at the specified position (x, y).
+ * If there exists a flame object at (x, y) with a different timeLeft, the existing flame is removed.
+ *
+ * @param flames The flames of the state
+ * @param boardItem The board item at (x, y)
+ * @param x The x coordinate
+ * @param y The y coordinate
+ * @param timeStep The current timestep
+ * @param outSpawnFlame Returns whether we can spawn a new flame at (x, y)
+ * @param outContinueFlameSpawn Returns whether the flame spawning can be continued (abort when encountering a destroyed wood block)
  */
 template <int count>
-void _removeFlameDuplicate(FixedQueue<Flame, count>& flames, int boardItem, int x, int y)
+void _cleanFlameSpawnPosition(FixedQueue<Flame, count>& flames, const int boardItem, const int x, const int y, const int timeStep, bool& outSpawnFlame, bool& outContinueFlameSpawn)
 {
     if(IS_FLAME(boardItem))
     {
-        if(flames.count == 1)
-        {
-            // the single flame is completely replaced
-            flames.count = 0;
-            return;
-        }
-
-        // remove the old flame object for this position
+        // find the old flame object for this position
         int flameId = bboard::FLAME_ID(boardItem);
         // start from the back to save time finding the correct index
         for(int i = std::min(flames.count - 1, flameId); i >= 0; i--)
@@ -36,6 +38,24 @@ void _removeFlameDuplicate(FixedQueue<Flame, count>& flames, int boardItem, int 
             Flame& f = flames[i];
             if(f.position.x == x && f.position.y == y)
             {
+                // we found the correct flame object
+                if(timeStep == f.destroyedWoodAtTimeStep)
+                {
+                    // the existing flame destroyed some wood block at this timestep, stop here
+                    outContinueFlameSpawn = false;
+                    outSpawnFlame = false;
+                    return;
+                }
+
+                if(f.timeLeft == FLAME_LIFETIME)
+                {
+                    // skip this flame, there already is a flame with the same lifetime
+                    outContinueFlameSpawn = true;
+                    outSpawnFlame = false;
+                    return;
+                }
+
+                // the lifetime changes. Due to the ordering, we have to remove the old flame
                 if(i == 0)
                 {
                     flames.PopElem();
@@ -47,10 +67,16 @@ void _removeFlameDuplicate(FixedQueue<Flame, count>& flames, int boardItem, int 
                     flames.RemoveAt(i);
                 }
 
-                break;
+                outContinueFlameSpawn = true;
+                outSpawnFlame = true;
+                return;
             }
         }
     }
+
+    // simply continue spawning flames
+    outContinueFlameSpawn = true;
+    outSpawnFlame = true;
 }
 
 /**
@@ -61,7 +87,7 @@ void _removeFlameDuplicate(FixedQueue<Flame, count>& flames, int boardItem, int 
  * @param signature An auxiliary integer less than 255
  * @return Should we continue spawing flames in that direction?
  */
-bool SpawnFlameItem(State& s, int x, int y)
+bool SpawnFlameItem(State& s, int x, int y, int timeStep, bool isCenterFlame)
 {
     int boardItem = s.board[y][x];
 
@@ -74,8 +100,10 @@ bool SpawnFlameItem(State& s, int x, int y)
         s.Kill(boardItem - Item::AGENT0);
     }
 
-    if(boardItem == Item::BOMB || boardItem >= Item::AGENT0)
+    if(!isCenterFlame && (boardItem == Item::BOMB || boardItem >= Item::AGENT0))
     {
+        // chain explosions (do not chain self)
+        // note: bombs can also be "hidden" below agents
         for(int i = 0; i < s.bombs.count; i++)
         {
             if(BMB_POS(s.bombs[i]) == (x + (y << 4)))
@@ -86,27 +114,50 @@ bool SpawnFlameItem(State& s, int x, int y)
         }
     }
 
-    _removeFlameDuplicate(s.flames, boardItem, x, y);
+    bool spawnFlame = false, continueSpawn = false;
+    _cleanFlameSpawnPosition(s.flames, boardItem, x, y, timeStep, spawnFlame, continueSpawn);
 
-    Flame& newFlame = s.flames.NextPos();
-    newFlame.position.x = x;
-    newFlame.position.y = y;
-    // optimization: directly triggered by previous flame
-    newFlame.timeLeft = 0;
-
-    // update the map
-    s.board[y][x] = Item::FLAME + (s.flames.count << 3);
-    s.flames.count++;
-
-    if(IS_WOOD(boardItem))
+    if(spawnFlame)
     {
-        // set the powerup flag
-        s.board[y][x] += WOOD_POWFLAG(boardItem);
-        // stop here
-        return false;
+        Flame& newFlame = s.flames.NextPos();
+        newFlame.position.x = x;
+        newFlame.position.y = y;
+
+        // optimization: additive timeLeft in flame queue
+        if(isCenterFlame)
+        {
+            if(s.flames.count == 0)
+            {
+                newFlame.timeLeft = FLAME_LIFETIME;
+            }
+            else
+            {
+                newFlame.timeLeft = FLAME_LIFETIME - s.currentFlameTime;
+            }
+
+            s.currentFlameTime = FLAME_LIFETIME;
+        }
+        else
+        {
+            newFlame.timeLeft = 0;
+        }
+
+        // update the board
+        s.board[y][x] = Item::FLAME + (s.flames.count << 3);
+        s.flames.count++;
+
+        if(IS_WOOD(boardItem))
+        {
+            // set the powerup flag
+            s.board[y][x] += WOOD_POWFLAG(boardItem);
+            // remember that we destroyed wood here
+            newFlame.destroyedWoodAtTimeStep = timeStep;
+            // stop here, we found wood
+            return false;
+        }
     }
 
-    return true;
+    return continueSpawn;
 }
 
 /**
@@ -214,38 +265,12 @@ void State::ExplodeTopBomb()
 }
 
 void State::SpawnFlames(int x, int y, int strength)
-{
-    // replace existing flames at origin (x, y)
-    int boardItem = board[y][x];
-    _removeFlameDuplicate(flames, boardItem, x, y);
-
-    // spawn flame object in origin
-    Flame& f = flames.NextPos();
-    f.position.x = x;
-    f.position.y = y;
-    // optimization: we treat the flames as a queue with
-    // remaining wait times
-    if(flames.count == 0)
+{    
+    // spawn flame in center
+    if(!SpawnFlameItem(*this, x, y, timeStep, true))
     {
-        f.timeLeft = FLAME_LIFETIME;
+        return;
     }
-    else
-    {
-        f.timeLeft = FLAME_LIFETIME - currentFlameTime;
-    }
-
-    currentFlameTime = FLAME_LIFETIME;
-
-    // kill agent in origin
-    if(boardItem >= Item::AGENT0)
-    {
-        Kill(boardItem - Item::AGENT0);
-    }
-
-    // override origin
-    board[y][x] = Item::FLAME + (flames.count << 3);
-
-    flames.count++;
 
     // spawn subflames
 
@@ -254,7 +279,7 @@ void State::SpawnFlames(int x, int y, int strength)
     {
         if(x + i >= BOARD_SIZE) break; // bounds
 
-        if(!SpawnFlameItem(*this, x + i, y))
+        if(!SpawnFlameItem(*this, x + i, y, timeStep, false))
         {
             break;
         }
@@ -265,7 +290,7 @@ void State::SpawnFlames(int x, int y, int strength)
     {
         if(x - i < 0) break; // bounds
 
-        if(!SpawnFlameItem(*this, x - i, y))
+        if(!SpawnFlameItem(*this, x - i, y, timeStep, false))
         {
             break;
         }
@@ -276,7 +301,7 @@ void State::SpawnFlames(int x, int y, int strength)
     {
         if(y + i >= BOARD_SIZE) break; // bounds
 
-        if(!SpawnFlameItem(*this, x, y + i))
+        if(!SpawnFlameItem(*this, x, y + i, timeStep, false))
         {
             break;
         }
@@ -287,7 +312,7 @@ void State::SpawnFlames(int x, int y, int strength)
     {
         if(y - i < 0) break; // bounds
 
-        if(!SpawnFlameItem(*this, x, y - i))
+        if(!SpawnFlameItem(*this, x, y - i, timeStep, false))
         {
             break;
         }
