@@ -5,6 +5,7 @@
 #include <random>
 
 #include "bboard.hpp"
+#include "step_utility.hpp"
 
 namespace bboard
 {
@@ -29,6 +30,7 @@ inline void copyAgentInfosTo(const State& state, Observation& observation)
 inline void copyTo(const State& state, Observation& observation)
 {
     copyBoardTo(state, observation);
+    observation.currentFlameTime = state.currentFlameTime;
     copyAgentInfosTo(state, observation);
 }
 
@@ -196,6 +198,9 @@ void Observation::Get(const State& state, const uint agentID, const ObservationP
             }
             break;
     }
+
+    // optimize flames in the end
+    observation.currentFlameTime = util::OptimizeFlameQueue(observation.board, observation.flames);
 }
 
 }

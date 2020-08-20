@@ -180,6 +180,45 @@ int GetWinningTeam(const State& state);
  */
 void CheckTerminalState(State& state);
 
+/**
+ * @brief CompareTimeLeft Checks whether timeLeft of lhs is smaller than
+ * timeLeft of rhs.
+ * @param lhs A flame object
+ * @param rhs A flame object
+ * @return lhs.timeLeft < rhs.timeLeft
+ */
+bool CompareTimeLeft(const Flame& lhs, const Flame& rhs);
+
+/**
+ * @brief OptimizeFlameQueue Optimizes (ordering + board lookup ids) an
+ * potentionally unordered flame queue for faster step processing.
+ * @param board The board used to save flame ids
+ * @param flames The flame queue which should be optimized
+ * @return the remaining timeLeft
+ */
+template <int flameCount>
+int OptimizeFlameQueue(Board& board, FixedQueue<Flame, flameCount>& flames)
+{
+    // sort flames
+    std::sort(flames.queue, flames.queue + flames.count, CompareTimeLeft);
+
+    // modify timeLeft (additive)
+    int timeLeft = 0;
+    for(int i = 0; i < flames.count; i++)
+    {
+        Flame& f = flames[i];
+        int oldVal = f.timeLeft;
+        f.timeLeft -= timeLeft;
+        timeLeft = oldVal;
+
+        // set flame ids to allow for faster lookup
+        board[f.position.y][f.position.x] += (i << 3);
+    }
+
+    // return total time left
+    return timeLeft;
+}
+
 }
 
 #endif // STEP_UTILITY_H

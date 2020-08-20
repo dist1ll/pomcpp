@@ -26,6 +26,8 @@ const int FLAME_LIFETIME = 3;
 const int MAX_BOMBS_PER_AGENT = 5;
 const int MAX_BOMBS = AGENT_COUNT * MAX_BOMBS_PER_AGENT;
 
+typedef int Board[BOARD_SIZE][BOARD_SIZE];
+
 /**
  * Holds all moves an agent can make on a board. An array
  * of 4 moves are necessary to correctly calculate a full
@@ -388,7 +390,7 @@ struct State
      */
     int& operator[] (const Position& pos);
 
-    int board[BOARD_SIZE][BOARD_SIZE];
+    Board board;
 
     int timeStep = 0;
     int aliveAgents = AGENT_COUNT;
@@ -632,9 +634,10 @@ struct ObservationParameters
  */
 struct Observation
 {
-    int board[BOARD_SIZE][BOARD_SIZE];
+    Board board;
     FixedQueue<Bomb, MAX_BOMBS> bombs;
     FixedQueue<Flame, BOARD_SIZE * BOARD_SIZE> flames;
+    int currentFlameTime = 0;
 
     FixedQueue<AgentInfo, AGENT_COUNT> agentInfos;
     int agentIDMapping[AGENT_COUNT];

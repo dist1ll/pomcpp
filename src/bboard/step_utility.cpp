@@ -501,5 +501,9 @@ void CheckTerminalState(State& state)
     state.winningTeam = winningTeam;
 }
 
+bool CompareTimeLeft(const Flame& lhs, const Flame& rhs)
+{
+    return lhs.timeLeft < rhs.timeLeft;
+}
 
 }
