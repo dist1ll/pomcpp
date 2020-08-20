@@ -92,13 +92,9 @@ void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, GameMode gameMode,
             }
             break;
         case GameMode::TwoTeams:
-            for(int i = 0; i < AGENT_COUNT / 2; i++)
+            for(int i = 0; i < AGENT_COUNT; i++)
             {
-                state->agents[i].team = 1;
-            }
-            for(int i = AGENT_COUNT / 2; i < AGENT_COUNT; i++)
-            {
-                state->agents[i].team = 2;
+                state->agents[i].team = (i % 2 == 0) ? 1 : 2;
             }
             break;
     }
