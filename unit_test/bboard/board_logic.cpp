@@ -13,7 +13,7 @@ void REQUIRE_AGENT(bboard::State* state, int agent, int x, int y)
     int o = bboard::Item::AGENT0 + agent;
     REQUIRE(state->agents[agent].x == x);
     REQUIRE(state->agents[agent].y == y);
-    REQUIRE(state->board[y][x] == o);
+    REQUIRE(state->items[y][x] == o);
 }
 
 /**
@@ -49,7 +49,7 @@ bool IsAgentPos(bboard::State* state, int agent, int x, int y)
 {
     int o = bboard::Item::AGENT0 + agent;
     return  state->agents[agent].x == x &&
-            state->agents[agent].y == y && state->board[y][x] == o;
+            state->agents[agent].y == y && state->items[y][x] == o;
 }
 
 TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
@@ -114,7 +114,7 @@ TEST_CASE("Movement Against Flames", "[step function]")
     bboard::Step(s.get(), m);
 
     REQUIRE(s->agents[0].dead);
-    REQUIRE(s->board[0][0] == bboard::Item::PASSAGE);
+    REQUIRE(s->items[0][0] == bboard::Item::PASSAGE);
 }
 
 TEST_CASE("Destination Collision", "[step function]")
@@ -248,16 +248,16 @@ TEST_CASE("Bomb Mechanics", "[step function]")
         s->PutAgentsInCorners(0, 1, 2, 3, 0);
         m[0] = bboard::Move::BOMB;
         bboard::Step(s.get(), m);
-        REQUIRE(s->board[0][0] == bboard::Item::AGENT0);
+        REQUIRE(s->items[0][0] == bboard::Item::AGENT0);
 
         m[0] = bboard::Move::DOWN;
         bboard::Step(s.get(), m);
-        REQUIRE(s->board[0][0] == bboard::Item::BOMB);
+        REQUIRE(s->items[0][0] == bboard::Item::BOMB);
     }
     SECTION("Bomb Movement Block Simple")
     {
         s->PutAgentsInCorners(0, 1, 2, 3, 0);
-        s->PlantBomb(1, 0, 0);
+        s->PlantBomb<false>(1, 0, 0);
 
         m[0] = bboard::Move::RIGHT;
         bboard::Step(s.get(), m);
@@ -323,9 +323,9 @@ TEST_CASE("Bomb Explosion", "[step function]")
         m[0] = bboard::Move::UP;
         SeveralSteps(bboard::BOMB_LIFETIME - 1, s.get(), m);
 
-        REQUIRE(s->board[5][5] == bboard::Item::BOMB);
+        REQUIRE(s->items[5][5] == bboard::Item::BOMB);
         bboard::Step(s.get(), m);
-        REQUIRE(IS_FLAME(s->board[5][5]));
+        REQUIRE(IS_FLAME(s->items[5][5]));
     }
     SECTION("Destroy Objects and Agents")
     {
@@ -339,8 +339,8 @@ TEST_CASE("Bomb Explosion", "[step function]")
         SeveralSteps(bboard::BOMB_LIFETIME, s.get(), m);
 
         REQUIRE(s->agents[1].dead);
-        REQUIRE(IS_FLAME(s->board[5][4]));
-        REQUIRE(IS_FLAME(s->board[5][6]));
+        REQUIRE(IS_FLAME(s->items[5][4]));
+        REQUIRE(IS_FLAME(s->items[5][6]));
     }
     SECTION("Keep Rigid")
     {
@@ -352,7 +352,7 @@ TEST_CASE("Bomb Explosion", "[step function]")
         m[0] = bboard::Move::UP;
         SeveralSteps(bboard::BOMB_LIFETIME, s.get(), m);
 
-        REQUIRE(s->board[5][6] == bboard::Item::RIGID);
+        REQUIRE(s->items[5][6] == bboard::Item::RIGID);
     }
     SECTION("Kill Only 1 Wood (1 Bomb)")
     {
@@ -360,11 +360,11 @@ TEST_CASE("Bomb Explosion", "[step function]")
         s->PutItem(8, 5, bboard::Item::WOOD);
 
         s->agents[0].bombStrength = 5;
-        s->PlantBomb(6, 5, 0, true);
+        s->PlantBomb<false>(6, 5, 0, true);
         SeveralSteps(bboard::BOMB_LIFETIME, s.get(), m);
 
-        REQUIRE(IS_FLAME(s->board[5][7]));
-        REQUIRE(!IS_FLAME(s->board[5][8]));
+        REQUIRE(IS_FLAME(s->items[5][7]));
+        REQUIRE(!IS_FLAME(s->items[5][8]));
     }
     SECTION("Kill Only 1 Wood (2 Bombs)")
     {
@@ -373,18 +373,18 @@ TEST_CASE("Bomb Explosion", "[step function]")
 
         s->agents[0].maxBombCount = 2;
         s->agents[0].bombStrength = 5;
-        s->PlantBomb(7, 6, 0, true);
-        s->PlantBomb(6, 6, 0, true);
+        s->PlantBomb<false>(7, 6, 0, true);
+        s->PlantBomb<false>(6, 6, 0, true);
 
         SeveralSteps(bboard::BOMB_LIFETIME, s.get(), m);
 
         // first wood is destroyed
-        REQUIRE(IS_FLAME(s->board[6][8]));
+        REQUIRE(IS_FLAME(s->items[6][8]));
         // second wood stays
-        REQUIRE(IS_WOOD(s->board[6][9]));
+        REQUIRE(IS_WOOD(s->items[6][9]));
         // both bombs exploded
-        REQUIRE(IS_FLAME(s->board[6][6]));
-        REQUIRE(IS_FLAME(s->board[6][7]));
+        REQUIRE(IS_FLAME(s->items[6][6]));
+        REQUIRE(IS_FLAME(s->items[6][7]));
     }
     SECTION("Max Agent Bomb Limit")
     {
@@ -392,9 +392,9 @@ TEST_CASE("Bomb Explosion", "[step function]")
         REQUIRE(s->agents[0].bombCount == 0);
 
         PlaceBombsHorizontally(s.get(), 0, 4); //place 1 over max
-        REQUIRE(s->board[5][5] == bboard::Item::BOMB);
-        REQUIRE(s->board[5][6] == bboard::Item::BOMB);
-        REQUIRE(s->board[5][7] == bboard::Item::PASSAGE);
+        REQUIRE(s->items[5][5] == bboard::Item::BOMB);
+        REQUIRE(s->items[5][6] == bboard::Item::BOMB);
+        REQUIRE(s->items[5][7] == bboard::Item::PASSAGE);
 
         REQUIRE(s->agents[0].bombCount == 2);
     }
@@ -414,9 +414,9 @@ TEST_CASE("Flame Mechanics", "[step function]")
         bboard::Step(s.get(), m);
 
         SeveralSteps(bboard::FLAME_LIFETIME - 2, s.get(), m);
-        REQUIRE(IS_FLAME(s->board[5][5]));
+        REQUIRE(IS_FLAME(s->items[5][5]));
         bboard::Step(s.get(), m);
-        REQUIRE(!IS_FLAME(s->board[5][5]));
+        REQUIRE(!IS_FLAME(s->items[5][5]));
     }
     SECTION("Vanish Flame Completely")
     {
@@ -425,10 +425,10 @@ TEST_CASE("Flame Mechanics", "[step function]")
 
         for(int i = 0; i <= 4; i++)
         {
-            REQUIRE(IS_FLAME(s->board[5][5 + i]));
-            REQUIRE(IS_FLAME(s->board[5][5 - i]));
-            REQUIRE(IS_FLAME(s->board[5 + i][5]));
-            REQUIRE(IS_FLAME(s->board[5 - i][5]));
+            REQUIRE(IS_FLAME(s->items[5][5 + i]));
+            REQUIRE(IS_FLAME(s->items[5][5 - i]));
+            REQUIRE(IS_FLAME(s->items[5 + i][5]));
+            REQUIRE(IS_FLAME(s->items[5 - i][5]));
         }
     }
     SECTION("Only Vanish Your Own Flame")
@@ -439,14 +439,14 @@ TEST_CASE("Flame Mechanics", "[step function]")
         s->SpawnFlames(6, 6, 4);
         SeveralSteps(bboard::FLAME_LIFETIME - 1, s.get(), m);
 
-        REQUIRE(IS_FLAME(s->board[5][6]));
-        REQUIRE(IS_FLAME(s->board[6][5]));
-        REQUIRE(!IS_FLAME(s->board[5][5]));
+        REQUIRE(IS_FLAME(s->items[5][6]));
+        REQUIRE(IS_FLAME(s->items[6][5]));
+        REQUIRE(!IS_FLAME(s->items[5][5]));
 
         bboard::Step(s.get(), m);
 
-        REQUIRE(!IS_FLAME(s->board[5][6]));
-        REQUIRE(!IS_FLAME(s->board[6][5]));
+        REQUIRE(!IS_FLAME(s->items[5][6]));
+        REQUIRE(!IS_FLAME(s->items[6][5]));
     }
 
     SECTION("Only Vanish Your Own Flame II")
@@ -454,21 +454,21 @@ TEST_CASE("Flame Mechanics", "[step function]")
         s->SpawnFlames(5, 5, 4);
         bboard::Step(s.get(), m);
 
-        REQUIRE(IS_FLAME(s->board[1][5]));
-        REQUIRE(IS_FLAME(s->board[2][5]));
+        REQUIRE(IS_FLAME(s->items[1][5]));
+        REQUIRE(IS_FLAME(s->items[2][5]));
 
         s->SpawnFlames(5, 6, 4);
 
         SeveralSteps(bboard::FLAME_LIFETIME - 1, s.get(), m);
 
-        REQUIRE(!IS_FLAME(s->board[1][5]));
-        REQUIRE(IS_FLAME(s->board[6][5]));
-        REQUIRE(IS_FLAME(s->board[2][5]));
-        REQUIRE(IS_FLAME(s->board[7][5]));
+        REQUIRE(!IS_FLAME(s->items[1][5]));
+        REQUIRE(IS_FLAME(s->items[6][5]));
+        REQUIRE(IS_FLAME(s->items[2][5]));
+        REQUIRE(IS_FLAME(s->items[7][5]));
 
         bboard::Step(s.get(), m);
 
-        REQUIRE(!IS_FLAME(s->board[2][5]));
+        REQUIRE(!IS_FLAME(s->items[2][5]));
     }
 }
 
@@ -486,12 +486,12 @@ TEST_CASE("Chained Explosions", "[step function]")
     SECTION("Two Bombs")
     {
         s->PutAgentsInCorners(0, 1, 2, 3, 0);
-        s->PlantBomb(5, 5, 0, true);
+        s->PlantBomb<false>(5, 5, 0, true);
         bboard::Step(s.get(), m);
-        s->PlantBomb(4, 5, 1, true);
+        s->PlantBomb<false>(4, 5, 1, true);
         SeveralSteps(bboard::BOMB_LIFETIME - 1, s.get(), m);
         REQUIRE(s->bombs.count == 0);
-        REQUIRE(IS_FLAME(s->board[5][6]));
+        REQUIRE(IS_FLAME(s->items[5][6]));
     }
     SECTION("Two Bombs Covered By Agent")
     {
@@ -523,7 +523,7 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
 
     s->PutAgent(0, 1, 0);
     s->agents[0].canKick = true;
-    s->PlantBomb(1, 1, 0, true);
+    s->PlantBomb<false>(1, 1, 0, true);
     s->agents[0].maxBombCount = bboard::MAX_BOMBS_PER_AGENT;
     m[0] = bboard::Move::RIGHT;
 
@@ -533,11 +533,11 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         bboard::Step(s.get(), m);
 
         REQUIRE_AGENT(s.get(), 0, 1, 1);
-        REQUIRE(s->board[1][2] == bboard::Item::BOMB);
+        REQUIRE(s->items[1][2] == bboard::Item::BOMB);
 
         for(int i = 0; i < 4; i++)
         {
-            REQUIRE(s->board[1][2 + i] == bboard::Item::BOMB);
+            REQUIRE(s->items[1][2 + i] == bboard::Item::BOMB);
             bboard::Step(s.get(), m);
             m[0] = bboard::Move::IDLE;
         }
@@ -552,7 +552,7 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
 
         SeveralSteps(3,  s.get(),  m);
 
-        REQUIRE(IS_FLAME(s->board[1][5]));
+        REQUIRE(IS_FLAME(s->items[1][5]));
         REQUIRE(s->bombs.count == 0);
         REQUIRE(s->flames.count == 5);
         REQUIRE(s->flames[0].position == bboard::Position({5,1}));
@@ -560,7 +560,7 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
     SECTION("Bomb - Bomb Collision")
     {
         s->Kill(1, 2, 3);
-        s->PlantBomb(7, 7, 0, true);
+        s->PlantBomb<false>(7, 7, 0, true);
         bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
 
         for(int i = 0; i < 6; i++)
@@ -577,7 +577,7 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
     SECTION("Bomb - Bomb - Static collision")
     {
         s->Kill(1, 2, 3);
-        s->PlantBomb(7, 6, 0, true);
+        s->PlantBomb<false>(7, 6, 0, true);
         s->PutItem(7, 0, bboard::Item::WOOD);
         bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
         for(int i = 0; i < 7; i++)
@@ -595,7 +595,7 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         s->Kill(2, 3);
         s->PutAgent(0, 2, 1);
         m[1] = Move::UP;
-        s->PlantBomb(2, 2, 0, true);
+        s->PlantBomb<false>(2, 2, 0, true);
         bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
         bboard::Step(s.get(), m);
 
@@ -609,8 +609,8 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         s->Kill(2, 3);
         s->PutAgent(0, 2, 1);
         m[1] = Move::UP;
-        s->PlantBomb(2, 2, 0, true);
-        s->PlantBomb(0, 3, 0, true);
+        s->PlantBomb<false>(2, 2, 0, true);
+        s->PlantBomb<false>(0, 3, 0, true);
         bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
         bboard::SetBombDirection(s->bombs[2], bboard::Direction::UP);
 
@@ -618,9 +618,9 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
 
         REQUIRE_AGENT(s.get(), 0, 0, 1);
         REQUIRE_AGENT(s.get(), 1, 0, 2);
-        REQUIRE(s->board[3][0] == Item::BOMB);
-        REQUIRE(s->board[1][1] == Item::BOMB);
-        REQUIRE(s->board[2][2] == Item::BOMB);
+        REQUIRE(s->items[3][0] == Item::BOMB);
+        REQUIRE(s->items[1][1] == Item::BOMB);
+        REQUIRE(s->items[2][2] == Item::BOMB);
     }
     SECTION("Bounce Back Super Complex Chain")
     {
@@ -630,7 +630,7 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         s->PutItem(2, 1, Item::RIGID);
         m[1] = Move::UP;
         m[2] = Move::BOMB;
-        s->PlantBomb(0, 3, 0, true);
+        s->PlantBomb<false>(0, 3, 0, true);
         bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
 
         for(int i = 0; i < 3; i++)
@@ -650,11 +650,11 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         s->PutItem(2, 1, Item::RIGID);
         m[2] = Move::LEFT;
         s->agents[2].canKick = true;
-        s->PlantBomb(0, 3, 0, true);
+        s->PlantBomb<false>(0, 3, 0, true);
         bboard::Step(s.get(), m);
 
         REQUIRE_AGENT(s.get(), 2, 1, 3);
-        REQUIRE(s->board[3][0] == Item::BOMB);
+        REQUIRE(s->items[3][0] == Item::BOMB);
     }
     SECTION("Stepping on bombs") // Provided by M?rton G?r?g
     {
@@ -663,9 +663,8 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         s->PutAgent(6, 5, 2);
         m[0] = m[1] = m[2] = bboard::Move::IDLE;
 
-
-        s->PlantBomb(5, 6, 3, true);
-        s->PlantBomb(6, 6, 2, true);
+        s->PlantBomb<false>(5, 6, 3, true);
+        s->PlantBomb<false>(6, 6, 2, true);
         s->PutAgent(6, 6, 3);
 
         m[3] = bboard::Move::IDLE;

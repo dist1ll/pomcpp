@@ -40,9 +40,9 @@ void InitBoardItems(State& result, int seed)
         for(int  j = 0; j < BOARD_SIZE; j++)
         {
             int tmp = intDist(rng);
-            result.board[i][j] = ChooseItemOuter(tmp);
+            result.items[i][j] = ChooseItemOuter(tmp);
 
-            if(IS_WOOD(result.board[i][j]))
+            if(IS_WOOD(result.items[i][j]))
             {
                 q.AddElem(j + BOARD_SIZE * i);
             }
@@ -55,9 +55,9 @@ void InitBoardItems(State& result, int seed)
     while(true)
     {
         int idx = q[idxSample(rng)];
-        if((result.board[0][idx] & 0xFF) == 0)
+        if((result.items[0][idx] & 0xFF) == 0)
         {
-            result.board[0][idx] += choosePwp(rng);
+            result.items[0][idx] += choosePwp(rng);
             total++;
         }
 
@@ -109,7 +109,7 @@ TEST_CASE("Fill RMap", "[strategy]")
     {
         for(int x = 0; x < BOARD_SIZE; x++)
         {
-            if(s->board[y][x] == Item::RIGID)
+            if(s->items[y][x] == Item::RIGID)
             {
                 REQUIRE(!strategy::IsReachable(r, x, y));
             }

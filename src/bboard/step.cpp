@@ -17,7 +17,7 @@ void Step(State* state, Move* moves)
     ///////////////////
     //    Flames     //
     ///////////////////
-    util::TickFlames(*state);
+    util::TickFlames(state);
 
     ///////////////////////
     //  Player Movement  //
@@ -56,7 +56,7 @@ void Step(State* state, Move* moves)
         }
         else if(m == Move::BOMB)
         {
-            state->PlantBombModifiedLife(state->agents[i].x, state->agents[i].y, i, BOMB_LIFETIME + 1);
+            state->PlantBomb<true>(state->agents[i].x, state->agents[i].y, i);
             continue;
         }
 
@@ -70,7 +70,7 @@ void Step(State* state, Move* moves)
             continue;
         }
 
-        int itemOnDestination = state->board[desired.y][desired.x];
+        int itemOnDestination = state->items[desired.y][desired.x];
 
         //if ouroboros, the bomb will be covered by an agent
         if(ouroboros)
@@ -88,21 +88,21 @@ void Step(State* state, Move* moves)
 
         if(IS_FLAME(itemOnDestination))
         {
-            state->Kill(i);
-            if(state->board[y][x] == Item::AGENT0 + i)
+            state->Kill(i, state->agents[i].GetPos());
+            if(state->items[y][x] == Item::AGENT0 + i)
             {
                 if(state->HasBomb(x, y))
                 {
-                    state->board[y][x] = Item::BOMB;
+                    state->items[y][x] = Item::BOMB;
                 }
                 else
                 {
-                    state->board[y][x] = Item::PASSAGE;
+                    state->items[y][x] = Item::PASSAGE;
                 }
             }
             continue;
         }
-        if(util::HasDPCollision(*state, destPos, i))
+        if(util::HasDPCollision(state, destPos, i))
         {
             continue;
         }
@@ -115,7 +115,7 @@ void Step(State* state, Move* moves)
         // Collect those sweet power-ups
         if(IS_POWERUP(itemOnDestination))
         {
-            util::ConsumePowerup(*state, i, itemOnDestination);
+            util::ConsumePowerup(state, i, itemOnDestination);
             itemOnDestination = Item::PASSAGE;
         }
 
@@ -127,19 +127,20 @@ void Step(State* state, Move* moves)
         {
             // only override the position I came from if it has not been
             // overridden by a different agent that already took this spot
-            if(state->board[y][x] == Item::AGENT0 + i)
+            if(state->items[y][x] == Item::AGENT0 + i)
             {
                 if(state->HasBomb(x, y))
                 {
-                    state->board[y][x] = Item::BOMB;
+                    state->items[y][x] = Item::BOMB;
                 }
                 else
                 {
-                    state->board[y][x] = Item::PASSAGE;
+                    state->items[y][x] = Item::PASSAGE;
                 }
 
             }
-            state->board[desired.y][desired.x] = Item::AGENT0 + i;
+
+            state->items[desired.y][desired.x] = Item::AGENT0 + i;
             state->agents[i].x = desired.x;
             state->agents[i].y = desired.y;
         }
@@ -156,14 +157,14 @@ void Step(State* state, Move* moves)
             // override
             if(state->HasBomb(x, y))
             {
-                state->board[y][x] = Item::BOMB;
+                state->items[y][x] = Item::BOMB;
             }
             else
             {
-                state->board[y][x] = Item::PASSAGE;
+                state->items[y][x] = Item::PASSAGE;
             }
 
-            state->board[desired.y][desired.x] = Item::AGENT0 + i;
+            state->items[desired.y][desired.x] = Item::AGENT0 + i;
             state->agents[i].x = desired.x;
             state->agents[i].y = desired.y;
 
@@ -176,21 +177,21 @@ void Step(State* state, Move* moves)
         {
             if(state->HasBomb(x, y))
             {
-                state->board[y][x] = Item::BOMB;
+                state->items[y][x] = Item::BOMB;
             }
             else
             {
-                state->board[y][x] = Item::PASSAGE;
+                state->items[y][x] = Item::PASSAGE;
             }
 
-            state->board[desired.y][desired.x] = Item::AGENT0 + i;
+            state->items[desired.y][desired.x] = Item::AGENT0 + i;
             state->agents[i].x = desired.x;
             state->agents[i].y = desired.y;
         }
     }
 
     // Before moving bombs, reset their "moved" flags
-    util::ResetBombFlags(*state);
+    util::ResetBombFlags(state);
 
     // Fill array of desired positions
     Position bombDestinations[MAX_BOMBS];
@@ -206,8 +207,8 @@ void Step(State* state, Move* moves)
         Position target = util::DesiredPosition(b);
 
         if(util::IsOutOfBounds(target) ||
-                IS_STATIC_MOV_BLOCK((*state)[target]) ||
-                IS_AGENT((*state)[target]))
+                IS_STATIC_MOV_BLOCK(state->items[target.y][target.x]) ||
+                IS_AGENT(state->items[target.y][target.x]))
         {
             SetBombDirection(b, Direction::IDLE);
             int indexAgent = state->GetAgent(bx, by);
@@ -220,10 +221,10 @@ void Step(State* state, Move* moves)
 
             {
 
-                util::AgentBombChainReversion(*state, moves, bombDestinations, indexAgent);
+                util::AgentBombChainReversion(state, moves, bombDestinations, indexAgent);
                 if(state->GetAgent(bx, by) == -1)
                 {
-                    state->board[by][bx] = Item::BOMB;
+                    state->items[by][bx] = Item::BOMB;
                 }
 
             }
@@ -238,9 +239,9 @@ void Step(State* state, Move* moves)
 
         if(Move(BMB_DIR(b)) == Move::IDLE)
         {
-            if(util::HasBombCollision(*state, b, i))
+            if(util::HasBombCollision(state, b, i))
             {
-                util::ResolveBombCollision(*state, moves, bombDestinations, i);
+                util::ResolveBombCollision(state, moves, bombDestinations, i);
                 continue;
             }
         }
@@ -249,22 +250,22 @@ void Step(State* state, Move* moves)
         int by = BMB_POS_Y(b);
 
         Position target = util::DesiredPosition(b);
-        int& tItem = (*state)[target];
+        int& tItem = state->items[target.y][target.x];
 
         if(!util::IsOutOfBounds(target) && !IS_STATIC_MOV_BLOCK(tItem))
         {
-            if(util::HasBombCollision(*state, b, i))
+            if(util::HasBombCollision(state, b, i))
             {
-                util::ResolveBombCollision(*state, moves, bombDestinations, i);
+                util::ResolveBombCollision(state, moves, bombDestinations, i);
                 continue;
             }
 
             // MOVE BOMB
             SetBombPosition(b, target.x, target.y);
 
-            if(!state->HasBomb(bx, by) && state->board[by][bx] == Item::BOMB)
+            if(!state->HasBomb(bx, by) && state->items[by][bx] == Item::BOMB)
             {
-                state->board[by][bx] = Item::PASSAGE;
+                state->items[by][bx] = Item::PASSAGE;
             }
 
             if(IS_WALKABLE(tItem))
@@ -285,7 +286,7 @@ void Step(State* state, Move* moves)
     ///////////////
     // Explosion //
     ///////////////
-    util::TickBombs(*state);
+    util::TickBombs(state);
 
     // advance timestep
     state->timeStep++;

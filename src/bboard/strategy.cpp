@@ -38,7 +38,7 @@ template <typename T, int N>
 inline RMapInfo TryAdd(const State& s, FixedQueue<T, N>& q, RMap& r, Position& c, int cx, int cy)
 {
     int dist = r.GetDistance(c.x, c.y);
-    int item = s.board[cy][cx];
+    int item = s.items[cy][cx];
     if(!util::IsOutOfBounds(cx, cy) &&
             r.GetDistance(cx, cy) == 0 &&
             (IS_WALKABLE(item) || item >= Item::AGENT0))
@@ -149,7 +149,7 @@ Move MoveTowardsPowerup(const State& state, const RMap& r, int radius)
             if(util::IsOutOfBounds(x, y) ||
                     std::abs(x - a.x) + std::abs(y - a.y) > radius) continue;
 
-            if(IS_POWERUP(state.board[y][x]))
+            if(IS_POWERUP(state.items[y][x]))
             {
                 return MoveTowardsPosition(r, {x, y});
             }
@@ -186,7 +186,7 @@ Move MoveTowardsEnemy(const State& state, const RMap& r, int radius)
 
 bool _CheckPos(const State& state, int x, int y)
 {
-    return !util::IsOutOfBounds(x, y) && IS_WALKABLE(state.board[y][x]);
+    return !util::IsOutOfBounds(x, y) && IS_WALKABLE(state.items[y][x]);
 }
 
 bool _safe_condition(int danger, int min)
@@ -327,11 +327,11 @@ bool IsAdjacentItem(const State& state, int agentID, int distance, Item item)
             if(util::IsOutOfBounds(x, y) ||
                     std::abs(x - originX) + std::abs(y - originY) > distance) continue;
 
-            if(IS_WOOD(item) && IS_WOOD(state.board[y][x]))
+            if(IS_WOOD(item) && IS_WOOD(state.items[y][x]))
             {
                 return true;
             }
-            if(state.board[y][x] == item)
+            if(state.items[y][x] == item)
             {
                 return true;
             }

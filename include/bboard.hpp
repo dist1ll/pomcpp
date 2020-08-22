@@ -26,8 +26,6 @@ const int FLAME_LIFETIME = 3;
 const int MAX_BOMBS_PER_AGENT = 5;
 const int MAX_BOMBS = AGENT_COUNT * MAX_BOMBS_PER_AGENT;
 
-typedef int Board[BOARD_SIZE][BOARD_SIZE];
-
 /**
  * Holds all moves an agent can make on a board. An array
  * of 4 moves are necessary to correctly calculate a full
@@ -187,6 +185,20 @@ inline const T& FixedQueue<T, TSize>::operator[] (const int offset) const
 {
     return queue[(index + offset) % TSize];
 }
+template<typename T, int TSize>
+inline std::ostream & operator<<(std::ostream & str, const FixedQueue<T, TSize>& q)
+{
+    for(int i = 0; i < q.count; i++)
+    {
+        str << "'" << q[i] << "'";
+        if(i < q.count - 1)
+        {
+            str << ", ";
+        }
+    }
+    return str;
+}
+
 /**
  * @brief Represents any position on a board of a state
  */
@@ -372,6 +384,129 @@ struct Flame
     int destroyedWoodAtTimeStep = -1;
 };
 
+inline std::ostream & operator<<(std::ostream & str, const Flame& f)
+{
+    str << "(p: " << f.position << ", t: " << f.timeLeft << ", w: " << f.destroyedWoodAtTimeStep << ")";;
+    return str;
+}
+
+class Board
+{
+public:
+    /**
+     * @brief items Holds all items on this board. Additional information for
+     * bombs and flames is stored in separate queues.
+     */
+    int items[BOARD_SIZE][BOARD_SIZE];
+
+    /**
+     * @brief bombQueue Holds all bombs on this board
+     */
+    FixedQueue<Bomb, MAX_BOMBS> bombs;
+
+    /**
+     * @brief flames Holds all flames on this board.
+     */
+    FixedQueue<Flame, BOARD_SIZE * BOARD_SIZE> flames;
+
+    /**
+     * @brief timeStep The current timestep. -1 if unknown.
+     */
+    int timeStep = -1;
+
+    /**
+     * @brief PutItem Places an item on the board
+     */
+    inline void PutItem(int x, int y, Item item)
+    {
+        items[y][x] = item;
+    }
+
+    /**
+     * @brief PlantBombModifiedLife Plants a bomb at the specified position with given strength and lifetime.
+     */
+    void PlantBombModifiedLife(int x, int y, int id, int strength, int lifeTime, bool setItem);
+
+    /**
+     * @brief ExplodeTopBomb Explodes the bomb at the the specified index
+     * of the queue and spawns flames.
+     */
+    void ExplodeBombAt(int index);
+
+    /**
+     * @brief hasBomb Returns true if a bomb is at the specified
+     * position
+     */
+    bool HasBomb(int x, int y);
+
+    /**
+     * @brief GetBomb Returns a bomb at the specified location or 0 if
+     * no bomb has that position
+     */
+    Bomb* GetBomb(int x, int y);
+
+    /**
+     * @brief GetBombIndex If a bomb is at position (x,y), then
+     * returns the index of the bomb in the bomb queue. -1 otherwise
+     */
+    int GetBombIndex(int x, int y);
+
+    /**
+     * @brief SpawnFlameItem Spawns a single flame item on the board
+     * @param x The x position of the fire
+     * @param y The y position of the fire
+     * @param isCenterFlame Whether (x, y) is the bomb's position
+     * @return Should we continue spawing flames in that direction?
+     */
+    bool SpawnFlameItem(int x, int y, bool isCenterFlame);
+
+    /**
+     * @brief SpawnFlames Spawns rays of flames at the
+     * specified location.
+     * @param x The x position of the origin of flames
+     * @param y The y position of the origin of flames
+     * @param strength The farthest reachable distance
+     * from the origin
+     */
+    void SpawnFlames(int x, int y, int strength);
+
+    /**
+     * @brief PopFlame extinguishes all the top flames
+     * of the flame queue which have zero lifetime left.
+     */
+    void PopFlames();
+
+    /**
+     * @brief FlagItem Returns the correct powerup
+     * for the given pow-flag
+     */
+    static Item FlagItem(int powFlag);
+
+    /**
+     * @brief ItemFlag Returns the correct pow-flag
+     * for the given item
+     */
+    static int ItemFlag(Item item);
+
+    /**
+     * @brief Kill Kill some agent on this board.
+     * @param agentID The id of the agent
+     * @param pos The position of the agent
+     */
+    virtual void Kill(const int agentID, const Position pos) = 0;
+
+    /**
+     * @brief EventBombExploded Called when a bomb explodes.
+     * @param b The bomb which explodes.
+     */
+    virtual void EventBombExploded(Bomb b) = 0;
+
+    /**
+     * @brief currentFlameTime The max flameTime of all flames alive. Used for the optimized flame queue.
+     */
+    int currentFlameTime = 0;
+};
+
 /**
  * Represents all information associated with the game board.
  * Includes (in)destructible obstacles, bombs, player positions,
@@ -379,23 +514,16 @@ struct Flame
  *
  * @brief Holds all information about the board
  */
-struct State
+struct State : public Board
 {
+    /**
+     * @brief finished Whether this is a terminal state.
+     */
+    bool finished = false;
 
     /**
-     * @brief operator [] This way you can reference a position
-     * on the board with a Position (less verbose than board[..][..])
-     * @param The position of the board
-     * @return The integer reference at the correct board position
+     * @brief isDraw Whether the game resulted in a draw.
      */
-    int& operator[] (const Position& pos);
-
-    Board board;
-
-    int timeStep = 0;
-    int aliveAgents = AGENT_COUNT;
-
-    bool finished = false;
     bool isDraw = false;
 
     /**
@@ -415,57 +543,37 @@ struct State
     AgentInfo agents[AGENT_COUNT];
 
     /**
-     * @brief bombQueue Holds all bombs on this board
+     * @brief aliveAgents The number of alive agents (same as sum([!a.dead for a in agents])
      */
-    FixedQueue<Bomb, MAX_BOMBS> bombs;
+    int aliveAgents = AGENT_COUNT;
 
     /**
-     * @brief flames Holds all flames on this board.
+     * @brief Init Initializes the state and puts boxes, rigid objects, powerups and agents on the board.
+     * @param seed The random seed for the item generator.
+     * @param randomAgentPositions Whether to randomly set the agent positions.
+     * @param numRigid The number of rigid blocks on the board.
+     * @param numWood The number of wooden blocks on the board.
+     * @param numItems The number of powerups on the board (must be <= numWood).
+     * @param padding The padding of the agents to the walls.
+     * @param breathingRoomSize The size of the "breathing room" between agents.
      */
-    FixedQueue<Flame, BOARD_SIZE * BOARD_SIZE> flames;
-    int currentFlameTime = 0;
+    void Init(long seed, bool randomAgentPositions, int numRigid=36, int numWood=36, int numPowerUps=20, int padding=1, int breathingRoomSize=3);
 
     /**
-     * @brief PlantBomb Plants a bomb at the given position.
-     * Does not add a bomb to the queue if the agent maxed out.
-     * @param id Agent that plants the bomb
-     * @param x X position of the bomb
-     * @param y Y position of the bomb
-     * @param setItem Should the bomb item be set on that position
+     * @brief PlantBomb Plants a bomb at the specified position.
      */
-    void PlantBomb(int x, int y, int id, bool setItem =  false);
+    template<bool duringStep>
+    inline void PlantBomb(int x, int y, int id, bool setItem = false)
+    {
+        if(agents[id].bombCount >= agents[id].maxBombCount)
+            return;
 
-    /**
-     * @brief PlantBombModifiedLife Same as PlantBomb with the option
-     * to set the lifetime of the bomb.
-     */
-    void PlantBombModifiedLife(int x, int y, int id, int lifeTime = BOMB_LIFETIME, bool setItem = false);
+        // when we plant a bomb during the step function, we need to increment the bomb lifetime by 1
+        // because all bomb lifetimes will be decremented at the end of this step
+        PlantBombModifiedLife(x, y, id, agents[id].bombStrength, BOMB_LIFETIME + (duringStep ? 1 : 0), setItem);
 
-    /**
-     * @brief ExplodeTopBomb Explodes the bomb at the top of the
-     * queue and subsequently spawns flames. Handles "dead" bombs,
-     * edge conditions etc.
-     */
-    void ExplodeTopBomb();
-
-    /**
-     * @brief ExplodeTopBomb Explodes the bomb at the the specified index
-     * of the queue and spawns flames. This method is less performant
-     * than ExplodeTopBomb, so try to use only when necessary
-     */
-    void ExplodeBombAt(int index);
-
-    /**
-     * @brief hasBomb Returns true if a bomb is at the specified
-     * position
-     */
-    bool HasBomb(int x, int y);
-
-    /**
-     * @brief GetBomb Returns a bomb at the specified location or 0 if
-     * no bomb has that position
-     */
-    Bomb* GetBomb(int x, int y);
+        agents[id].bombCount++;
+    }
 
     /**
      * @brief HasAgent Returns the index of the agent that occupies
@@ -473,69 +581,6 @@ struct State
      */
     int GetAgent(int x, int y);
 
-    /**
-     * @brief GetBombIndex If a bomb is at position (x,y), then
-     * returns the index of the bomb in the bomb queue. -1 otherwise
-     */
-    int GetBombIndex(int x, int y);
-
-    /**
-     * @brief SpawnFlames Spawns rays of flames at the
-     * specified location.
-     * @param x The x position of the origin of flames
-     * @param y The y position of the origin of flames
-     * @param strength The farthest reachable distance
-     * from the origin
-     */
-    void SpawnFlames(int x, int y, int strength);
-
-    /**
-     * @brief PopFlame extinguishes all the top flames
-     * of the flame queue which have zero lifetime left.
-     */
-    void PopFlames();
-
-    /**
-     * @brief PutItem Places an item on the board
-     */
-    inline void PutItem(int x, int y, Item item)
-    {
-        board[y][x] = item;
-    }
-
-    /**
-     * @brief FlagItem Returns the correct powerup
-     * for the given pow-flag
-     */
-    static Item FlagItem(int powFlag);
-
-    /**
-     * @brief ItemFlag Returns the correct pow-flag
-     * for the given item
-     */
-    static int ItemFlag(Item item);
-
-    /**
-     * @brief Kill Kills the specified agents
-     */
-    void Kill(int agentID)
-    {
-        if(!agents[agentID].dead)
-        {
-            agents[agentID].dead = true;
-            aliveAgents--;
-        }
-    }
-
-    /**
-     * Kills all listed agents.
-     */
-    template<typename... Args>
-    void Kill(int agentID, Args... args)
-    {
-        Kill(agentID);
-        Kill(args...);
-    }
     /**
      * @brief PutAgents Places agents with given IDs clockwise in the corners of
      * the board, starting from top left.
@@ -555,12 +600,22 @@ struct State
      * @param agentID The agent ID (from 0 to AGENT_COUNT)
      */
     void PutAgent(int x, int y, int agentID);
-};
 
-inline int& State::operator[] (const Position& pos)
-{
-    return board[pos.y][pos.x];
-}
+    /**
+     * Kills all listed agents.
+     */
+    template<typename... Args>
+    void Kill(int agentID, Args... args)
+    {
+         Kill(agentID, agents[agentID].GetPos());
+         Kill(args...);
+    }
+    void Kill();
+
+    // Implement methods
+    void Kill(const int agentID, const Position pos) override;
+    void EventBombExploded(Bomb b) override;
+};
 
 /**
  * @brief The Agent struct defines a behaviour. For a given
@@ -632,13 +687,9 @@ struct ObservationParameters
 /**
  * @brief The observation of an agent.
  */
-struct Observation
+class Observation : public Board
 {
-    Board board;
-    FixedQueue<Bomb, MAX_BOMBS> bombs;
-    FixedQueue<Flame, BOARD_SIZE * BOARD_SIZE> flames;
-    int currentFlameTime = 0;
-
+public:
     FixedQueue<AgentInfo, AGENT_COUNT> agentInfos;
     int agentIDMapping[AGENT_COUNT];
 
@@ -653,6 +704,10 @@ struct Observation
      * @param observation The object which will be used to save the observation
      */
     static void Get(const State& state, const uint agentID, const ObservationParameters obsParams, Observation& observation);
+
+    // Implement methods
+    void Kill(const int agentID, const Position pos) override;
+    void EventBombExploded(Bomb b) override;
 };
 
 /**
@@ -775,18 +830,6 @@ public:
     Move GetLastMove(int agentID);
 
 };
-
-/**
- * @brief InitBoardItems Puts boxes, rigid objects, powerups and agents on the board.
- * @param seed The random seed for the item generator.
- * @param randomAgentPositions Whether to randomly set the agent positions.
- * @param numRigid The number of rigid blocks on the board.
- * @param numWood The number of wooden blocks on the board.
- * @param numItems The number of powerups on the board (must be <= numWood).
- * @param padding The padding of the agents to the walls.
- * @param breathingRoomSize The size of the "breathing room" between agents.
- */
-void InitBoard(State& state, long seed, bool randomAgentPositions, int numRigid=36, int numWood=36, int numPowerUps=20, int padding=1, int breathingRoomSize=3);
 
 /**
  * @brief Applies given moves to the given board state.

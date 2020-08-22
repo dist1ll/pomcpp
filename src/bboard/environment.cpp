@@ -81,7 +81,7 @@ void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, GameMode gameMode,
 
     this->gameMode = gameMode;
 
-    bboard::InitBoard(*state.get(), seed, randomizePositions);
+    state->Init(seed, randomizePositions);
 
     switch(gameMode)
     {

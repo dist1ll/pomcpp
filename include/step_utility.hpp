@@ -34,61 +34,61 @@ Position DesiredPosition(const Bomb b);
  * we don't need to read the direction and find out if they've been alraedy moved
  * @return The position of the last agent/bomb that was bounced back in the chain.
  */
-Position AgentBombChainReversion(State& state, Move moves[AGENT_COUNT],
+Position AgentBombChainReversion(State* state, Move moves[AGENT_COUNT],
                                  Position bombDest[MAX_BOMBS], int agentID);
 
 /**
  * @brief FillPositions Fills an array of Positions with positions of
  * all agents of the given state.
  */
-void FillPositions(State* s, Position p[AGENT_COUNT]);
+void FillPositions(const State* state, Position p[AGENT_COUNT]);
 
 /**
  * @brief FillDestPos Fills an array of destination positions.
- * @param s The State
+ * @param state The state
  * @param m An array of all agent moves
  * @param p The array to be filled wih dest positions
  */
-void FillDestPos(State* s, Move m[AGENT_COUNT], Position p[AGENT_COUNT]);
+void FillDestPos(const State* state, Move m[AGENT_COUNT], Position p[AGENT_COUNT]);
 
 /**
  * @brief FillBombDestPos Fills the given array p with all desired bomb
  * positions that moving bombs are anticipating
  */
-void FillBombDestPos(State* s, Position p[MAX_BOMBS]);
+void FillBombDestPos(const Board* board, Position p[MAX_BOMBS]);
 
 /**
  * @brief FixDestPos Reverts the desired positions if the agents want
  * to switch places or move to the same position.
- * @param s The state
+ * @param state The state
  * @param desiredPositions an array of desired positions
  */
-void FixDestPos(State* s, Position desiredPositions[AGENT_COUNT]);
+void FixDestPos(const State* state, Position desiredPositions[AGENT_COUNT]);
 
 /**
  * TODO: Fill doc for dependency resolving
  *
  */
-int ResolveDependencies(State* s, Position des[AGENT_COUNT],
+int ResolveDependencies(const State* state, Position des[AGENT_COUNT],
                         int dependency[AGENT_COUNT], int chain[AGENT_COUNT]);
 
 /**
  * @brief TickFlames Counts down all flames in the flame queue
  * (and possible extinguishes the flame)
  */
-void TickFlames(State& state);
+void TickFlames(Board* board);
 
 /**
  * @brief TickBombs Counts down all bomb timers and explodes them
  * if they arrive at 10
  */
-void TickBombs(State& state);
+void TickBombs(Board* board);
 
 /**
  * @brief MoveBombsForward moves all bombs forward that have been
  * kicked before by 1 position.
  */
-void MoveBombsForward(State& state);
+void MoveBombsForward(Board* board);
 
 /**
  * @brief ConsumePowerup Lets an agent consume a powerup
@@ -96,7 +96,7 @@ void MoveBombsForward(State& state);
  * @param powerUp A powerup item. If it's something else,
  * this function will do nothing.
  */
-void ConsumePowerup(State& state, int agentID, int powerUp);
+void ConsumePowerup(State* state, int agentID, int powerUp);
 
 /**
  * @brief PrintDependency Prints a dependency array in a nice
@@ -120,19 +120,19 @@ void PrintDependencyChain(int dependency[AGENT_COUNT], int chain[AGENT_COUNT]);
  * @param The agent that's checked for collisions
  * @return True if there is at least one collision
  */
-bool HasDPCollision(const State& state, Position dp[AGENT_COUNT], int agentID);
+bool HasDPCollision(const State* state, Position dp[AGENT_COUNT], int agentID);
 
 /**
- * @brief HasBombCollision Checks wether a bomb collides with another bomb
+ * @brief HasBombCollision Checks whether a bomb collides with another bomb
  * on the board
  * @param index Only bombs with a queue index larger or equal to `index` will be
  * considered
  * @return True if the given bomb collides with another bomb
  */
-bool HasBombCollision(const State& state, const Bomb& b, int index = 0);
+bool HasBombCollision(const Board* board, const Bomb& b, int index = 0);
 
 /**
- * @brief ResolveBombMovementollision Checks if a specified bomb collides
+ * @brief ResolveBombCollision Checks if a specified bomb collides
  * with another bomb(s). If that's the case, any bombs participating in the collision
  * will keep their position and if the bomb was kicked in this round the agents
  * will be bounced back to their old position (alongside any agents that moved
@@ -140,14 +140,14 @@ bool HasBombCollision(const State& state, const Bomb& b, int index = 0);
  * @param index Only bombs with a queue index larger or equal to `index` will be
  * considered
  */
-void ResolveBombCollision(State& state, Move moves[AGENT_COUNT],
+void ResolveBombCollision(State* state, Move moves[AGENT_COUNT],
                           Position bombDest[MAX_BOMBS], int index = 0);
 
 /**
- * @brief ResetBombFlags Resets the "moved" flag of each bomb in the state
+ * @brief ResetBombFlags Resets the "moved" flag of each bomb on the board
  * back to false.
  */
-void ResetBombFlags(State& state);
+void ResetBombFlags(Board* board);
 
 /**
  * @brief IsOutOfBounds Checks wether a given position is out of bounds
@@ -196,28 +196,7 @@ bool CompareTimeLeft(const Flame& lhs, const Flame& rhs);
  * @param flames The flame queue which should be optimized
  * @return the remaining timeLeft
  */
-template <int flameCount>
-int OptimizeFlameQueue(Board& board, FixedQueue<Flame, flameCount>& flames)
-{
-    // sort flames
-    std::sort(flames.queue, flames.queue + flames.count, CompareTimeLeft);
-
-    // modify timeLeft (additive)
-    int timeLeft = 0;
-    for(int i = 0; i < flames.count; i++)
-    {
-        Flame& f = flames[i];
-        int oldVal = f.timeLeft;
-        f.timeLeft -= timeLeft;
-        timeLeft = oldVal;
-
-        // set flame ids to allow for faster lookup
-        board[f.position.y][f.position.x] += (i << 3);
-    }
-
-    // return total time left
-    return timeLeft;
-}
+int OptimizeFlameQueue(Board& board);
 
 }
 

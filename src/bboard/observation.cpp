@@ -12,7 +12,7 @@ namespace bboard
 
 inline void copyBoardTo(const State& state, Observation& observation)
 {
-    std::copy_n(&state.board[0][0], BOARD_SIZE * BOARD_SIZE, &observation.board[0][0]);
+    std::copy_n(&state.items[0][0], BOARD_SIZE * BOARD_SIZE, &observation.items[0][0]);
     observation.bombs = state.bombs;
     observation.flames = state.flames;
 }
@@ -78,39 +78,39 @@ void Observation::Get(const State& state, const uint agentID, const ObservationP
             if(std::abs(y - info.y) > obsParams.agentViewSize)
             {
                 // fill the whole row with fog
-                std::fill_n(&observation.board[y][0], BOARD_SIZE, bboard::Item::FOG);
+                std::fill_n(&observation.items[y][0], BOARD_SIZE, bboard::Item::FOG);
             }
             else
             {
                 // row is inside the agent's view, fill the row partially with fog
 
                 // cells on the left
-                std::fill_n(&observation.board[y][0], leftFogCount, bboard::Item::FOG);
+                std::fill_n(&observation.items[y][0], leftFogCount, bboard::Item::FOG);
 
                 // copy board items
                 if(obsParams.exposePowerUps)
                 {
-                    std::copy_n(&state.board[y][leftFogCount], viewRowLength, &observation.board[y][leftFogCount]);
+                    std::copy_n(&state.items[y][leftFogCount], viewRowLength, &observation.items[y][leftFogCount]);
                 }
                 else
                 {
                     for(int x = leftFogCount; x < rightFogBegin; x++)
                     {
-                        int item = state.board[y][x];
+                        int item = state.items[y][x];
                         if(IS_WOOD(item))
                         {
                             // erase the powerup information
-                            observation.board[y][x] = Item::WOOD;
+                            observation.items[y][x] = Item::WOOD;
                         }
                         else
                         {
-                            observation.board[y][x] = item;
+                            observation.items[y][x] = item;
                         }
                     }
                 }
 
                 // cells on the right
-                std::fill_n(&observation.board[y][rightFogBegin], rightFogCount, bboard::Item::FOG);
+                std::fill_n(&observation.items[y][rightFogBegin], rightFogCount, bboard::Item::FOG);
             }
         }
 
@@ -149,11 +149,11 @@ void Observation::Get(const State& state, const uint agentID, const ObservationP
             {
                 for(int x = 0; x < BOARD_SIZE; x++)
                 {
-                    int item = observation.board[y][x];
+                    int item = observation.items[y][x];
                     if(IS_WOOD(item) && item != Item::WOOD)
                     {
                         // erase the powerup information
-                        observation.board[y][x] = Item::WOOD;
+                        observation.items[y][x] = Item::WOOD;
                     }
                 }
             }
@@ -200,7 +200,17 @@ void Observation::Get(const State& state, const uint agentID, const ObservationP
     }
 
     // optimize flames in the end
-    observation.currentFlameTime = util::OptimizeFlameQueue(observation.board, observation.flames);
+    observation.currentFlameTime = util::OptimizeFlameQueue(observation);
 }
+
+void Observation::Kill(__attribute__((unused)) int agentID, Position pos)
+{
+    if(IS_AGENT(items[pos.y][pos.x]))
+    {
+        items[pos.y][pos.x] = Item::PASSAGE;
+    }
+}
+
+void Observation::EventBombExploded(__attribute__((unused)) Bomb b) {}
 
 }

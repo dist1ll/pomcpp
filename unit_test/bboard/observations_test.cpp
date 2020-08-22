@@ -12,7 +12,7 @@ void REQUIRE_CORRECT_FOG(State s, uint agentID, Observation o, int viewRange)
     {
         for(int x = 0; x < BOARD_SIZE; x++)
         {
-            bool isFog = o.board[y][x] == Item::FOG;
+            bool isFog = o.items[y][x] == Item::FOG;
             bool isInViewRange = InViewRange(s.agents[agentID].GetPos(), x, y, viewRange);
 
             if(isFog == isInViewRange)
@@ -32,7 +32,7 @@ TEST_CASE("View Range", "[observation]")
 {
     // initialize some state
     State s;
-    InitBoard(s, 4, true);
+    s.Init(4, true);
 
     SECTION("No fog in state")
     {
@@ -41,7 +41,7 @@ TEST_CASE("View Range", "[observation]")
         {
             for(int x = 0; x < BOARD_SIZE; x++)
             {
-                if(s.board[y][x] == Item::FOG)
+                if(s.items[y][x] == Item::FOG)
                 {
                     foundFog = true;
                     break;

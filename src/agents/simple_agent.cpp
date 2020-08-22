@@ -11,7 +11,7 @@ namespace agents
 
 bool _CheckPos(const State& state, int x, int y)
 {
-    return !util::IsOutOfBounds(x, y) && IS_WALKABLE(state.board[y][x]);
+    return !util::IsOutOfBounds(x, y) && IS_WALKABLE(state.items[y][x]);
 }
 
 SimpleAgent::SimpleAgent()
@@ -65,7 +65,7 @@ Move _Decide(SimpleAgent& me, const State* state)
     {
         Move m = MoveTowardsSafePlace(*state, me.r, me.danger);
         Position p = util::DesiredPosition(a.x, a.y, m);
-        if(!util::IsOutOfBounds(p.x, p.y) && IS_WALKABLE(state->board[p.y][p.x]) &&
+        if(!util::IsOutOfBounds(p.x, p.y) && IS_WALKABLE(state->items[p.y][p.x]) &&
                 _safe_condition(IsInDanger(*state, p.x, p.y), 2))
         {
             return m;
@@ -94,7 +94,7 @@ Move _Decide(SimpleAgent& me, const State* state)
         {
             Move m = MoveTowardsEnemy(*state, me.r, 7);
             Position p = util::DesiredPosition(a.x, a.y, m);
-            if(!util::IsOutOfBounds(p.x, p.y) && IS_WALKABLE(state->board[p.y][p.x]) &&
+            if(!util::IsOutOfBounds(p.x, p.y) && IS_WALKABLE(state->items[p.y][p.x]) &&
                     _safe_condition(IsInDanger(*state, p.x, p.y), 5))
             {
                 return m;
