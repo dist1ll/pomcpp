@@ -3,7 +3,9 @@
 [![Build Badge](https://github.com/tomatenbrei/pomcpp/workflows/build/badge.svg)](https://github.com/tomatenbrei/pomcpp/actions?query=workflow%3Abuild) 
 [![Test badge](https://github.com/tomatenbrei/pomcpp/workflows/test/badge.svg)](https://github.com/tomatenbrei/pomcpp/actions?query=workflow%3Atest)
 
-This repository is an open-source re-implementation of the [Pommerman](https://www.pommerman.com/) multi-agent RL environment. Its aim is to provide a blazing fast alternative to the current python backend - ideally to make computationally expensive methods like tree search a feasible. The simulation has no heap allocations. This is how the C++ side currently looks like.
+*Disclaimer: This project is a fork of [pomcpp](https://github.com/m2q/pomcpp) by Adrian Alic. It fixes some bugs and provides new features like partial observability and a team mode.*
+
+This repository is an open-source re-implementation of the [Pommerman](https://www.pommerman.com/) multi-agent RL environment. Its aim is to provide a blazing fast and alternative to the current python backend - ideally to make computationally expensive methods like tree search feasible. The simulation has no heap allocations. This is how the C++ side currently looks like.
 
 ![gif of the game](docs/gifs/08_08.gif)
 
@@ -23,13 +25,10 @@ To compile and run this project from source you will require
 
 #### Download
 
-To fully clone the repository use
-```
-# git version 2.13+
-$ git clone --recurse-submodules https://github.com/m2q/nips2018-agent.git
+To clone the repository use
 
-# git version 2.12 or less
-$ git clone --recursive https://github.com/m2q/nips2018-agent.git
+```
+$ git clone https://github.com/tomatenbrei/pomcpp
 ```
 
 #### Compilation
@@ -156,7 +155,7 @@ bboard::Move MyNewAgent::act(const bboard::State* state)
   year = {2018},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/m2q/nips2018-agent}}
+  howpublished = {\url{https://github.com/m2q/pomcpp}}
 }
 
 ```
