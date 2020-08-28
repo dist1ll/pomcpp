@@ -555,8 +555,6 @@ void StartGame(State* state, Agent* agents[AGENT_COUNT], int timeSteps)
 
 void PrintState(State* state, bool clearConsole)
 {
-    std::string result = "";
-
     // clears console on linux
     if(clearConsole)
         std::cout << "\033c";
@@ -566,10 +564,11 @@ void PrintState(State* state, bool clearConsole)
         for(int x = 0; x < BOARD_SIZE; x++)
         {
             int item = state->items[y][x];
-            result += PrintItem(item);
+            std::cout << PrintItem(item);
         }
-        std::cout << (result) << "          ";
-        result = "";
+
+        std::cout << "          ";
+
         // Print AgentInfo
         if(y < AGENT_COUNT)
         {
@@ -605,11 +604,56 @@ void PrintState(State* state, bool clearConsole)
     }
 }
 
+void PrintBoard(Board* board, bool clearConsole)
+{
+    // clears console on linux
+    if(clearConsole)
+        std::cout << "\033c";
+
+    for(int y = 0; y < BOARD_SIZE; y++)
+    {
+        for(int x = 0; x < BOARD_SIZE; x++)
+        {
+            int item = board->items[y][x];
+            std::cout << PrintItem(item);
+        }
+        std::cout << std::endl;
+    }
+}
+
+template <typename T, int c>
+void _printArray(const T arr[c])
+{
+    std::cout << "[";
+
+    for(int i = 0; i < c - 1; i++)
+    {
+        std::cout << arr[i] << ", ";
+    }
+
+    if(c > 0)
+    {
+        std::cout << arr[c-1];
+    }
+
+    std::cout << "]";
+}
+
+void PrintObservation(Observation* obs, bool clearConsole)
+{
+    PrintBoard(obs, clearConsole);
+
+    std::cout << "IsAlive: ";
+    _printArray<bool, AGENT_COUNT>(obs->isAlive);
+    std::cout << std::endl;
+
+    std::cout << "IsEnemy: ";
+    _printArray<bool, AGENT_COUNT>(obs->isEnemy);
+    std::cout << std::endl;
+}
+
 std::string PrintItem(int item)
 {
-    std::string wood = "[\u25A0]";
-    std::string fire = " \U0000263C ";
-
     switch(item)
     {
         case Item::PASSAGE:
@@ -624,15 +668,20 @@ std::string PrintItem(int item)
             return " \u24C7 ";
         case Item::KICK:
             return " \u24C0 ";
+        case Item::FOG:
+            return "[@]";
     }
+
     if(IS_WOOD(item))
     {
-        return FBLU(wood);
+        return FBLU((std::string)"[\u25A0]");
     }
+
     if(IS_FLAME(item))
     {
-        return FRED(fire);
+        return FRED((std::string)" \U0000263C ");
     }
+
     //agent number
     if(item >= Item::AGENT0)
     {
@@ -640,6 +689,7 @@ std::string PrintItem(int item)
     }
     else
     {
+        // unknown item
         return "[?]";
     }
 }
