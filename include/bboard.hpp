@@ -228,6 +228,11 @@ inline bool operator==(const Position& here, const Position& other)
     return here.x == other.x && here.y == other.y;
 }
 
+inline bool operator!=(const Position& here, const Position& other)
+{
+    return here.x != other.x || here.y != other.y;
+}
+
 inline std::ostream & operator<<(std::ostream & str, const Position& v)
 {
     str << "(" << v.x << ", " << v.y << ")";;
@@ -423,6 +428,22 @@ public:
     }
 
     /**
+     * @brief PlantBomb Plants a bomb at the agent's position.
+     */
+    template<bool duringStep>
+    inline void PlantBomb(AgentInfo& agent, int id, bool setItem = false)
+    {
+        if(agent.bombCount >= agent.maxBombCount)
+            return;
+
+        // when we plant a bomb during the step function, we need to increment the bomb lifetime by 1
+        // because all bomb lifetimes will be decremented at the end of this step
+        PlantBombModifiedLife(agent.x, agent.y, id, agent.bombStrength, BOMB_LIFETIME + (duringStep ? 1 : 0), setItem);
+
+        agent.bombCount++;
+    }
+
+    /**
      * @brief PlantBombModifiedLife Plants a bomb at the specified position with given strength and lifetime.
      */
     void PlantBombModifiedLife(int x, int y, int id, int strength, int lifeTime, bool setItem);
@@ -491,9 +512,8 @@ public:
     /**
      * @brief Kill Kill some agent on this board.
      * @param agentID The id of the agent
-     * @param pos The position of the agent
      */
-    virtual void Kill(const int agentID, const Position pos) = 0;
+    virtual void Kill(const int agentID) = 0;
 
     /**
      * @brief EventBombExploded Called when a bomb explodes.
@@ -505,6 +525,15 @@ public:
      * @brief currentFlameTime The max flameTime of all flames alive. Used for the optimized flame queue.
      */
     int currentFlameTime = 0;
+};
+
+/**
+ * @brief The GameMode used in the environment.
+ */
+enum class GameMode
+{
+    FreeForAll,
+    TwoTeams
 };
 
 /**
@@ -557,23 +586,7 @@ struct State : public Board
      * @param padding The padding of the agents to the walls.
      * @param breathingRoomSize The size of the "breathing room" between agents.
      */
-    void Init(long seed, bool randomAgentPositions, int numRigid=36, int numWood=36, int numPowerUps=20, int padding=1, int breathingRoomSize=3);
-
-    /**
-     * @brief PlantBomb Plants a bomb at the specified position.
-     */
-    template<bool duringStep>
-    inline void PlantBomb(int x, int y, int id, bool setItem = false)
-    {
-        if(agents[id].bombCount >= agents[id].maxBombCount)
-            return;
-
-        // when we plant a bomb during the step function, we need to increment the bomb lifetime by 1
-        // because all bomb lifetimes will be decremented at the end of this step
-        PlantBombModifiedLife(x, y, id, agents[id].bombStrength, BOMB_LIFETIME + (duringStep ? 1 : 0), setItem);
-
-        agents[id].bombCount++;
-    }
+    void Init(GameMode gameMode, long seed, bool randomAgentPositions, int numRigid=36, int numWood=36, int numPowerUps=20, int padding=1, int breathingRoomSize=3);
 
     /**
      * @brief HasAgent Returns the index of the agent that occupies
@@ -607,13 +620,13 @@ struct State : public Board
     template<typename... Args>
     void Kill(int agentID, Args... args)
     {
-         Kill(agentID, agents[agentID].GetPos());
+         Kill(agentID);
          Kill(args...);
     }
     void Kill();
 
     // Implement methods
-    void Kill(const int agentID, const Position pos) override;
+    void Kill(const int agentID) override;
     void EventBombExploded(Bomb b) override;
 };
 
@@ -637,15 +650,6 @@ struct Agent
      * @return A Move (integer, 0-..)
      */
     virtual Move act(const State* state) = 0;
-};
-
-/**
- * @brief The GameMode used in the environment.
- */
-enum class GameMode
-{
-    FreeForAll,
-    TwoTeams
 };
 
 /**
@@ -706,7 +710,7 @@ public:
     static void Get(const State& state, const uint agentID, const ObservationParameters obsParams, Observation& observation);
 
     // Implement methods
-    void Kill(const int agentID, const Position pos) override;
+    void Kill(const int agentID) override;
     void EventBombExploded(Bomb b) override;
 };
 

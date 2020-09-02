@@ -32,7 +32,7 @@ TEST_CASE("View Range", "[observation]")
 {
     // initialize some state
     State s;
-    s.Init(4, true);
+    s.Init(GameMode::FreeForAll, 4, true);
 
     SECTION("No fog in state")
     {

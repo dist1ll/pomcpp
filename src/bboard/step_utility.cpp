@@ -256,19 +256,19 @@ void TickBombs(Board* board)
     }
 }
 
-void ConsumePowerup(State* state, int agentID, int powerUp)
+void ConsumePowerup(AgentInfo& info, int powerUp)
 {
     if(powerUp == Item::EXTRABOMB)
     {
-        state->agents[agentID].maxBombCount++;
+        info.maxBombCount++;
     }
     else if(powerUp == Item::INCRRANGE)
     {
-        state->agents[agentID].bombStrength++;
+        info.bombStrength++;
     }
     else if(powerUp == Item::KICK)
     {
-        state->agents[agentID].canKick = true;
+        info.canKick = true;
     }
 }
 

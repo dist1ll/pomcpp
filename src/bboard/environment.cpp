@@ -81,23 +81,7 @@ void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, GameMode gameMode,
 
     this->gameMode = gameMode;
 
-    state->Init(seed, randomizePositions);
-
-    switch(gameMode)
-    {
-        case GameMode::FreeForAll:
-            for(int i = 0; i < AGENT_COUNT; i++)
-            {
-                state->agents[i].team = 0;
-            }
-            break;
-        case GameMode::TwoTeams:
-            for(int i = 0; i < AGENT_COUNT; i++)
-            {
-                state->agents[i].team = (i % 2 == 0) ? 1 : 2;
-            }
-            break;
-    }
+    state->Init(gameMode, seed, randomizePositions);
 
     SetAgents(a);
     hasStarted = true;

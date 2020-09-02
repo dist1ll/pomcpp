@@ -92,11 +92,11 @@ void MoveBombsForward(Board* board);
 
 /**
  * @brief ConsumePowerup Lets an agent consume a powerup
- * @param agentID The agent's ID that consumes the item
+ * @param info The agentInfo of the agent which consumes the item.
  * @param powerUp A powerup item. If it's something else,
  * this function will do nothing.
  */
-void ConsumePowerup(State* state, int agentID, int powerUp);
+void ConsumePowerup(AgentInfo& info, int powerUp);
 
 /**
  * @brief PrintDependency Prints a dependency array in a nice
@@ -163,6 +163,17 @@ inline bool IsOutOfBounds(const Position& pos)
 inline bool IsOutOfBounds(const int& x, const int& y)
 {
     return x < 0 || y < 0 || x >= BOARD_SIZE || y >= BOARD_SIZE;
+}
+
+/**
+ * @brief BombMovementIsBlocked Checks whether the bomb movement to the specified
+ * target is blocked (not possible)
+ */
+inline bool BombMovementIsBlocked(const Board* board, Position target)
+{
+    return IsOutOfBounds(target)
+            || IS_STATIC_MOV_BLOCK(board->items[target.y][target.x])
+            || IS_AGENT(board->items[target.y][target.x]);
 }
 
 /**

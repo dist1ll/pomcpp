@@ -203,12 +203,14 @@ void Observation::Get(const State& state, const uint agentID, const ObservationP
     observation.currentFlameTime = util::OptimizeFlameQueue(observation);
 }
 
-void Observation::Kill(__attribute__((unused)) int agentID, Position pos)
+void Observation::Kill(int agentID)
 {
-    if(IS_AGENT(items[pos.y][pos.x]))
+    if(agentIDMapping[agentID] != -1)
     {
-        items[pos.y][pos.x] = Item::PASSAGE;
+        agentInfos[agentIDMapping[agentID]].dead = true;
     }
+
+    isAlive[agentID] = false;
 }
 
 void Observation::EventBombExploded(__attribute__((unused)) Bomb b) {}

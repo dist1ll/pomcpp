@@ -178,7 +178,7 @@ bool Board::SpawnFlameItem(int x, int y, bool isCenterFlame)
 
     if(boardItem >= Item::AGENT0)
     {
-        Kill(boardItem - Item::AGENT0, {x, y});
+        Kill(boardItem - Item::AGENT0);
     }
 
     if(!isCenterFlame && (boardItem == Item::BOMB || boardItem >= Item::AGENT0))
@@ -412,7 +412,7 @@ inline T _selectRandomInPlace(T* arr, int count, RNG& rng)
     return b;
 }
 
-void State::Init(long seed, bool randomAgentPositions, int numRigid, int numWood, int numPowerUps, int padding, int breathingRoomSize)
+void State::Init(GameMode gameMode, long seed, bool randomAgentPositions, int numRigid, int numWood, int numPowerUps, int padding, int breathingRoomSize)
 {
     std::mt19937 rng(seed);
 
@@ -426,6 +426,23 @@ void State::Init(long seed, bool randomAgentPositions, int numRigid, int numWood
         std::shuffle(f.begin(), f.end(), rng);
     }
     PutAgentsInCorners(f[0], f[1], f[2], f[3], padding);
+
+    // init teams
+    switch(gameMode)
+    {
+        case GameMode::FreeForAll:
+            for(int i = 0; i < AGENT_COUNT; i++)
+            {
+                agents[i].team = 0;
+            }
+            break;
+        case GameMode::TwoTeams:
+            for(int i = 0; i < AGENT_COUNT; i++)
+            {
+                agents[i].team = (i % 2 == 0) ? 1 : 2;
+            }
+            break;
+    }
 
     // create the board
 
@@ -514,7 +531,7 @@ void State::Init(long seed, bool randomAgentPositions, int numRigid, int numWood
     }
 }
 
-void State::Kill(int agentID, __attribute__((unused)) Position pos)
+void State::Kill(int agentID)
 {
     if(!agents[agentID].dead)
     {

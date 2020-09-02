@@ -56,7 +56,7 @@ void Step(State* state, Move* moves)
         }
         else if(m == Move::BOMB)
         {
-            state->PlantBomb<true>(state->agents[i].x, state->agents[i].y, i);
+            state->PlantBomb<true>(state->agents[i], i);
             continue;
         }
 
@@ -88,7 +88,7 @@ void Step(State* state, Move* moves)
 
         if(IS_FLAME(itemOnDestination))
         {
-            state->Kill(i, state->agents[i].GetPos());
+            state->Kill(i);
             if(state->items[y][x] == Item::AGENT0 + i)
             {
                 if(state->HasBomb(x, y))
@@ -115,7 +115,7 @@ void Step(State* state, Move* moves)
         // Collect those sweet power-ups
         if(IS_POWERUP(itemOnDestination))
         {
-            util::ConsumePowerup(state, i, itemOnDestination);
+            util::ConsumePowerup(state->agents[i], itemOnDestination);
             itemOnDestination = Item::PASSAGE;
         }
 
@@ -206,9 +206,7 @@ void Step(State* state, Move* moves)
 
         Position target = util::DesiredPosition(b);
 
-        if(util::IsOutOfBounds(target) ||
-                IS_STATIC_MOV_BLOCK(state->items[target.y][target.x]) ||
-                IS_AGENT(state->items[target.y][target.x]))
+        if(util::BombMovementIsBlocked(state, target))
         {
             SetBombDirection(b, Direction::IDLE);
             int indexAgent = state->GetAgent(bx, by);
@@ -220,16 +218,13 @@ void Step(State* state, Move* moves)
                     && !(state->agents[indexAgent].GetPos() == oldPos[indexAgent]))
 
             {
-
                 util::AgentBombChainReversion(state, moves, bombDestinations, indexAgent);
                 if(state->GetAgent(bx, by) == -1)
                 {
                     state->items[by][bx] = Item::BOMB;
                 }
-
             }
         }
-
     }
 
     // Move bombs
