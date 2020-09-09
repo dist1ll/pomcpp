@@ -59,72 +59,74 @@ Position DesiredPosition(const Bomb b)
     return DesiredPosition(BMB_POS_X(b), BMB_POS_Y(b), Move(BMB_DIR(b)));
 }
 
-Position AgentBombChainReversion(State* state, Move moves[AGENT_COUNT],
+Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
                                  Position destBombs[MAX_BOMBS], int agentID)
 {
     AgentInfo& agent = state->agents[agentID];
-    Position origin = OriginPosition(agent.x, agent.y, moves[agentID]);
+    Position origin = oldAgentPos[agentID];
 
-    if(!IsOutOfBounds(origin))
+    // is there an agent at the old origin?
+    int indexOriginAgent = state->GetAgent(origin.x, origin.y);
+
+    // reset agent to its original position
+    agent.x = origin.x;
+    agent.y = origin.y;
+    state->items[origin.y][origin.x] = Item::AGENT0 + agentID;
+
+    if(indexOriginAgent != -1)
     {
-        int indexOriginAgent = state->GetAgent(origin.x, origin.y);
-
-        int bombDestIndex = -1;
-        for(int i = 0; i < state->bombs.count; i++)
-        {
-            if(destBombs[i] == origin)
-            {
-                bombDestIndex = i;
-                break;
-            }
-        }
-
-        bool hasBomb  = bombDestIndex != -1;
-
-        agent.x = origin.x;
-        agent.y = origin.y;
-
-        state->items[origin.y][origin.x] = Item::AGENT0 + agentID;
-
-        if(indexOriginAgent != -1)
-        {
-            return AgentBombChainReversion(state, moves, destBombs, indexOriginAgent);
-        }
-        // move bomb back and check for an agent that needs to be reverted
-        else if(hasBomb)
-        {
-            Bomb& b = state->bombs[bombDestIndex];
-            Position bombDest = destBombs[bombDestIndex];
-
-            Position originBomb = OriginPosition(bombDest.x, bombDest.y, Move(BMB_DIR(b)));
-
-            // this is the case when an agent gets bounced back to a bomb he laid
-            if(originBomb == bombDest)
-            {
-                state->items[originBomb.y][originBomb.x] = Item::AGENT0 + agentID;
-                return originBomb;
-            }
-
-            int hasAgent = state->GetAgent(originBomb.x, originBomb.y);
-            SetBombDirection(b, Direction::IDLE);
-            SetBombPosition(b, originBomb.x, originBomb.y);
-            state->items[originBomb.y][originBomb.x] = Item::BOMB;
-
-            if(hasAgent != -1)
-            {
-                return AgentBombChainReversion(state, moves, destBombs, hasAgent);
-            }
-            else
-            {
-                return originBomb;
-            }
-        }
-        return origin;
+        // we also have to move back the agent which moved to our origin position
+        // TODO: Is the return really correct here?
+        return AgentBombChainReversion(state, oldAgentPos, moves, destBombs, indexOriginAgent);
     }
-    else
+
+    // is there a bomb which wants to move to / stay at the old origin?
+    int bombDestIndex = -1;
+    for(int i = 0; i < state->bombs.count; i++)
     {
-        return {agent.x, agent.y};
+        if(destBombs[i] == origin)
+        {
+            bombDestIndex = i;
+            break;
+        }
     }
+
+    // move bomb back and check for an agent that needs to be reverted
+    if(bombDestIndex != -1)
+    {
+        Bomb& b = state->bombs[bombDestIndex];
+
+        // the bomb did not move. As we've already set the origin, we are done
+        // this is the case when an agent gets bounced back to a bomb he laid
+        if(Move(BMB_DIR(b)) == Move::IDLE)
+        {
+            return origin;
+        }
+
+        // otherwise: the bomb wanted to move. Reset it
+        int bX = BMB_POS_X(b);
+        int bY = BMB_POS_Y(b);
+
+        // check whether there is now an agent at the old position of the bomb
+        int hasAgent = state->GetAgent(bX, bY);
+
+        // reset the bomb
+        SetBombDirection(b, Direction::IDLE);
+        SetBombPosition(b, bX, bY);
+        state->items[bX][bY] = Item::BOMB;
+
+        if(hasAgent != -1)
+        {
+            // if there is an agent, move it back as well
+            return AgentBombChainReversion(state, oldAgentPos, moves, destBombs, hasAgent);
+        }
+        else
+        {
+            return {bX, bY};
+        }
+    }
+
+    return origin;
 }
 
 void FillPositions(const State* state, Position p[AGENT_COUNT])
@@ -151,39 +153,66 @@ void FillBombDestPos(const Board* board, Position p[MAX_BOMBS])
     }
 }
 
-void FixDestPos(const State* state, Position d[AGENT_COUNT])
+void FillAgentDead(const State* state, bool dead[AGENT_COUNT])
 {
-    bool fixDest[AGENT_COUNT];
-    std::fill_n(fixDest, AGENT_COUNT, false);
-
     for(int i = 0; i < AGENT_COUNT; i++)
     {
-        // skip dead agents
-        if (state->agents[i].dead)
-            continue;
+        dead[i] = state->agents[i].dead;
+    }
+}
 
-        for(int j = i + 1; j < AGENT_COUNT; j++)
+void _printDest(Position destPos[AGENT_COUNT])
+{
+    for(int i = 0; i < AGENT_COUNT - 1; i++)
+    {
+        std::cout << destPos[i] << ", ";
+    }
+    std::cout << destPos[AGENT_COUNT - 1] << std::endl;
+}
+
+void FixBombDestPos(const Board* board, Position d[MAX_BOMBS])
+{
+    bool foundCollision;
+    bool fixDest[MAX_BOMBS];
+    std::fill_n(fixDest, MAX_BOMBS, false);
+
+    do
+    {
+        for(int i = 0; i < board->bombs.count; i++)
         {
-            // skip dead agents
-            if (state->agents[j].dead)
+            Bomb b1 = board->bombs[i];
+
+            // skip idle bombs
+            if (Move(BMB_ID(b1)) == Move::IDLE)
                 continue;
 
-            // forbid moving to the same position and switching positions
-            if(d[i] == d[j] || (d[i].x == state->agents[j].x && d[i].y == state->agents[j].y &&
-                    d[j].x == state->agents[i].x && d[j].y == state->agents[i].y))
+            for(int j = i + 1; j < board->bombs.count; j++)
             {
-                fixDest[i] = true;
-                fixDest[j] = true;
+                Bomb b2 = board->bombs[i];
+
+                // skip idle bombs
+                if (Move(BMB_ID(b2)) == Move::IDLE)
+                    continue;
+
+                // forbid moving to the same position and switching positions
+                if(d[i] == d[j] || (d[i].x == BMB_POS_X(b2) && d[i].y == BMB_POS_Y(b2) &&
+                        d[j].x == BMB_POS_X(b1) && d[j].y == BMB_POS_Y(b1)))
+                {
+                    foundCollision = true;
+                    fixDest[i] = true;
+                    fixDest[j] = true;
+                }
             }
         }
-    }
 
-    for (int i = 0; i < AGENT_COUNT; i++) {
-        if(fixDest[i]) {
-            d[i].x = state->agents[i].x;
-            d[i].y = state->agents[i].y;
+        for (int i = 0; i < board->bombs.count; i++) {
+            if(fixDest[i]) {
+                const Bomb& b = board->bombs[i];
+                d[i].x = BMB_POS_X(b);
+                d[i].y = BMB_POS_Y(b);
+            }
         }
-    }
+    } while(foundCollision);
 }
 
 int ResolveDependencies(const State* state, Position des[AGENT_COUNT],
@@ -303,24 +332,23 @@ bool HasBombCollision(const Board* board, const Bomb& b, int index)
     return false;
 }
 
-void ResolveBombCollision(State* state, Move moves[AGENT_COUNT],
+void ResolveBombCollision(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
                           Position destBombs[MAX_BOMBS], int index)
 {
     Bomb b = state->bombs[index];
-    // Bomb collidees[4]; //more than 4 bombs cannot collide
-    Position bmbTarget = util::DesiredPosition(b);
     bool hasCollided = false;
 
-    for(int i = index; i < state->bombs.count; i++)
+    for(int i = index + 1; i < state->bombs.count; i++)
     {
         Position target = util::DesiredPosition(state->bombs[i]);
 
-        if(b != state->bombs[i] && target == bmbTarget)
+        if(b != state->bombs[i] && target == destBombs[index])
         {
             SetBombDirection(state->bombs[i], Direction::IDLE);
             hasCollided = true;
         }
     }
+
     if(hasCollided)
     {
         if(Direction(BMB_DIR(b)) != Direction::IDLE)
@@ -330,13 +358,11 @@ void ResolveBombCollision(State* state, Move moves[AGENT_COUNT],
             // move != idle means the agent moved on it this turn
             if(index > -1 && moves[index] != Move::IDLE && moves[index] != Move::BOMB)
             {
-                AgentBombChainReversion(state, moves, destBombs, index);
+                AgentBombChainReversion(state, oldAgentPos, moves, destBombs, index);
                 state->items[BMB_POS_Y(b)][BMB_POS_X(b)] = Item::BOMB;
             }
-
         }
     }
-
 }
 
 void ResetBombFlags(Board* board)

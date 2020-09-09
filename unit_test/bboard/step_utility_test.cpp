@@ -65,6 +65,8 @@ TEST_CASE("Fix Switch Position", "[step utilities]")
     std::unique_ptr<bboard::State> sx = std::make_unique<bboard::State>();
     bboard::State* s = sx.get();
 
+    bool dead[4];
+    bboard::Position old[4];
     bboard::Position des[4];
     bboard::Move r = bboard::Move::RIGHT, l = bboard::Move::LEFT;
     bboard::Move m[4] = {r, r, l, l};
@@ -74,8 +76,11 @@ TEST_CASE("Fix Switch Position", "[step utilities]")
     s->PutAgent(2, 0, 2);
     s->PutAgent(3, 0, 3);
 
+    bboard::util::FillPositions(s, old);
     bboard::util::FillDestPos(s, m, des);
-    bboard::util::FixDestPos(s, des);
+    bboard::util::FillAgentDead(s, dead);
+
+    bboard::util::FixDestPos<bboard::AGENT_COUNT, bboard::AGENT_COUNT>(dead, old, des);
 
     REQUIRE_POS(des[0], s->agents[0].x, s->agents[0].y);
     REQUIRE_POS(des[1], s->agents[1].x, s->agents[1].y);

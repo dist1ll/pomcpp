@@ -98,6 +98,25 @@ TEST_CASE("Basic Non-Obstacle Movement", "[step function]")
     REQUIRE_AGENT(s.get(), 3, 0, 9);
 }
 
+TEST_CASE("Snake Movement", "[step function]")
+{
+    auto s = std::make_unique<bboard::State>();
+    s->PutAgent(0, 0, 0);
+    s->PutAgent(1, 0, 1);
+    s->PutAgent(2, 0, 2);
+    s->PutAgent(3, 0, 3);
+
+    bboard::Move r = Move::RIGHT;
+    bboard::Move m[4] = {r, r, r, r};
+
+    bboard::Step(s.get(), m);
+
+    REQUIRE_AGENT(s.get(), 0, 1, 0);
+    REQUIRE_AGENT(s.get(), 1, 2, 0);
+    REQUIRE_AGENT(s.get(), 2, 3, 0);
+    REQUIRE_AGENT(s.get(), 3, 4, 0);
+}
+
 TEST_CASE("Basic Obstacle Collision", "[step function]")
 {
     auto s = std::make_unique<bboard::State>();
@@ -252,6 +271,36 @@ TEST_CASE("Movement Dependency Handling", "[step function]")
         REQUIRE_AGENT(s, 1, 1, 1);
         REQUIRE_AGENT(s, 2, 0, 1);
     }
+    /*
+     * // Fails ATM
+    SECTION("Move Ouroboros with bomb")
+    {
+        s->PutAgent(0, 0, 0);
+        s->PutAgent(1, 0, 1);
+        s->PutAgent(1, 1, 2);
+        s->PutAgent(0, 1, 3);
+
+        bboard::PrintBoard(s);
+
+        // when player 0 plants a bomb, no player can move
+        s->PlantBomb<false>(s->agents[0], 0);
+
+        bboard::PrintBoard(s);
+
+        m[0] = bboard::Move::RIGHT;
+        m[1] = bboard::Move::DOWN;
+        m[2] = bboard::Move::LEFT;
+        m[3] = bboard::Move::UP;
+
+        bboard::Step(s, m);
+        REQUIRE_AGENT(s, 0, 0, 0);
+        REQUIRE_AGENT(s, 1, 1, 0);
+        REQUIRE_AGENT(s, 2, 1, 1);
+        REQUIRE_AGENT(s, 3, 0, 1);
+
+        bboard::PrintBoard(s);
+    }
+    */
 }
 
 TEST_CASE("Bomb Mechanics", "[step function]")

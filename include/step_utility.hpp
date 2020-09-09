@@ -34,7 +34,7 @@ Position DesiredPosition(const Bomb b);
  * we don't need to read the direction and find out if they've been alraedy moved
  * @return The position of the last agent/bomb that was bounced back in the chain.
  */
-Position AgentBombChainReversion(State* state, Move moves[AGENT_COUNT],
+Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
                                  Position bombDest[MAX_BOMBS], int agentID);
 
 /**
@@ -57,13 +57,49 @@ void FillDestPos(const State* state, Move m[AGENT_COUNT], Position p[AGENT_COUNT
  */
 void FillBombDestPos(const Board* board, Position p[MAX_BOMBS]);
 
-/**
- * @brief FixDestPos Reverts the desired positions if the agents want
- * to switch places or move to the same position.
- * @param state The state
- * @param desiredPositions an array of desired positions
- */
-void FixDestPos(const State* state, Position desiredPositions[AGENT_COUNT]);
+void FillAgentDead(const State* state, bool dead[AGENT_COUNT]);
+
+template <int numElem, int sizePos>
+void FixDestPos(bool skip[numElem], Position o[sizePos], Position d[sizePos])
+{
+    bool foundCollision;
+    bool fixDest[numElem];
+    std::fill_n(fixDest, numElem, false);
+
+    // TODO: Maybe there is a better way than looping
+    do
+    {
+        foundCollision = false;
+        for(int i = 0; i < numElem; i++)
+        {
+            // skip
+            if (skip[i])
+                continue;
+
+            for(int j = i + 1; j < numElem; j++)
+            {
+                // skip
+                if (skip[j])
+                    continue;
+
+                // forbid moving to the same position and switching positions
+                if(d[i] == d[j] || (d[i].x == o[j].x && d[i].y == o[j].y &&
+                        d[j].x == o[i].x && d[j].y == o[i].y))
+                {
+                    foundCollision = true;
+                    fixDest[i] = true;
+                    fixDest[j] = true;
+                }
+            }
+        }
+
+        for (int i = 0; i < numElem; i++) {
+            if(fixDest[i]) {
+                d[i] = o[i];
+            }
+        }
+    } while(foundCollision);
+}
 
 /**
  * TODO: Fill doc for dependency resolving
@@ -140,7 +176,7 @@ bool HasBombCollision(const Board* board, const Bomb& b, int index = 0);
  * @param index Only bombs with a queue index larger or equal to `index` will be
  * considered
  */
-void ResolveBombCollision(State* state, Move moves[AGENT_COUNT],
+void ResolveBombCollision(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
                           Position bombDest[MAX_BOMBS], int index = 0);
 
 /**
