@@ -13,5 +13,4 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: make test
-    - run: ./bin/test
+    - run: bash test.sh

@@ -19,6 +19,7 @@ To compile and run this project from source you will require
 
 - Linux Distribution (Tested on Ubuntu 18.04)
 - GCC 7.3.0
+- CMAKE >= 2.8
 - MAKE 4.1
 
 ## Setup
@@ -33,32 +34,15 @@ $ git clone https://github.com/tomatenbrei/pomcpp
 
 #### Compilation
 
-* Use `./run.sh` to **compile** the main application and run it.
-* Use `./test.sh` to test the project. We use the [Catch2 Unit Testing Framework](https://github.com/catchorg/Catch2).
+* Use `./run.sh` to **compile** and **run** the main application.
+* Use `./test.sh` to **compile** and **test** the project. We use the [Catch2 Unit Testing Framework](https://github.com/catchorg/Catch2).
+* Use `./build.sh` to build everything.
 
-Instead of using the shell scripts you can obviously use make commands and call/debug the binaries yourself. Here is a list:
-
-| Command | What it does |
-| ------- | ------------ |
-| `make` or `make all`  | Compiles and links both test and main source files and creates a static library |
-| `make main` | Compiles the main source to ./bin/exec and creates a library in ./lib/pomlib.a |
-| `make test`  | Compiles the test source to ./bin/test  | 
-| `make clean`  | Removes ./bin and ./build  |
-| `make mclean`  | Removes ./bin/exec and ./build/src only |
-
-Tip: The makefile makes use of the MAKEFLAGS environment variable. Let's say you want
-to have `-j n` as the default job count, where `n` is the number of cores available on
-your system. Then just export an env variable like this
-
-```
-$ export MAKEFLAGS="-j $(grep -c ^processor /proc/cpuinfo)"
-```
-
-(or alternatively add it to your `${HOME}.profile`)
+Instead of using the shell scripts you can obviously use make commands and call/debug the binaries yourself. Take a look at the `CMakeLists.txt` for the available targets.
 
 ## Use PommermanC++ as a Static Library
 
-Building the project with `make` compiles a static library in `./lib/pomlib.a`. This contains the `bboard` and `agents` namespace. Include the headers in `./src/...` and you're good to go.
+Building the project with `make pomcpp_test` compiles a static library called `libpomcpp.a`. This contains the `bboard` and `agents` namespace. Include the headers in `./include/*` and you're good to go.
 
 ## Project Structure
 
@@ -109,9 +93,9 @@ I use a lot:
 
 | Command | What it does |
 | ------- | ------------ |
-| `./test`  | Runs all tests, including a performance report |
-| `./test "[step function]"` | Tests only the step function  |
-| `./test ~"[performance]"` | Runs all test except the performance cases| 
+| `./pomcpp_test`  | Runs all tests, including a performance report |
+| `./pomcpp_test "[step function]"` | Tests only the step function  |
+| `./pomcpp_test ~"[performance]"` | Runs all test except the performance cases| 
 
 
 ## Defining Agents

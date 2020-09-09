@@ -1,4 +1,7 @@
 #! /bin/sh
-make -s main
-make -s test
-(cd bin/ && ./test ~"[performance]" ~"[live testing]")
+mkdir -p Release
+cd Release
+cmake -DCMAKE_BUILD_TYPE=Release ..
+
+make pomcpp_test
+(./pomcpp_test)
