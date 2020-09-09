@@ -83,7 +83,7 @@ void Step(State* state, Move* moves)
         const Move m = moves[i];
         const Position desired = destPos[i];
 
-        if(a.dead)
+        if(a.dead || a.ignore)
         {
             continue;
         }
@@ -191,8 +191,9 @@ void Step(State* state, Move* moves)
     util::FillBombPositions(state, bombPositions);
     util::FillBombDestPos(state, bombDestinations);
 
+    // TODO: Remove again
     // bomb position switching
-    // util::FixDestPos<false>(bombPositions, bombDestinations, state->bombs.count);
+    util::FixDestPos<false>(bombPositions, bombDestinations, state->bombs.count);
 
     // Set bomb directions to idle if they collide with an agent or a static obstacle
     for(int i = 0; i < state->bombs.count; i++)
@@ -239,7 +240,7 @@ void Step(State* state, Move* moves)
     }
 
     // Move bombs
-    for(int i = 0; i < state->bombs.count; i++)
+    for(int i = state->bombs.count - 1; i >= 0; i--)
     {
         Bomb& b = state->bombs[i];
 
@@ -255,12 +256,22 @@ void Step(State* state, Move* moves)
         Position pos = bombPositions[i];
         Position target = bombDestinations[i];
 
+        int& oItem = state->items[pos.y][pos.x];
         int& tItem = state->items[target.y][target.x];
 
         if(util::IsOutOfBounds(target) || IS_STATIC_MOV_BLOCK(tItem))
         {
             // stop moving the bomb
             SetBombDirection(b, Direction::IDLE);
+        }
+        else if(tItem == Item::FOG)
+        {
+            // the bomb just disappears
+            if(!state->HasBomb(pos.x, pos.y) && oItem == Item::BOMB)
+            {
+                oItem = Item::PASSAGE;
+            }
+            state->bombs.RemoveAt(i);
         }
         else
         {
@@ -273,9 +284,9 @@ void Step(State* state, Move* moves)
             // MOVE BOMB
             SetBombPosition(b, target.x, target.y);
 
-            if(!state->HasBomb(pos.x, pos.y) && state->items[pos.y][pos.x] == Item::BOMB)
+            if(!state->HasBomb(pos.x, pos.y) && oItem == Item::BOMB)
             {
-                state->items[pos.y][pos.x] = Item::PASSAGE;
+                oItem = Item::PASSAGE;
             }
 
             if(IS_WALKABLE(tItem))

@@ -5,14 +5,14 @@
 
 using namespace bboard;
 
-void REQUIRE_CORRECT_FOG(State s, uint agentID, Observation o, int viewRange)
+void REQUIRE_CORRECT_FOG(const State& s, uint agentID, const Board& b, int viewRange)
 {
     bool foundIncorrectCell = false;
     for(int y = 0; y < BOARD_SIZE; y++)
     {
         for(int x = 0; x < BOARD_SIZE; x++)
         {
-            bool isFog = o.items[y][x] == Item::FOG;
+            bool isFog = b.items[y][x] == Item::FOG;
             bool isInViewRange = InViewRange(s.agents[agentID].GetPos(), x, y, viewRange);
 
             if(isFog == isInViewRange)
@@ -77,4 +77,35 @@ TEST_CASE("View Range", "[observation]")
 
         REQUIRE_CORRECT_FOG(s, 2, obs, params.agentViewSize);
     }
+}
+
+TEST_CASE("Round trip", "[observation]")
+{
+    // initialize state
+    State s;
+    s.Init(GameMode::FreeForAll, 1234, true);
+
+    // restrict view
+    ObservationParameters params;
+    params.agentPartialMapView = true;
+    params.agentViewSize = 4;
+
+    // get observation
+    Observation obs;
+    Observation::Get(s, 2, params, obs);
+
+    // check fog
+    REQUIRE_CORRECT_FOG(s, 2, obs, params.agentViewSize);
+
+    // convert to state
+    State s2;
+    obs.ToState(s2, GameMode::FreeForAll);
+
+    // fog is still there
+    REQUIRE_CORRECT_FOG(s, 2, s2, params.agentViewSize);
+    s2.aliveAgents = s.aliveAgents;
+    REQUIRE(s.agents[2].x == s2.agents[2].x);
+    REQUIRE(s.agents[2].y == s2.agents[2].y);
+    REQUIRE(s.agents[2].team == s2.agents[2].team);
+    REQUIRE(s2.agents[2].ignore == false);
 }

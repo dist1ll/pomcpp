@@ -185,8 +185,10 @@ int ResolveDependencies(const State* state, Position des[AGENT_COUNT],
     int rootCount = 0;
     for(int i = 0; i < AGENT_COUNT; i++)
     {
-        // dead agents are handled as roots
-        if(state->agents[i].dead)
+        const AgentInfo& a1 = state->agents[i];
+
+        // dead and ignored agents are handled as roots
+        if(a1.dead || a1.ignore)
         {
             chain[rootCount] = i;
             rootCount++;
@@ -196,9 +198,11 @@ int ResolveDependencies(const State* state, Position des[AGENT_COUNT],
         bool isChainRoot = true;
         for(int j = 0; j < AGENT_COUNT; j++)
         {
-            if(i == j || state->agents[j].dead) continue;
+            const AgentInfo& a2 = state->agents[j];
 
-            if(des[i].x == state->agents[j].x && des[i].y == state->agents[j].y)
+            if(i == j || a2.dead || a2.ignore) continue;
+
+            if(des[i].x == a2.x && des[i].y == a2.y)
             {
                 dependency[j] = i;
                 isChainRoot = false;
@@ -421,7 +425,9 @@ int GetWinningTeam(const State& state)
 
 void CheckTerminalState(State& state)
 {
-    int winningTeam = 0;
+    state.winningAgent = -1;
+    state.winningTeam = 0;
+
     if(state.aliveAgents == 0)
     {
         // nobody won when all agents are dead
@@ -451,9 +457,9 @@ void CheckTerminalState(State& state)
             {
                 info.won = true;
                 // the agent might be in some team
-                winningTeam = info.team;
+                state.winningTeam = info.team;
                 // if not, that is the winning agent
-                if(winningTeam == 0)
+                if(state.winningTeam == 0)
                 {
                     state.winningAgent = i;
                 }
@@ -466,11 +472,11 @@ void CheckTerminalState(State& state)
     {
         // there are >= 2 agents alive, check if there
         // is a winning team
-        winningTeam = util::GetWinningTeam(state);
+        state.winningTeam = util::GetWinningTeam(state);
     }
 
     // all agents in the winning team have won
-    if(winningTeam != 0)
+    if(state.winningTeam != 0)
     {
         state.finished = true;
         state.isDraw = false;
@@ -478,7 +484,7 @@ void CheckTerminalState(State& state)
         for(int i = 0; i < AGENT_COUNT; i++)
         {
             AgentInfo& info = state.agents[i];
-            if (info.team == winningTeam)
+            if (info.team == state.winningTeam)
             {
                 info.won = true;
             }
@@ -488,8 +494,6 @@ void CheckTerminalState(State& state)
             }
         }
     }
-
-    state.winningTeam = winningTeam;
 }
 
 bool CompareTimeLeft(const Flame& lhs, const Flame& rhs)

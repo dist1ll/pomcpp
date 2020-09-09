@@ -270,6 +270,8 @@ struct AgentInfo
     int bombStrength = BOMB_DEFAULT_STRENGTH;
     bool canKick = false;
 
+    bool ignore = false;
+
     /**
      * @brief team An id for the team this agents belongs to.
      * The value 0 represents that the agent is in NO team.
@@ -282,7 +284,7 @@ struct AgentInfo
      */
     bool won = false;
 
-    Position GetPos()
+    Position GetPos() const
     {
         return {x, y};
     }
@@ -420,6 +422,17 @@ public:
     int timeStep = -1;
 
     /**
+     * @brief currentFlameTime The max flameTime of all flames alive. Used for the optimized flame queue.
+     */
+    int currentFlameTime = 0;
+
+    /**
+     * @brief CopyFrom Copies the elements from the given board object to this board.
+     * @param board The board which should be copied.
+     */
+    void CopyFrom(const Board& board);
+
+    /**
      * @brief PutItem Places an item on the board
      */
     inline void PutItem(int x, int y, Item item)
@@ -520,11 +533,6 @@ public:
      * @param b The bomb which explodes.
      */
     virtual void EventBombExploded(Bomb b) = 0;
-
-    /**
-     * @brief currentFlameTime The max flameTime of all flames alive. Used for the optimized flame queue.
-     */
-    int currentFlameTime = 0;
 };
 
 /**
@@ -532,9 +540,16 @@ public:
  */
 enum class GameMode
 {
-    FreeForAll,
+    FreeForAll = 0,
     TwoTeams
 };
+
+/**
+ * @brief SetTeams Sets the teams of the agents according to the given game mode.
+ * @param agents The agent infos
+ * @param gameMode The game mode
+ */
+void SetTeams(AgentInfo agents[AGENT_COUNT], GameMode gameMode);
 
 /**
  * Represents all information associated with the game board.
@@ -545,6 +560,7 @@ enum class GameMode
  */
 struct State : public Board
 {
+public:
     /**
      * @brief finished Whether this is a terminal state.
      */
@@ -697,6 +713,8 @@ public:
     FixedQueue<AgentInfo, AGENT_COUNT> agentInfos;
     int agentIDMapping[AGENT_COUNT];
 
+    int agentID;
+
     bool isAlive[AGENT_COUNT];
     bool isEnemy[AGENT_COUNT];
 
@@ -708,6 +726,13 @@ public:
      * @param observation The object which will be used to save the observation
      */
     static void Get(const State& state, const uint agentID, const ObservationParameters obsParams, Observation& observation);
+
+    /**
+     * @brief ToState Converts this observation to an (potentially incomplete) state object. This allows you to execute steps on that observation,
+     * @param state The state object which will be used to save the state
+     * @param gameMode The target gameMode (used to define the teams)
+     */
+    void ToState(State& state, GameMode gameMode) const;
 
     // Implement methods
     void Kill(const int agentID) override;

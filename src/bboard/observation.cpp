@@ -10,13 +10,6 @@
 namespace bboard
 {
 
-inline void copyBoardTo(const State& state, Observation& observation)
-{
-    std::copy_n(&state.items[0][0], BOARD_SIZE * BOARD_SIZE, &observation.items[0][0]);
-    observation.bombs = state.bombs;
-    observation.flames = state.flames;
-}
-
 inline void copyAgentInfosTo(const State& state, Observation& observation)
 {
     observation.agentInfos.count = 0;
@@ -29,8 +22,7 @@ inline void copyAgentInfosTo(const State& state, Observation& observation)
 
 inline void copyTo(const State& state, Observation& observation)
 {
-    copyBoardTo(state, observation);
-    observation.currentFlameTime = state.currentFlameTime;
+    observation.CopyFrom(state);
     copyAgentInfosTo(state, observation);
 }
 
@@ -52,6 +44,7 @@ inline void setAgentArrays(const State& state, const uint ownAgentID, Observatio
 
 void Observation::Get(const State& state, const uint agentID, const ObservationParameters obsParams, Observation& observation)
 {
+    observation.agentID = agentID;
     setAgentArrays(state, agentID, observation);
 
     // fully observable environment
@@ -141,7 +134,7 @@ void Observation::Get(const State& state, const uint agentID, const ObservationP
     else
     {
         // full view on the arena
-        copyBoardTo(state, observation);
+        observation.CopyFrom(state);
 
         if(!obsParams.exposePowerUps)
         {
@@ -202,6 +195,66 @@ void Observation::Get(const State& state, const uint agentID, const ObservationP
     // optimize flames in the end
     observation.currentFlameTime = util::OptimizeFlameQueue(observation);
 }
+
+void Observation::ToState(State& state, GameMode gameMode) const
+{
+    // initialize the board of the state
+    state.CopyFrom(*this);
+
+    // set the correct teams
+    SetTeams(state.agents, gameMode);
+
+    int aliveAgents = 0;
+    for(int i = 0; i < AGENT_COUNT; i++)
+    {
+        AgentInfo& info = state.agents[i];
+
+        int index = agentIDMapping[i];
+        if(index > -1)
+        {
+            // copy the available info
+            info = agentInfos[index];
+            info.ignore = false;
+        }
+        else
+        {
+            // we don't know much about this agent and want to ignore it
+            // use unique positions out of bounds to be compatible with the destination checks
+            info.x = i;
+            info.y = -1;
+            info.won = false;
+            info.dead = !isAlive[i];
+            info.ignore = true;
+            // unknown: canKick, bombCount, maxBombCount, bombStrength
+        }
+
+        if(isAlive[i])
+        {
+            aliveAgents += 1;
+        }
+    }
+    state.aliveAgents = aliveAgents;
+
+    // search for agents and set their correct positions if available
+    // TODO: Is this necessary?
+    for(int y = 0; y < BOARD_SIZE; y++)
+    {
+        for(int x = 0; x < BOARD_SIZE; x++)
+        {
+            int item = items[y][x];
+            if(item >= Item::AGENT0)
+            {
+                int id = item - Item::AGENT0;
+                state.agents[id].x = x;
+                state.agents[id].y = y;
+            }
+        }
+    }
+
+    util::CheckTerminalState(state);
+}
+
+// methods from board
 
 void Observation::Kill(int agentID)
 {
