@@ -103,7 +103,7 @@ TEST_CASE("Round trip", "[observation]")
 
     // fog is still there
     REQUIRE_CORRECT_FOG(s, 2, s2, params.agentViewSize);
-    s2.aliveAgents = s.aliveAgents;
+    REQUIRE(s.aliveAgents == s2.aliveAgents);
     REQUIRE(s.agents[2].x == s2.agents[2].x);
     REQUIRE(s.agents[2].y == s2.agents[2].y);
     REQUIRE(s.agents[2].team == s2.agents[2].team);
