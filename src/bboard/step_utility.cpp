@@ -61,7 +61,7 @@ Position DesiredPosition(const Bomb b)
 
 Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
                                  Position destBombs[MAX_BOMBS], int agentID)
-{
+{    
     AgentInfo& agent = state->agents[agentID];
     Position origin = oldAgentPos[agentID];
 
@@ -76,7 +76,7 @@ Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT]
     if(indexOriginAgent != -1)
     {
         // we also have to move back the agent which moved to our origin position
-        // TODO: Is the return really correct here?
+        // TODO: Is the return here correct?
         return AgentBombChainReversion(state, oldAgentPos, moves, destBombs, indexOriginAgent);
     }
 
@@ -145,6 +145,15 @@ void FillDestPos(const State* state, Move m[AGENT_COUNT], Position p[AGENT_COUNT
     }
 }
 
+void FillBombPositions(const Board* board, Position p[])
+{
+    for(int i = 0; i < board->bombs.count; i++)
+    {
+        Bomb b = board->bombs[i];
+        p[i] = {BMB_POS_X(b), BMB_POS_Y(b)};
+    }
+}
+
 void FillBombDestPos(const Board* board, Position p[MAX_BOMBS])
 {
     for(int i = 0; i < board->bombs.count; i++)
@@ -168,51 +177,6 @@ void _printDest(Position destPos[AGENT_COUNT])
         std::cout << destPos[i] << ", ";
     }
     std::cout << destPos[AGENT_COUNT - 1] << std::endl;
-}
-
-void FixBombDestPos(const Board* board, Position d[MAX_BOMBS])
-{
-    bool foundCollision;
-    bool fixDest[MAX_BOMBS];
-    std::fill_n(fixDest, MAX_BOMBS, false);
-
-    do
-    {
-        for(int i = 0; i < board->bombs.count; i++)
-        {
-            Bomb b1 = board->bombs[i];
-
-            // skip idle bombs
-            if (Move(BMB_ID(b1)) == Move::IDLE)
-                continue;
-
-            for(int j = i + 1; j < board->bombs.count; j++)
-            {
-                Bomb b2 = board->bombs[i];
-
-                // skip idle bombs
-                if (Move(BMB_ID(b2)) == Move::IDLE)
-                    continue;
-
-                // forbid moving to the same position and switching positions
-                if(d[i] == d[j] || (d[i].x == BMB_POS_X(b2) && d[i].y == BMB_POS_Y(b2) &&
-                        d[j].x == BMB_POS_X(b1) && d[j].y == BMB_POS_Y(b1)))
-                {
-                    foundCollision = true;
-                    fixDest[i] = true;
-                    fixDest[j] = true;
-                }
-            }
-        }
-
-        for (int i = 0; i < board->bombs.count; i++) {
-            if(fixDest[i]) {
-                const Bomb& b = board->bombs[i];
-                d[i].x = BMB_POS_X(b);
-                d[i].y = BMB_POS_Y(b);
-            }
-        }
-    } while(foundCollision);
 }
 
 int ResolveDependencies(const State* state, Position des[AGENT_COUNT],

@@ -53,7 +53,7 @@ void Step(State* state, Move* moves)
     util::FillDestPos(state, moves, destPos);
     util::FillAgentDead(state, dead);
 
-    util::FixDestPos<AGENT_COUNT, AGENT_COUNT>(dead, oldPos, destPos);
+    util::FixDestPos<true>(oldPos, destPos, AGENT_COUNT, dead);
 
     int dependency[AGENT_COUNT] = {-1, -1, -1, -1};
     int roots[AGENT_COUNT] = {-1, -1, -1, -1};
@@ -89,7 +89,7 @@ void Step(State* state, Move* moves)
         }
         else if(m == Move::BOMB)
         {
-            state->PlantBomb<true>(a, i);
+            state->TryPlantBomb<true>(a, i);
             continue;
         }
         else if(m == Move::IDLE || desired == a.GetPos())
@@ -186,33 +186,53 @@ void Step(State* state, Move* moves)
     util::ResetBombFlags(state);
 
     // Fill array of desired positions
-    Position bombDestinations[MAX_BOMBS];
+    Position bombPositions[state->bombs.count];
+    Position bombDestinations[state->bombs.count];
+    util::FillBombPositions(state, bombPositions);
     util::FillBombDestPos(state, bombDestinations);
-    // util::FixBombDestPos(state, bombDestinations);
+
+    // bomb position switching
+    // util::FixDestPos<false>(bombPositions, bombDestinations, state->bombs.count);
 
     // Set bomb directions to idle if they collide with an agent or a static obstacle
     for(int i = 0; i < state->bombs.count; i++)
     {
         Bomb& b = state->bombs[i];
-        int bx = BMB_POS_X(b);
-        int by = BMB_POS_Y(b);
 
-        if(util::BombMovementIsBlocked(state, bombDestinations[i]))
+        // bomb does not move or stopped moving due to conflicting destinations
+        if(bombPositions[i] == bombDestinations[i])
         {
             SetBombDirection(b, Direction::IDLE);
-            int indexAgent = state->GetAgent(bx, by);
+        }
+
+        // check whether the destination is blocked, this means
+        // a) The bomb does not move (anymore) and there is an agent on this bomb
+        // b) The bomb wanted to move but the destination is blocked (by some agent, powerup or obstacle)
+        //    --- note how this excludes bombs because they can still move!
+        if(util::BombMovementIsBlocked(state, bombDestinations[i]))
+        {
+            // the bomb stops moving
+            SetBombDirection(b, Direction::IDLE);
+            Position bPos = bombPositions[i];
+            bombDestinations[i] = bPos;
+
+            // check whether there is an agent at the origin of this bomb
+            int indexAgent = state->GetAgent(bPos.x, bPos.y);
             if(indexAgent > -1
-                    && moves[indexAgent] != Move::IDLE
-                    && moves[indexAgent] != Move::BOMB
+                    // agents which did not move can stay where there are (redundant)
+                    // && moves[indexAgent] != Move::IDLE
+                    // && moves[indexAgent] != Move::BOMB
                     // if the agents is where he came from he probably got bounced
                     // back to the bomb he was already standing on.
-                    && !(state->agents[indexAgent].GetPos() == oldPos[indexAgent]))
-
+                    && state->agents[indexAgent].GetPos() != oldPos[indexAgent])
             {
+                // bounce back the moving agent
                 util::AgentBombChainReversion(state, oldPos, moves, bombDestinations, indexAgent);
-                if(state->GetAgent(bx, by) == -1)
+
+                // this position is now occupied by the bomb
+                if(state->GetAgent(bPos.x, bPos.y) == -1)
                 {
-                    state->items[by][bx] = Item::BOMB;
+                    state->items[bPos.y][bPos.x] = Item::BOMB;
                 }
             }
         }
@@ -232,10 +252,9 @@ void Step(State* state, Move* moves)
             }
         }
 
-        int bx = BMB_POS_X(b);
-        int by = BMB_POS_Y(b);
+        Position pos = bombPositions[i];
+        Position target = bombDestinations[i];
 
-        Position target = util::DesiredPosition(b);
         int& tItem = state->items[target.y][target.x];
 
         if(util::IsOutOfBounds(target) || IS_STATIC_MOV_BLOCK(tItem))
@@ -254,9 +273,9 @@ void Step(State* state, Move* moves)
             // MOVE BOMB
             SetBombPosition(b, target.x, target.y);
 
-            if(!state->HasBomb(bx, by) && state->items[by][bx] == Item::BOMB)
+            if(!state->HasBomb(pos.x, pos.y) && state->items[pos.y][pos.x] == Item::BOMB)
             {
-                state->items[by][bx] = Item::PASSAGE;
+                state->items[pos.y][pos.x] = Item::PASSAGE;
             }
 
             if(IS_WALKABLE(tItem))
@@ -265,6 +284,7 @@ void Step(State* state, Move* moves)
             }
             else if(IS_FLAME(tItem))
             {
+                // TODO: Only explode bombs in the end after every bomb has moved???
                 // bomb moved into flame -> explode
                 state->ExplodeBombAt(state->GetBombIndex(target.x, target.y));
             }

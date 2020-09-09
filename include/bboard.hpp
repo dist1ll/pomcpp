@@ -428,12 +428,12 @@ public:
     }
 
     /**
-     * @brief PlantBomb Plants a bomb at the agent's position.
+     * @brief TryPlantBomb Tries to plant a bomb at the agent's position (and changes the agent's bomb count).
      */
     template<bool duringStep>
-    inline void PlantBomb(AgentInfo& agent, int id, bool setItem = false)
+    inline void TryPlantBomb(AgentInfo& agent, int id, bool setItem = false)
     {
-        if(agent.bombCount >= agent.maxBombCount)
+        if(agent.bombCount >= agent.maxBombCount || HasBomb(agent.x, agent.y))
             return;
 
         // when we plant a bomb during the step function, we need to increment the bomb lifetime by 1

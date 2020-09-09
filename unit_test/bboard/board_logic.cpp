@@ -63,7 +63,7 @@ void PlantBomb(State* s, int x, int y, int id, bool setItem=false)
     agent.x = x;
     agent.y = y;
     // then plants a bomb
-    s->PlantBomb<false>(agent, id, setItem);
+    s->TryPlantBomb<false>(agent, id, setItem);
     // then moves back
     agent.x = oldPosition.x;
     agent.y = oldPosition.y;

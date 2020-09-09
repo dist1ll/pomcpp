@@ -51,6 +51,8 @@ void FillPositions(const State* state, Position p[AGENT_COUNT]);
  */
 void FillDestPos(const State* state, Move m[AGENT_COUNT], Position p[AGENT_COUNT]);
 
+void FillBombPositions(const Board* board, Position p[]);
+
 /**
  * @brief FillBombDestPos Fills the given array p with all desired bomb
  * positions that moving bombs are anticipating
@@ -59,27 +61,37 @@ void FillBombDestPos(const Board* board, Position p[MAX_BOMBS]);
 
 void FillAgentDead(const State* state, bool dead[AGENT_COUNT]);
 
-template <int numElem, int sizePos>
-void FixDestPos(bool skip[numElem], Position o[sizePos], Position d[sizePos])
+inline void _printPositions(Position p[], int size)
+{
+    for(int i = 0; i < size-1; i++)
+    {
+        std::cout << p[i] << ", ";
+    }
+    if(size > 0)
+    {
+        std::cout << p[size - 1] << std::endl;
+    }
+}
+
+template <bool useSkip>
+void FixDestPos(Position o[], Position d[], int size, bool skip[] = nullptr)
 {
     bool foundCollision;
-    bool fixDest[numElem];
-    std::fill_n(fixDest, numElem, false);
+    bool resetDest[size];
+    std::fill_n(resetDest, size, false);
 
-    // TODO: Maybe there is a better way than looping
+    // TODO: Maybe there is a better way than looping over all combinations again
     do
     {
         foundCollision = false;
-        for(int i = 0; i < numElem; i++)
+        for(int i = 0; i < size; i++)
         {
-            // skip
-            if (skip[i])
+            if (useSkip && skip[i])
                 continue;
 
-            for(int j = i + 1; j < numElem; j++)
+            for(int j = i + 1; j < size; j++)
             {
-                // skip
-                if (skip[j])
+                if (useSkip && skip[j])
                     continue;
 
                 // forbid moving to the same position and switching positions
@@ -87,17 +99,24 @@ void FixDestPos(bool skip[numElem], Position o[sizePos], Position d[sizePos])
                         d[j].x == o[i].x && d[j].y == o[i].y))
                 {
                     foundCollision = true;
-                    fixDest[i] = true;
-                    fixDest[j] = true;
+                    resetDest[i] = true;
+                    resetDest[j] = true;
                 }
             }
         }
 
-        for (int i = 0; i < numElem; i++) {
-            if(fixDest[i]) {
+        for (int i = 0; i < size; i++) {
+            if(resetDest[i]) {
                 d[i] = o[i];
             }
         }
+        /*if(foundCollision)
+        {
+            std::cout << "pos:";
+            _printPositions(o, size);
+            std::cout << "dest:";
+            _printPositions(d, size);
+        }*/
     } while(foundCollision);
 }
 

@@ -80,7 +80,7 @@ TEST_CASE("Fix Switch Position", "[step utilities]")
     bboard::util::FillDestPos(s, m, des);
     bboard::util::FillAgentDead(s, dead);
 
-    bboard::util::FixDestPos<bboard::AGENT_COUNT, bboard::AGENT_COUNT>(dead, old, des);
+    bboard::util::FixDestPos<true>(old, des, bboard::AGENT_COUNT, dead);
 
     REQUIRE_POS(des[0], s->agents[0].x, s->agents[0].y);
     REQUIRE_POS(des[1], s->agents[1].x, s->agents[1].y);
