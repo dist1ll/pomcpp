@@ -309,10 +309,6 @@ typedef int Bomb;
 // BOMB INFO
 // ACCESS ALL PARTS OF THE BOMB INTEGER (EVERYTHING ENCODED
 // INTO 4 BIT WIDE FIELDS)
-inline int BMB_POS(const Bomb x)
-{
-    return (((x) & 0xFF));            // [ 0, 8[
-}
 inline int BMB_POS_X(const Bomb x)
 {
     return (((x) & 0xF));             // [ 0, 4[
@@ -320,6 +316,10 @@ inline int BMB_POS_X(const Bomb x)
 inline int BMB_POS_Y(const Bomb x)
 {
     return (((x) & 0xF0) >> 4);       // [ 4, 8[
+}
+inline Position BMB_POS(const Bomb x)
+{
+    return (Position){BMB_POS_X(x), BMB_POS_Y(x)};
 }
 inline int BMB_ID(const Bomb x)
 {
@@ -358,6 +358,10 @@ inline void ReduceBombTimer(Bomb& bomb)
 inline void SetBombPosition(Bomb& bomb, int x, int y)
 {
     bomb = (bomb & cmask0_4 & cmask4_8) + (x) + (y << 4);
+}
+inline void SetBombPosition(Bomb& bomb, Position pos)
+{
+    SetBombPosition(bomb, pos.x, pos.y);
 }
 inline void SetBombID(Bomb& bomb, int id)
 {

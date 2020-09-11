@@ -218,7 +218,8 @@ bool Board::SpawnFlameItem(int x, int y, bool isCenterFlame)
         // note: bombs can also be "hidden" below agents
         for(int i = 0; i < bombs.count; i++)
         {
-            if(BMB_POS(bombs[i]) == (x + (y << 4)))
+            Position bPos = BMB_POS(bombs[i]);
+            if(bPos.x == x && bPos.y == y)
             {
                 ExplodeBombAt(i);
                 return true;

@@ -242,10 +242,8 @@ void Step(State* state, Move* moves)
 
         if(Move(BMB_DIR(b)) == Move::IDLE)
         {
-            if(util::ResolveBombCollision(state, oldPos, moves, bombDestinations, i))
-            {
-                continue;
-            }
+            // this bomb does not move
+            continue;
         }
 
         Position pos = bombPositions[i];
@@ -274,12 +272,13 @@ void Step(State* state, Move* moves)
         }
         else
         {
-            if(util::ResolveBombCollision(state, oldPos, moves, bombDestinations, i))
+            if(util::ResolveBombCollision(state, oldPos, moves, bombPositions, bombDestinations, i))
             {
+                // if multiple bombs want to move to the same target -> idle them all
                 continue;
             }
 
-            // MOVE BOMB
+            // move bomb
             SetBombPosition(b, target.x, target.y);
 
             if(!state->HasBomb(pos.x, pos.y) && oItem == Item::BOMB)

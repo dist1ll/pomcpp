@@ -187,7 +187,7 @@ bool HasDPCollision(const State* state, Position dp[AGENT_COUNT], int agentID);
  * considered
  */
 bool ResolveBombCollision(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
-                          Position bombDest[MAX_BOMBS], int index);
+                          Position bombPos[MAX_BOMBS], Position bombDest[MAX_BOMBS], int index);
 
 /**
  * @brief ResetBombFlags Resets the "moved" flag of each bomb on the board

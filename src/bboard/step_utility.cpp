@@ -61,7 +61,11 @@ Position DesiredPosition(const Bomb b)
 
 Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
                                  Position destBombs[MAX_BOMBS], int agentID)
-{    
+{
+    // scenario: An agent shares its position with a bomb
+    // -> we have to reset the agent to its original position (could be staying on a bomb)
+    //    and check whether resetting the agent affects any additional agents or bombs
+
     AgentInfo& agent = state->agents[agentID];
     Position origin = oldAgentPos[agentID];
 
@@ -104,17 +108,15 @@ Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT]
         }
 
         // otherwise: the bomb wanted to move. Reset it
-        int bX = BMB_POS_X(b);
-        int bY = BMB_POS_Y(b);
+        Position bPos = BMB_POS(b);
 
         // check whether there is now an agent at the old position of the bomb
-        int hasAgent = state->GetAgent(bX, bY);
+        int hasAgent = state->GetAgent(bPos.x, bPos.y);
 
         // reset the bomb
         SetBombDirection(b, Direction::IDLE);
-        SetBombPosition(b, bX, bY);
-        destBombs[bombDestIndex] = {bX, bY};
-        state->items[bX][bY] = Item::BOMB;
+        SetBombPosition(b, bPos);
+        state->items[bPos.y][bPos.x] = Item::BOMB;
 
         if(hasAgent != -1)
         {
@@ -123,7 +125,7 @@ Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT]
         }
         else
         {
-            return {bX, bY};
+            return bPos;
         }
     }
 
@@ -286,31 +288,52 @@ bool HasDPCollision(const State* state, Position dp[AGENT_COUNT], int agentID)
 }
 
 bool ResolveBombCollision(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
-                          Position bombDest[MAX_BOMBS], int index)
+                          Position bombPos[MAX_BOMBS], Position bombDest[MAX_BOMBS], int index)
 {
-    Bomb b = state->bombs[index];
     bool hasCollided = false;
+    const int collisionsLength = state->bombs.count - index;
+    bool collisions[collisionsLength];
+    std::fill_n(collisions, collisionsLength, false);
+
+    Position target = bombDest[index];
+
+    // TODO: This does most likely NOT account for muli-level collisions
+    //       e.g. when we reset the destinations of bombs 2 and 3
+    //       because they collide but miss the collisions of
+    //       1(moves) and 2(old position) afterwards
 
     for(int i = index + 1; i < state->bombs.count; i++)
     {
-        if(bombDest[i] == bombDest[index])
+        if(bombDest[i] == target)
         {
-            SetBombDirection(state->bombs[i], Direction::IDLE);
             hasCollided = true;
+            collisions[i - index] = true;
         }
     }
 
     if(hasCollided)
     {
-        if(Direction(BMB_DIR(b)) != Direction::IDLE)
+        collisions[0] = true;
+
+        for(int i = 0; i < collisionsLength; i++)
         {
-            SetBombDirection(b, Direction::IDLE);
-            int index = BMB_ID(b);
-            // move != idle means the agent moved on it this turn
-            if(index > -1 && moves[index] != Move::IDLE && moves[index] != Move::BOMB)
+            if(!collisions[i])
+                continue;
+
+            Bomb& b = state->bombs[index + i];
+            if(Direction(BMB_DIR(b)) != Direction::IDLE)
             {
-                AgentBombChainReversion(state, oldAgentPos, moves, bombDest, index);
-                state->items[BMB_POS_Y(b)][BMB_POS_X(b)] = Item::BOMB;
+                // this bomb has a colliding destination, so stop it
+                Position bPos = bombPos[index + i];
+                SetBombDirection(b, Direction::IDLE);
+
+                // check whether we have to undo the agent's action
+                int agent = state->GetAgent(bPos.x, bPos.y);
+                if(agent > -1 && oldAgentPos[agent] != bPos)
+                {
+                    AgentBombChainReversion(state, oldAgentPos, moves, bombDest, agent);
+                    state->items[BMB_POS_Y(b)][BMB_POS_X(b)] = Item::BOMB;
+                }
             }
         }
     }
