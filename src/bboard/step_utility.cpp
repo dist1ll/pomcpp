@@ -322,7 +322,7 @@ void ResetBombFlags(Board* board)
 {
     for(int i = 0; i < board->bombs.count; i++)
     {
-        SetBombMovedFlag(board->bombs[i], false);
+        SetBombFlag(board->bombs[i], false);
     }
 }
 

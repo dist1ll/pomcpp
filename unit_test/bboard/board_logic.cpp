@@ -466,6 +466,71 @@ TEST_CASE("Bomb Explosion", "[step function]")
     }
 }
 
+TEST_CASE("Bomb Explosion - Special Cases", "[step function]")
+{
+    auto s = std::make_unique<bboard::State>();
+    bboard::Move id = bboard::Move::IDLE;
+    bboard::Move m[4] = {id, id, id, id};
+
+    for(int order = 0; order < 2; order++)
+    {
+        SECTION("No chain explosion because of bomb movement - order=" + std::to_string(order))
+        {
+            s->Kill(2, 3);
+            PlantBomb(s.get(), 0, 5, 0, true);
+            s->PutAgent(1, 0, 0);
+            s->PutAgent(2, 0, 1);
+            s.get()->agents[0].maxBombCount = 2;
+            s.get()->agents[0].canKick = true;
+            s.get()->agents[1].canKick = true;
+
+            for(int i = 0; i < BOMB_LIFETIME - 4; i++)
+            {
+                Step(s.get(), m);
+            }
+
+            // assume there are bombs in front of the agents
+            // different planting order should not effect the outcome
+            switch (order) {
+                case 0:
+                    PlantBomb(s.get(), 1, 1, 0, true);
+                    PlantBomb(s.get(), 2, 1, 1, true);
+                    break;
+                case 1:
+                    PlantBomb(s.get(), 2, 1, 0, true);
+                    PlantBomb(s.get(), 1, 1, 1, true);
+                    break;
+            }
+
+            // agent 1 kicks it
+            m[1] = Move::DOWN;
+            Step(s.get(), m);
+
+            // then agent 0 kicks it
+            m[0] = Move::DOWN;
+            m[1] = Move::IDLE;
+            Step(s.get(), m);
+
+            m[0] = Move::IDLE;
+
+            // the bomb should explode after two additional steps
+            for(int i = 0; i < 2; i++)
+            {
+                Step(s.get(), m);
+            }
+
+            // and our bombs reach that explosion in the next step
+            Step(s.get(), m);
+
+            // but the first kicked bomb should pass the explosion
+            REQUIRE(IS_FLAME(s.get()->items[5][0 + BOMB_DEFAULT_STRENGTH]));
+            REQUIRE(IS_FLAME(s.get()->items[5][1 + BOMB_DEFAULT_STRENGTH]));
+            REQUIRE(!IS_FLAME(s.get()->items[5][2 + BOMB_DEFAULT_STRENGTH]));
+            REQUIRE(s.get()->GetBombIndex(2, 6) != -1);
+        }
+    }
+}
+
 TEST_CASE("Flame Mechanics", "[step function]")
 {
     auto s = std::make_unique<bboard::State>();

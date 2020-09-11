@@ -130,7 +130,7 @@ void Board::PlantBombModifiedLife(int x, int y, int id, int strength, int lifeTi
     SetBombPosition(b, x, y);
     SetBombStrength(b, strength);
     SetBombDirection(b, Direction::IDLE);
-    SetBombMovedFlag(b, false);
+    SetBombFlag(b, false);
     SetBombTime(b, lifeTime);
 
     if(setItem)

@@ -337,7 +337,7 @@ inline int BMB_DIR(const Bomb x)
 {
     return (((x) & 0xF00000) >> 20);  // [20,24[
 }
-inline int BMB_MOVED(const Bomb x)
+inline int BMB_FLAG(const Bomb x)
 {
     return (((x) & 0xF000000) >> 24); // [24,28[
 }
@@ -375,7 +375,7 @@ inline void SetBombDirection(Bomb& bomb, Direction dir)
 {
     bomb = (bomb & cmask20_24) + (int(dir) << 20);
 }
-inline void SetBombMovedFlag(Bomb& bomb, bool moved)
+inline void SetBombFlag(Bomb& bomb, bool moved)
 {
     bomb = (bomb & cmask24_28) + (int(moved) << 24);
 }

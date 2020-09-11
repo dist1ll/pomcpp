@@ -235,6 +235,7 @@ void Step(State* state, Move* moves)
     }
 
     // Move bombs
+    bool bombExplodedDuringMovement = false;
     for(int i = 0; i < state->bombs.count; i++)
     {
         Bomb& b = state->bombs[i];
@@ -292,9 +293,21 @@ void Step(State* state, Move* moves)
             }
             else if(IS_FLAME(tItem))
             {
-                // TODO: Only explode bombs in the end after every bomb has moved???
-                // bomb moved into flame -> explode
-                state->ExplodeBombAt(state->GetBombIndex(target.x, target.y));
+                // bomb moved into flame -> explode later
+                bombExplodedDuringMovement = true;
+                SetBombFlag(b, true);
+            }
+        }
+    }
+
+    if(bombExplodedDuringMovement)
+    {
+        for(int i = 0; i < state->bombs.count; i++)
+        {
+            if(BMB_FLAG(state->bombs[i]) == int(true))
+            {
+                state->ExplodeBombAt(i);
+                i--;
             }
         }
     }
