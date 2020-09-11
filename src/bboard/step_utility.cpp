@@ -113,6 +113,7 @@ Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT]
         // reset the bomb
         SetBombDirection(b, Direction::IDLE);
         SetBombPosition(b, bX, bY);
+        destBombs[bombDestIndex] = {bX, bY};
         state->items[bX][bY] = Item::BOMB;
 
         if(hasAgent != -1)
@@ -284,33 +285,15 @@ bool HasDPCollision(const State* state, Position dp[AGENT_COUNT], int agentID)
     return false;
 }
 
-bool HasBombCollision(const Board* board, const Bomb& b, int index)
-{
-    Position bmbTarget = util::DesiredPosition(b);
-
-    for(int i = index; i < board->bombs.count; i++)
-    {
-        Position target = util::DesiredPosition(board->bombs[i]);
-
-        if(b != board->bombs[i] && target == bmbTarget)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-void ResolveBombCollision(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
-                          Position destBombs[MAX_BOMBS], int index)
+bool ResolveBombCollision(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
+                          Position bombDest[MAX_BOMBS], int index)
 {
     Bomb b = state->bombs[index];
     bool hasCollided = false;
 
     for(int i = index + 1; i < state->bombs.count; i++)
     {
-        Position target = util::DesiredPosition(state->bombs[i]);
-
-        if(b != state->bombs[i] && target == destBombs[index])
+        if(bombDest[i] == bombDest[index])
         {
             SetBombDirection(state->bombs[i], Direction::IDLE);
             hasCollided = true;
@@ -326,11 +309,13 @@ void ResolveBombCollision(State* state, Position oldAgentPos[AGENT_COUNT], Move 
             // move != idle means the agent moved on it this turn
             if(index > -1 && moves[index] != Move::IDLE && moves[index] != Move::BOMB)
             {
-                AgentBombChainReversion(state, oldAgentPos, moves, destBombs, index);
+                AgentBombChainReversion(state, oldAgentPos, moves, bombDest, index);
                 state->items[BMB_POS_Y(b)][BMB_POS_X(b)] = Item::BOMB;
             }
         }
     }
+
+    return hasCollided;
 }
 
 void ResetBombFlags(Board* board)

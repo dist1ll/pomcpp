@@ -191,26 +191,21 @@ void Step(State* state, Move* moves)
     util::FillBombPositions(state, bombPositions);
     util::FillBombDestPos(state, bombDestinations);
 
-    // TODO: Remove again
+    // TODO: Add again
     // bomb position switching
-    util::FixDestPos<false>(bombPositions, bombDestinations, state->bombs.count);
+    // util::FixDestPos<false>(bombPositions, bombDestinations, state->bombs.count);
 
     // Set bomb directions to idle if they collide with an agent or a static obstacle
     for(int i = 0; i < state->bombs.count; i++)
     {
         Bomb& b = state->bombs[i];
-
-        // bomb does not move or stopped moving due to conflicting destinations
-        if(bombPositions[i] == bombDestinations[i])
-        {
-            SetBombDirection(b, Direction::IDLE);
-        }
+        Position target = bombDestinations[i];
 
         // check whether the destination is blocked, this means
         // a) The bomb does not move (anymore) and there is an agent on this bomb
         // b) The bomb wanted to move but the destination is blocked (by some agent, powerup or obstacle)
         //    --- note how this excludes bombs because they can still move!
-        if(util::BombMovementIsBlocked(state, bombDestinations[i]))
+        if(util::BombMovementIsBlocked(state, target))
         {
             // the bomb stops moving
             SetBombDirection(b, Direction::IDLE);
@@ -240,21 +235,23 @@ void Step(State* state, Move* moves)
     }
 
     // Move bombs
-    for(int i = state->bombs.count - 1; i >= 0; i--)
+    for(int i = 0; i < state->bombs.count; i++)
     {
         Bomb& b = state->bombs[i];
 
         if(Move(BMB_DIR(b)) == Move::IDLE)
         {
-            if(util::HasBombCollision(state, b, i))
+            if(util::ResolveBombCollision(state, oldPos, moves, bombDestinations, i))
             {
-                util::ResolveBombCollision(state, oldPos, moves, bombDestinations, i);
                 continue;
             }
         }
 
         Position pos = bombPositions[i];
-        Position target = bombDestinations[i];
+        // TODO: We cannot use bombDestinations here because they are not set correctly
+        //       anymore at this point. A better solution would be to update the destinations
+        //       when the movement of the bomb changes.
+        Position target = util::DesiredPosition(b);
 
         int& oItem = state->items[pos.y][pos.x];
         int& tItem = state->items[target.y][target.x];
@@ -266,18 +263,18 @@ void Step(State* state, Move* moves)
         }
         else if(tItem == Item::FOG)
         {
-            // the bomb just disappears
+            // the bomb just disappears when it moves out of range
             if(!state->HasBomb(pos.x, pos.y) && oItem == Item::BOMB)
             {
                 oItem = Item::PASSAGE;
             }
             state->bombs.RemoveAt(i);
+            i--;
         }
         else
         {
-            if(util::HasBombCollision(state, b, i))
+            if(util::ResolveBombCollision(state, oldPos, moves, bombDestinations, i))
             {
-                util::ResolveBombCollision(state, oldPos, moves, bombDestinations, i);
                 continue;
             }
 
@@ -301,6 +298,7 @@ void Step(State* state, Move* moves)
             }
         }
     }
+
 
     ///////////////
     // Explosion //

@@ -178,15 +178,6 @@ void PrintDependencyChain(int dependency[AGENT_COUNT], int chain[AGENT_COUNT]);
 bool HasDPCollision(const State* state, Position dp[AGENT_COUNT], int agentID);
 
 /**
- * @brief HasBombCollision Checks whether a bomb collides with another bomb
- * on the board
- * @param index Only bombs with a queue index larger or equal to `index` will be
- * considered
- * @return True if the given bomb collides with another bomb
- */
-bool HasBombCollision(const Board* board, const Bomb& b, int index = 0);
-
-/**
  * @brief ResolveBombCollision Checks if a specified bomb collides
  * with another bomb(s). If that's the case, any bombs participating in the collision
  * will keep their position and if the bomb was kicked in this round the agents
@@ -195,8 +186,8 @@ bool HasBombCollision(const Board* board, const Bomb& b, int index = 0);
  * @param index Only bombs with a queue index larger or equal to `index` will be
  * considered
  */
-void ResolveBombCollision(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
-                          Position bombDest[MAX_BOMBS], int index = 0);
+bool ResolveBombCollision(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
+                          Position bombDest[MAX_BOMBS], int index);
 
 /**
  * @brief ResetBombFlags Resets the "moved" flag of each bomb on the board
