@@ -355,6 +355,131 @@ void ResolveBombMovement(State* state, Position oldAgentPos[AGENT_COUNT])
     }
 }
 
+inline void _resetBoardAgentGone(Board* board, const int x, const int y, const int i)
+{
+    if(board->items[y][x] == Item::AGENT0 + i)
+    {
+        if(board->HasBomb(x, y))
+        {
+            board->items[y][x] = Item::BOMB;
+        }
+        else
+        {
+            board->items[y][x] = Item::PASSAGE;
+        }
+    }
+}
+
+inline void _setAgent(State* state, const int x, const int y, const int i)
+{
+    state->items[y][x] = Item::AGENT0 + i;
+    state->agents[i].x = x;
+    state->agents[i].y = y;
+}
+
+void MoveAgent(State* state, const int i, const Move m, const Position fixedDest, const bool ouroboros)
+{
+    AgentInfo& a = state->agents[i];
+
+    if(a.dead || a.ignore)
+    {
+        return;
+    }
+    else if(m == Move::BOMB)
+    {
+        state->TryPlantBomb<true>(a, i);
+        return;
+    }
+    else if(m == Move::IDLE || fixedDest == a.GetPos())
+    {
+        // important: has to be after m == bomb because we won't move when
+        // we place a bomb
+        return;
+    }
+
+    // the agent wants to move
+
+    if(util::IsOutOfBounds(fixedDest))
+    {
+        // cannot walk out of bounds
+        return;
+    }
+
+    int itemOnDestination = state->items[fixedDest.y][fixedDest.x];
+
+    //if ouroboros, the bomb will be covered by an agent
+    if(ouroboros && state->HasBomb(fixedDest.x, fixedDest.y))
+    {
+        // break ouroboros in case there is a bomb
+        itemOnDestination = Item::BOMB;
+        // TODO: Do we have to undo the other ouroboros agents?
+    }
+
+    //
+    // All checks passed - you can try a move now
+    //
+
+    // move into flame
+    if(IS_FLAME(itemOnDestination))
+    {
+        state->Kill(i);
+        _resetBoardAgentGone(state, a.x, a.y, i);
+        return;
+    }
+
+    // collect power-ups (and continue walking)
+    if(IS_POWERUP(itemOnDestination))
+    {
+        util::ConsumePowerup(state->agents[i], itemOnDestination);
+        itemOnDestination = Item::PASSAGE;
+    }
+
+    // execute move if the destination is free
+    // (in the rare case of ouroboros, make the move even
+    // if an agent occupies the spot)
+    // TODO: ouroboros
+    if(itemOnDestination == Item::PASSAGE ||
+            (ouroboros && itemOnDestination >= Item::AGENT0))
+    {
+        // only override the position I came from if it has not been
+        // overridden by a different agent that already took this spot
+        _resetBoardAgentGone(state, a.x, a.y, i);
+        _setAgent(state, fixedDest.x, fixedDest.y, i);
+        return;
+    }
+
+    if(itemOnDestination == Item::BOMB)
+    {
+        // if destination has a bomb & the player has bomb-kick, move the player on it.
+        // The idea is to move each player (on the bomb) and afterwards move the bombs.
+        // If the bombs can't be moved to their target location, the player that kicked
+        // it moves back. Since we have a dependency array we can move back every player
+        // that depends on the inital one (and if an agent that moved there this step
+        // blocked the bomb we can move him back as well).
+        if(state->agents[i].canKick)
+        {
+            // a player that moves towards a bomb at this(!) point means that
+            // there was no DP collision, which means this agent is a root. So we can just
+            // override
+            // TODO: Remove if?
+            _resetBoardAgentGone(state, a.x, a.y, i);
+            _setAgent(state, fixedDest.x, fixedDest.y, i);
+
+            // start moving the kicked bomb by setting a velocity
+            // the first 5 values of Move and Direction are semantically identical
+            Bomb& b = *state->GetBomb(fixedDest.x,  fixedDest.y);
+            SetBombDirection(b, Direction(m));
+        }
+        else
+        {
+            // allow stepping on bombs because they could move in the next step
+            // we'll check bomb movement later and undo this step if necessary
+            _resetBoardAgentGone(state, a.x, a.y, i);
+            _setAgent(state, fixedDest.x, fixedDest.y, i);
+        }
+    }
+}
+
 void MoveBombs(State* state)
 {
     // Reset bomb exploded flags

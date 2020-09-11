@@ -198,8 +198,20 @@ void ResetBombFlags(Board* board);
 void ResolveBombMovement(State* state, Position oldAgentPos[AGENT_COUNT]);
 
 /**
+ * @brief MoveAgent Execute move m for agent i (includes laying bombs).
+ * Assumes that every agent movement conflict is already resolved and that
+ * step is called in the order of the dependencies between agents!
+ * @param state The state object
+ * @param i The index of this agent
+ * @param m The move which should be applied
+ * @param fixedDest The fixed destinations of the agent. Has a higher priority than the move
+ * @param ouroboros Whether he have an ouroboros scenario
+ */
+void MoveAgent(State* state, const int i, const Move m, const Position fixedDest, const bool ouroboros);
+
+/**
  * @brief MoveBombs Moves the bombs (bombs explode when they hit flames).
- * Assumes that every movement conflict is already resolved!
+ * Assumes that every bomb movement conflict is already resolved!
  * @param state The state object
  */
 void MoveBombs(State* state);
