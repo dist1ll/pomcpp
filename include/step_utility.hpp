@@ -34,7 +34,7 @@ Position DesiredPosition(const Bomb b);
  * we don't need to read the direction and find out if they've been alraedy moved
  * @return The position of the last agent/bomb that was bounced back in the chain.
  */
-Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
+Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT],
                                  Position bombDest[MAX_BOMBS], int agentID);
 
 /**
@@ -74,16 +74,14 @@ inline void _printPositions(Position p[], int size)
 }
 
 template <bool useSkip>
-void FixDestPos(Position o[], Position d[], int size, bool skip[] = nullptr)
+bool FixDestPos(Position o[], Position d[], bool collision[], const int size, bool skip[] = nullptr)
 {
-    bool foundCollision;
-    bool resetDest[size];
-    std::fill_n(resetDest, size, false);
-
+    bool foundCollision = false;
+    bool foundColInIteration;
     // TODO: Maybe there is a better way than looping over all combinations again
     do
     {
-        foundCollision = false;
+        foundColInIteration = false;
         for(int i = 0; i < size; i++)
         {
             if (useSkip && skip[i])
@@ -98,26 +96,34 @@ void FixDestPos(Position o[], Position d[], int size, bool skip[] = nullptr)
                 if(d[i] == d[j] || (d[i].x == o[j].x && d[i].y == o[j].y &&
                         d[j].x == o[i].x && d[j].y == o[i].y))
                 {
+                    foundColInIteration = true;
                     foundCollision = true;
-                    resetDest[i] = true;
-                    resetDest[j] = true;
+                    collision[i] = true;
+                    collision[j] = true;
                 }
             }
         }
 
-        for (int i = 0; i < size; i++) {
-            if(resetDest[i]) {
-                d[i] = o[i];
+        if(foundColInIteration)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                if(collision[i]) {
+                    d[i] = o[i];
+                }
             }
         }
-        /*if(foundCollision)
-        {
-            std::cout << "pos:";
-            _printPositions(o, size);
-            std::cout << "dest:";
-            _printPositions(d, size);
-        }*/
-    } while(foundCollision);
+    } while(foundColInIteration);
+
+    return foundCollision;
+}
+
+template <bool useSkip>
+bool FixDestPos(Position o[], Position d[], const int size, bool skip[] = nullptr)
+{
+    bool collision[size];
+    std::fill_n(collision, size, false);
+    return FixDestPos<useSkip>(o, d, collision, size, skip);
 }
 
 /**
@@ -178,22 +184,25 @@ void PrintDependencyChain(int dependency[AGENT_COUNT], int chain[AGENT_COUNT]);
 bool HasDPCollision(const State* state, Position dp[AGENT_COUNT], int agentID);
 
 /**
- * @brief ResolveBombCollision Checks if a specified bomb collides
- * with another bomb(s). If that's the case, any bombs participating in the collision
- * will keep their position and if the bomb was kicked in this round the agents
- * will be bounced back to their old position (alongside any agents that moved
- * to that agents spot in the meantime)
- * @param index Only bombs with a queue index larger or equal to `index` will be
- * considered
- */
-bool ResolveBombCollision(State* state, Position oldAgentPos[AGENT_COUNT], Move moves[AGENT_COUNT],
-                          Position bombPos[MAX_BOMBS], Position bombDest[MAX_BOMBS], int index);
-
-/**
  * @brief ResetBombFlags Resets the "moved" flag of each bomb on the board
  * back to false.
  */
 void ResetBombFlags(Board* board);
+
+/**
+ * @brief ResolveBombMovement Checks desired bomb positions and fixed collisions.
+ * Handles agent dependencies and resets their moves if necessary.
+ * @param state The state object
+ * @param oldAgentPos The old agent positions
+ */
+void ResolveBombMovement(State* state, Position oldAgentPos[AGENT_COUNT]);
+
+/**
+ * @brief MoveBombs Moves the bombs (bombs explode when they hit flames).
+ * Assumes that every movement conflict is already resolved!
+ * @param state The state object
+ */
+void MoveBombs(State* state);
 
 /**
  * @brief IsOutOfBounds Checks wether a given position is out of bounds
