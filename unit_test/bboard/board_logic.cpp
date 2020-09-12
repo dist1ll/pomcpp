@@ -892,28 +892,4 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
             }
         }
     }
-    /*
-    SECTION("Bounce Back Complex Chain")
-    {
-        s->Kill(2, 3);
-        s->PutAgent(0, 2, 1);
-        m[1] = Move::UP;
-        s->PlantBomb(2, 2, 0, true);
-        s->PlantBomb(0, 3, 0, true);
-        bboard::SetBombDirection(s->bombs[1], bboard::Direction::UP);
-        bboard::SetBombDirection(s->bombs[2], bboard::Direction::UP);
-
-        bboard::PrintState(s.get(), true);
-        std::cin.get();
-
-        for(int i = 0; i < 5; i++)
-        {
-            bboard::Step(s.get(), m);
-            bboard::PrintState(s.get(), true);
-            std::cin.get();
-            m[0] = m[1] = bboard::Move::IDLE;
-        }
-    }
-
-        */
 }
