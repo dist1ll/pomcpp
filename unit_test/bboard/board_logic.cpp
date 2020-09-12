@@ -11,8 +11,7 @@ using namespace bboard;
 void REQUIRE_AGENT(bboard::State* state, int agent, int x, int y)
 {
     int o = bboard::Item::AGENT0 + agent;
-    REQUIRE(state->agents[agent].x == x);
-    REQUIRE(state->agents[agent].y == y);
+    REQUIRE(state->agents[agent].GetPos() == (Position){x, y});
     REQUIRE(state->items[y][x] == o);
 }
 
@@ -798,14 +797,13 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
 
         for(int i = 0; i < 3; i++)
         {
-            //bboard::PrintState(s.get(), false);
+            // bboard::PrintState(s.get(), false);
             //std::cin.get();
             bboard::Step(s.get(), m);
             m[0] = m[1] = bboard::Move::IDLE;
             m[2] = Move::LEFT;
         }
     }
-
     SECTION("Bounce Back Wall")
     {
         s->Kill(1, 3);
@@ -837,6 +835,62 @@ TEST_CASE("Bomb Kick Mechanics", "[step function]")
         m[3] = bboard::Move::LEFT;
         bboard::Step(s.get(), m);
         REQUIRE_AGENT(s.get(), 3, 6, 6);
+    }
+    for(bool b : {true, false})
+    {
+        SECTION("Undo Kick " + std::to_string(b))
+        {
+            s->Kill(2, 3);
+            s->PutAgent(1, 1, 1);
+
+            // agent planted bomb at its own position
+            // and one space below
+            s->agents[1].maxBombCount = 2;
+            PlantBomb(s.get(), 1, 1, 1, true);
+            PlantBomb(s.get(), 1, 2, 1, true);
+            // 0 1 <- there is a bomb below agent 1
+            //   b
+
+            // agent 0 wants to move rightwards
+            // agent 1 wants to move downwards
+            m[1] = Move::DOWN;
+
+            // agent 0 can kick in both cases
+            if(b)
+            {
+                s->agents[1].canKick = false;
+            }
+            else
+            {
+                s->agents[1].canKick = true;
+            }
+
+            bboard::Step(s.get(), m);
+
+            if(b)
+            {
+                // because agent 1 cannot kick, we have to undo
+                // everything
+
+                // bombs stay (especially the kicked bomb 0)
+                REQUIRE(BMB_POS(s->bombs[0]) == (Position){1, 1});
+                REQUIRE(BMB_POS(s->bombs[1]) == (Position){1, 2});
+                // ..because agents did not move
+                REQUIRE_AGENT(s.get(), 0, 0, 1);
+                REQUIRE_AGENT(s.get(), 1, 1, 1);
+            }
+            else
+            {
+                // because agent 1 can kick, we can apply every move
+
+                // bombs moved
+                REQUIRE(BMB_POS(s->bombs[0]) == (Position){2, 1});
+                REQUIRE(BMB_POS(s->bombs[1]) == (Position){1, 3});
+                // ..because agents moved as well
+                REQUIRE_AGENT(s.get(), 0, 1, 1);
+                REQUIRE_AGENT(s.get(), 1, 1, 2);
+            }
+        }
     }
     /*
     SECTION("Bounce Back Complex Chain")

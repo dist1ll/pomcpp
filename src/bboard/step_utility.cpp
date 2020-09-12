@@ -77,21 +77,39 @@ Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT]
     agent.y = origin.y;
     state->items[origin.y][origin.x] = Item::AGENT0 + agentID;
 
+    int bombDestIndex = -1;
     if(indexOriginAgent != -1)
     {
         // we also have to move back the agent which moved to our origin position
-        // TODO: Is the return here correct?
-        return AgentBombChainReversion(state, oldAgentPos, destBombs, indexOriginAgent);
-    }
+        AgentBombChainReversion(state, oldAgentPos, destBombs, indexOriginAgent);
 
-    // is there a bomb which wants to move to / stay at the old origin?
-    int bombDestIndex = -1;
-    for(int i = 0; i < state->bombs.count; i++)
-    {
-        if(destBombs[i] == origin)
+        // is there a bomb which has been kicked by this agent just in this step?
+        // if that's the case, undo the kick
+        const AgentInfo& originAgent = state->agents[indexOriginAgent];
+        if(originAgent.canKick)
         {
-            bombDestIndex = i;
-            break;
+            for(int i = 0; i < state->bombs.count; i++)
+            {
+                // kicked bombs will still be located at the origin
+                // because they did not move yet
+                if(BMB_POS(state->bombs[i]) == origin)
+                {
+                    bombDestIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+    else
+    {
+        // is there a bomb which wants to move to / stay at the old origin?
+        for(int i = 0; i < state->bombs.count; i++)
+        {
+            if(destBombs[i] == origin)
+            {
+                bombDestIndex = i;
+                break;
+            }
         }
     }
 
@@ -102,6 +120,7 @@ Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT]
 
         // the bomb did not move. As we've already set the origin, we are done
         // this is the case when an agent gets bounced back to a bomb he laid
+        // and the bomb as not been kicked
         if(Move(BMB_DIR(b)) == Move::IDLE)
         {
             return origin;
@@ -118,6 +137,15 @@ Position AgentBombChainReversion(State* state, Position oldAgentPos[AGENT_COUNT]
         SetBombPosition(b, bPos);
         destBombs[bombDestIndex] = bPos;
 
+        if(hasAgent == agentID)
+        {
+            // the agent moved back on its own bomb (which might have been
+            // kicked by other agents, so we had to revert it to idle)
+            return bPos;
+        }
+
+        // otherwise, bPos is either empty or occupied by some different agent.
+        // as we'll move back the other agent, we can already set the bomb item
         state->items[bPos.y][bPos.x] = Item::BOMB;
 
         if(hasAgent != -1)
