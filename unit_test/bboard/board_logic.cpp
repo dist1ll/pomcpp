@@ -253,55 +253,108 @@ TEST_CASE("Movement Dependency Handling", "[step function]")
         REQUIRE_AGENT(s, 2, 1, 1);
         REQUIRE_AGENT(s, 3, 1, 2);
     }
-    SECTION("Move Ouroboros")
+}
+
+void REQUIRE_OUROBOROS_MOVED(bboard::State* s, bool moved)
+{
+    if(moved)
     {
-        s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 0, 1);
-        s->PutAgent(1, 1, 2);
-        s->PutAgent(0, 1, 3);
-
-        m[0] = bboard::Move::RIGHT;
-        m[1] = bboard::Move::DOWN;
-        m[2] = bboard::Move::LEFT;
-        m[3] = bboard::Move::UP;
-
-        bboard::Step(s, m);
         REQUIRE_AGENT(s, 3, 0, 0);
         REQUIRE_AGENT(s, 0, 1, 0);
         REQUIRE_AGENT(s, 1, 1, 1);
         REQUIRE_AGENT(s, 2, 0, 1);
     }
-    /*
-     * // Fails ATM
-    SECTION("Move Ouroboros with bomb")
+    else
     {
-        s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 0, 1);
-        s->PutAgent(1, 1, 2);
-        s->PutAgent(0, 1, 3);
-
-        bboard::PrintBoard(s);
-
-        // when player 0 plants a bomb, no player can move
-        s->PlantBomb<false>(s->agents[0], 0);
-
-        bboard::PrintBoard(s);
-
-        m[0] = bboard::Move::RIGHT;
-        m[1] = bboard::Move::DOWN;
-        m[2] = bboard::Move::LEFT;
-        m[3] = bboard::Move::UP;
-
-        bboard::Step(s, m);
         REQUIRE_AGENT(s, 0, 0, 0);
         REQUIRE_AGENT(s, 1, 1, 0);
         REQUIRE_AGENT(s, 2, 1, 1);
         REQUIRE_AGENT(s, 3, 0, 1);
-
-        bboard::PrintBoard(s);
     }
-    */
 }
+
+TEST_CASE("Ouroboros", "[step function]")
+{
+    auto sx = std::make_unique<bboard::State>();
+    bboard::State* s = sx.get();
+
+    s->PutAgent(0, 0, 0);
+    s->PutAgent(1, 0, 1);
+    s->PutAgent(1, 1, 2);
+    s->PutAgent(0, 1, 3);
+
+    bboard::Move m[4];
+    m[0] = bboard::Move::RIGHT;
+    m[1] = bboard::Move::DOWN;
+    m[2] = bboard::Move::LEFT;
+    m[3] = bboard::Move::UP;
+
+    SECTION("Move Ouroboros")
+    {
+        bboard::Step(s, m);
+        REQUIRE_OUROBOROS_MOVED(s, true);
+    }
+    SECTION("Ouroboros with bomb")
+    {
+        // when player 0 plants a bomb, no player can move
+        s->TryPlantBomb<false>(s->agents[0], 0);
+        bboard::Step(s, m);
+        REQUIRE_OUROBOROS_MOVED(s, false);
+    }
+    SECTION("Ouroboros with bomb kick")
+    {
+        // when player 1 plants a bomb and player 0 can kick it
+        // then we can move
+        s->TryPlantBomb<false>(s->agents[1], 0);
+        s->agents[0].canKick = true;
+        bboard::Step(s, m);
+        REQUIRE_OUROBOROS_MOVED(s, true);
+    }
+    for(Item i : {Item::WOOD, Item::RIGID, Item::EXTRABOMB, Item::INCRRANGE, Item::KICK}){
+        SECTION("Ouroboros with bomb kick - 2 - " + std::to_string((int)i))
+        {
+            // does not work when the movement is blocked by something
+            s->TryPlantBomb<false>(s->agents[1], 0);
+            s->agents[0].canKick = true;
+            s->PutItem(2, 0, i);
+            bboard::Step(s, m);
+            REQUIRE_OUROBOROS_MOVED(s, false);
+        }
+    }
+    SECTION("Ouroboros with bomb kick - 3")
+    {
+        // also works vertically
+        s->TryPlantBomb<false>(s->agents[2], 0);
+        s->agents[1].canKick = true;
+        bboard::Step(s, m);
+        REQUIRE_OUROBOROS_MOVED(s, true);
+    }
+    SECTION("Ouroboros with bomb kick - 4")
+    {
+        // doesn't work for players 0 and 3 because the bomb cannot
+        // be kicked out of bounds
+        s->TryPlantBomb<false>(s->agents[0], 0);
+        s->agents[3].canKick = true;
+        bboard::Step(s, m);
+        REQUIRE_OUROBOROS_MOVED(s, false);
+    }
+    SECTION("Ouroboros all bombs")
+    {
+        // when everybody plants bombs in the step function
+        m[0] = m[1] = m[2] = m[3] = bboard::Move::BOMB;
+        bboard::Step(s, m);
+
+        // nobody can move
+        m[0] = bboard::Move::RIGHT;
+        m[1] = bboard::Move::DOWN;
+        m[2] = bboard::Move::LEFT;
+        m[3] = bboard::Move::UP;
+        bboard::Step(s, m);
+
+        REQUIRE_OUROBOROS_MOVED(s, false);
+    }
+}
+
 
 TEST_CASE("Bomb Mechanics", "[step function]")
 {
@@ -347,27 +400,6 @@ TEST_CASE("Bomb Mechanics", "[step function]")
         m[3] = bboard::Move::RIGHT;
         bboard::Step(s.get(), m);
         REQUIRE_AGENT(s.get(), 3, 4, 0);
-    }
-    SECTION("Bomb Ouroboros Block")
-    {
-        s->PutAgent(0, 0, 0);
-        s->PutAgent(1, 0, 1);
-        s->PutAgent(1, 1, 2);
-        s->PutAgent(0, 1, 3);
-
-        m[0] = m[1] = m[2] = m[3] = bboard::Move::BOMB;
-        bboard::Step(s.get(), m);
-
-        m[0] = bboard::Move::RIGHT;
-        m[1] = bboard::Move::DOWN;
-        m[2] = bboard::Move::LEFT;
-        m[3] = bboard::Move::UP;
-        bboard::Step(s.get(), m);
-        //everyone planted bombs, you can't move
-        REQUIRE_AGENT(s.get(), 0, 0, 0);
-        REQUIRE_AGENT(s.get(), 1, 1, 0);
-        REQUIRE_AGENT(s.get(), 2, 1, 1);
-        REQUIRE_AGENT(s.get(), 3, 0, 1);
     }
 }
 

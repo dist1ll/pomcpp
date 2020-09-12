@@ -407,12 +407,20 @@ void MoveAgent(State* state, const int i, const Move m, const Position fixedDest
 
     int itemOnDestination = state->items[fixedDest.y][fixedDest.x];
 
-    //if ouroboros, the bomb will be covered by an agent
-    if(ouroboros && state->HasBomb(fixedDest.x, fixedDest.y))
+    // if ouroboros, ignore agents at the destination
+    if(ouroboros)
     {
-        // break ouroboros in case there is a bomb
-        itemOnDestination = Item::BOMB;
-        // TODO: Do we have to undo the other ouroboros agents?
+        // apart from the agent, the destination
+        // cell could also hold a bomb
+        if(state->HasBomb(fixedDest.x, fixedDest.y))
+        {
+            itemOnDestination = Item::BOMB;
+        }
+        else
+        {
+            // treat destination as if there was no agent
+            itemOnDestination = Item::PASSAGE;
+        }
     }
 
     //
@@ -435,11 +443,7 @@ void MoveAgent(State* state, const int i, const Move m, const Position fixedDest
     }
 
     // execute move if the destination is free
-    // (in the rare case of ouroboros, make the move even
-    // if an agent occupies the spot)
-    // TODO: ouroboros
-    if(itemOnDestination == Item::PASSAGE ||
-            (ouroboros && itemOnDestination >= Item::AGENT0))
+    if(itemOnDestination == Item::PASSAGE)
     {
         // only override the position I came from if it has not been
         // overridden by a different agent that already took this spot
@@ -447,25 +451,20 @@ void MoveAgent(State* state, const int i, const Move m, const Position fixedDest
         _setAgent(state, fixedDest.x, fixedDest.y, i);
         return;
     }
-
+    // handle bombs
     if(itemOnDestination == Item::BOMB)
     {
         // if destination has a bomb & the player has bomb-kick, move the player on it.
         // The idea is to move each player (on the bomb) and afterwards move the bombs.
         // If the bombs can't be moved to their target location, the player that kicked
-        // it moves back. Since we have a dependency array we can move back every player
-        // that depends on the inital one (and if an agent that moved there this step
-        // blocked the bomb we can move him back as well).
+        // it has to be moved back later.
         if(state->agents[i].canKick)
         {
-            // a player that moves towards a bomb at this(!) point means that
-            // there was no DP collision, which means this agent is a root. So we can just
-            // override
-            // TODO: Remove if?
+            // move the player
             _resetBoardAgentGone(state, a.x, a.y, i);
             _setAgent(state, fixedDest.x, fixedDest.y, i);
 
-            // start moving the kicked bomb by setting a velocity
+            // kick the bomb by setting a velocity
             // the first 5 values of Move and Direction are semantically identical
             Bomb& b = *state->GetBomb(fixedDest.x,  fixedDest.y);
             SetBombDirection(b, Direction(m));
