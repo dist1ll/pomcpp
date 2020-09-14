@@ -547,6 +547,9 @@ void State::Init(GameMode gameMode, long seed, bool randomAgentPositions, int nu
         items[coord.y][coord.x] = Item::WOOD + choosePwp(rng);
         numPowerUps--;
     }
+
+    // this is the initial state
+    timeStep = 0;
 }
 
 void State::Kill(int agentID)
