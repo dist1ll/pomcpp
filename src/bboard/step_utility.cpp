@@ -269,19 +269,11 @@ void TickBombs(Board* board)
     }
 
     //explode timed-out bombs
-    for(int i = 0; i < board->bombs.count; i++)
+
+    // always check the current top bomb
+    while (board->bombs.count > 0 && BMB_TIME(board->bombs[0]) <= 0)
     {
-        // always check the current top bomb
-        if(BMB_TIME(board->bombs[0]) == 0)
-        {
-            board->ExplodeBombAt(0);
-        }
-        else
-        {
-            // bombs are ordered according to their
-            // time -> we can already stop here
-            break;
-        }
+        board->ExplodeBombAt(0);
     }
 }
 
