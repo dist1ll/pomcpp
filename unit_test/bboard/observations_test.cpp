@@ -109,3 +109,42 @@ TEST_CASE("Round trip", "[observation]")
     REQUIRE(s.agents[2].team == s2.agents[2].team);
     REQUIRE(s2.agents[2].ignore == false);
 }
+
+TEST_CASE("Planning Step", "[observation]")
+{
+    ObservationParameters params;
+    params.agentPartialMapView = true;
+    params.agentViewSize = 4;
+
+    State s, s2;
+    Observation obs;
+
+    s.Init(GameMode::FreeForAll, 1234, true);
+    Observation::Get(s, 0, params, obs);
+    obs.ToState(s2, GameMode::FreeForAll);
+
+    Move m[4];
+    m[0] = m[1] = m[2] = m[3] = Move::IDLE;
+
+    AgentInfo& ownAgent = s2.agents[0];
+
+    SECTION("Step")
+    {
+        // just check whether we can do a step
+        bboard::Step(&s2, m);
+    }
+    SECTION("Bombs explode")
+    {
+        REQUIRE(!ownAgent.dead);
+        m[0] = Move::BOMB;
+        bboard::Step(&s2, m);
+        m[0] = Move::IDLE;
+
+        for(int _ = 0; _ < bboard::BOMB_LIFETIME; _++)
+        {
+            bboard::Step(&s2, m);
+        }
+
+        REQUIRE(ownAgent.dead);
+    }
+}
