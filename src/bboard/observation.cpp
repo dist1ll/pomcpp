@@ -109,7 +109,7 @@ void Observation::Get(const State& state, const uint agentID, const ObservationP
 
         // filter bomb objects
         observation.bombs.count = 0;
-        for(int i = 0; i < state.bombs.count; i--)
+        for(int i = 0; i < state.bombs.count; i++)
         {
             int b = state.bombs[i];
 
@@ -121,7 +121,7 @@ void Observation::Get(const State& state, const uint agentID, const ObservationP
 
         // and flames
         observation.flames.count = 0;
-        for(int i = 0; i < state.flames.count; i--)
+        for(int i = 0; i < state.flames.count; i++)
         {
             Flame f = state.flames[i];
 
