@@ -148,7 +148,7 @@ struct FixedQueue
     /**
      * @brief AddElem Adds an element at a specified index
      * @param elem The element which should be added
-     * @param at The index inside the list where the element should be added
+     * @param at The index inside the list where the element should be added (must be in [0, count])
      * Highly discouraged! Only use if necessary
      */
     void AddElem(const T& elem, const int at)
