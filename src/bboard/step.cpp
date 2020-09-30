@@ -73,6 +73,7 @@ void Step(State* state, Move* moves)
 
     // let bombs explode
     util::TickBombs(state);
+    util::ExplodeBombs(state);
 
     // advance timestep
     state->timeStep++;

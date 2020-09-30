@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <random>
 
+#include <bits/stdc++.h>
+
 #include "bboard.hpp"
 #include "step_utility.hpp"
 
@@ -191,15 +193,15 @@ void Observation::Get(const State& state, const uint agentID, const ObservationP
             }
             break;
     }
-
-    // optimize flames in the end
-    observation.currentFlameTime = util::OptimizeFlameQueue(observation);
 }
 
 void Observation::ToState(State& state, GameMode gameMode) const
 {
     // initialize the board of the state
     state.CopyFrom(*this);
+
+    // optimize flame queue
+    state.currentFlameTime = util::OptimizeFlameQueue(state);
 
     // set the correct teams
     SetTeams(state.agents, gameMode);
@@ -252,6 +254,212 @@ void Observation::ToState(State& state, GameMode gameMode) const
     }
 
     util::CheckTerminalState(state);
+}
+
+void _addBomb(Board& board, Bomb bomb)
+{
+    for(int i = 0; i < board.bombs.count; i++)
+    {
+        // add it at the correct position (sorted list)
+        if(BMB_TIME(bomb) > BMB_TIME(board.bombs[i]))
+        {
+            if(i == 0)
+            {
+                break;
+            }
+            else
+            {
+                board.bombs.AddElem(bomb, i - 1);
+                return;
+            }
+        }
+    }
+
+    // add it at the end
+    board.bombs.AddElem(bomb);
+}
+
+void _addBombsFromLastStep(const Observation& last, Observation& current, const ObservationParameters& params)
+{
+    if(!params.agentPartialMapView)
+        return;
+
+    Position center = current.agentInfos[current.agentIDMapping[current.agentID]].GetPos();
+
+    std::unordered_set<Position> positions(current.bombs.count);
+
+    // remember the positions of all existing bombs
+    for(int i = 0; i < current.bombs.count; i++)
+    {
+        positions.insert(BMB_POS(current.bombs[i]));
+    }
+
+    // try to add old bombs from last step
+    for(int i = 0; i < last.bombs.count; i++)
+    {
+        Bomb b = last.bombs[i];
+        Position bPos = BMB_POS(b);
+
+        if(InViewRange(center, bPos, params.agentViewSize))
+        {
+            // bombs in view range are already handled correctly
+            continue;
+        }
+
+        auto res = positions.find(bPos);
+        if(res != positions.end())
+        {
+            // there is already a bomb at this position
+            continue;
+        }
+
+        // otherwise: reduce timer and add the bomb at the right index (sorted list)
+        ReduceBombTimer(b);
+        // TODO: Handle bomb movement (?)
+        SetBombDirection(b, Direction::IDLE);
+
+        _addBomb(current, b);
+    }
+}
+
+void _addFlamesFromLastStep(const Observation& last, Observation& current, const ObservationParameters& params)
+{
+    if(!params.agentPartialMapView)
+        return;
+
+    Position center = current.agentInfos[current.agentIDMapping[current.agentID]].GetPos();
+
+    std::unordered_set<Position> positions(current.flames.count);
+
+    // remember the positions of all existing flames
+    for(int i = 0; i < current.flames.count; i++)
+    {
+        positions.insert(current.flames[i].position);
+    }
+
+    for(int i = 0; i < last.flames.count; i++)
+    {
+        Flame f = last.flames[i];
+
+        // only update flames which are outside of our view
+        // and not already in our flames list
+        if(!InViewRange(center, f.position, params.agentViewSize)
+                && positions.find(f.position) == positions.end())
+        {
+            if(f.timeLeft <= 1)
+            {
+                // disappearing flames leave passages behind (last item is flame)
+                current.items[f.position.y][f.position.x] = Item::PASSAGE;
+            }
+            else
+            {
+                // add the new flame to the obs (item is already set)
+                f.timeLeft -= 1;
+                current.flames.AddElem(f);
+            }
+        }
+    }
+}
+
+std::array<bool, AGENT_COUNT> _getAgentVisibility(const Board &board)
+{
+    std::array<bool, AGENT_COUNT> agentVisibility;
+    std::fill(agentVisibility.begin(), agentVisibility.end(), false);
+
+    for(int y = 0; y < BOARD_SIZE; y++)
+    {
+        for(int x = 0; x < BOARD_SIZE; x++)
+        {
+            int item = board.items[y][x];
+            if(item >= Item::AGENT0)
+            {
+                const int id = item - Item::AGENT0;
+                agentVisibility[id] = true;
+            }
+        }
+    }
+
+    return agentVisibility;
+}
+
+void Observation::Merge(const Observation& last, const ObservationParameters& params, bool agents, bool bombs, int (*itemAge)[BOARD_SIZE][BOARD_SIZE])
+{
+    std::array<bool, AGENT_COUNT> agentVisibility = _getAgentVisibility(*this);
+
+    // reconstruct fogged items based on the last observation
+    for(int y = 0; y < BOARD_SIZE; y++)
+    {
+        for(int x = 0; x < BOARD_SIZE; x++)
+        {
+            int item = items[y][x];
+
+            // try to reconstruct fog
+            if(item == Item::FOG)
+            {
+                int oldItem = last.items[y][x];
+
+                if(oldItem == Item::FOG)
+                {
+                    // no old item here
+                    continue;
+                }
+
+                // no fog here -> reconstruct
+
+                if(oldItem >= Item::AGENT0)
+                {
+                    const int id = oldItem - Item::AGENT0;
+                    if(!agents || agentVisibility[id])
+                    {
+                        // skip agents when we ignore them or when they
+                        // are already visible in our current observation
+                        // (-> they moved)
+                        oldItem = Item::PASSAGE;
+                    }
+                }
+
+                if(oldItem == Item::BOMB)
+                {
+                    if(bombs)
+                    {
+                        // add bombs (may explode later)
+                        oldItem = Item::BOMB;
+                    }
+                    else
+                    {
+                        // treat the bomb as a passage
+                        oldItem = Item::PASSAGE;
+                    }
+                }
+
+                items[y][x] = oldItem;
+
+                if(itemAge != nullptr)
+                {
+                    // increase the age of that reconstructed item
+                    (*itemAge)[y][x] += 1;
+                }
+
+                continue;
+            }
+
+            // new obs is not fog
+
+            if(itemAge != nullptr)
+            {
+                (*itemAge)[y][x] = 0;
+            }
+        }
+    }
+
+    if(bombs)
+    {
+        _addBombsFromLastStep(last, *this, params);
+        // after adding bombs, let them explode (if necessary)
+        util::ExplodeBombs(this);
+    }
+
+    _addFlamesFromLastStep(last, *this, params);
 }
 
 // methods from board

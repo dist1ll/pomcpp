@@ -140,10 +140,14 @@ int ResolveDependencies(const State* state, Position des[AGENT_COUNT],
 void TickFlames(Board* board);
 
 /**
- * @brief TickBombs Counts down all bomb timers and explodes them
- * if they arrive at 10
+ * @brief TickBombs Counts down all bomb timers
  */
 void TickBombs(Board* board);
+
+/**
+ * @brief ExplodeBombs Lights up bombs when their timer is up
+ */
+void ExplodeBombs(Board* board);
 
 /**
  * @brief MoveBombsForward moves all bombs forward that have been

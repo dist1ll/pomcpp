@@ -550,6 +550,7 @@ void State::Init(GameMode gameMode, long seed, bool randomAgentPositions, int nu
 
     // this is the initial state
     timeStep = 0;
+    currentFlameTime = 0;
 }
 
 void State::Kill(int agentID)

@@ -144,6 +144,28 @@ struct FixedQueue
         NextPos() = elem;
         count++;
     }
+
+    /**
+     * @brief AddElem Adds an element at a specified index
+     * @param elem The element which should be added
+     * @param at The index inside the list where the element should be added
+     * Highly discouraged! Only use if necessary
+     */
+    void AddElem(const T& elem, const int at)
+    {
+        // shift all elements by 1 from the end until at
+        for(int i = count - 1; i >= at; i--)
+        {
+            int translatedIndex = (index + i) % TSize;
+            queue[(translatedIndex + 1 + TSize) % TSize] = queue[translatedIndex];
+        }
+
+        // finally add the element at the specified position
+        queue[(index + at) % TSize] = elem;
+
+        count++;
+    }
+
     /**
      * @brief RemoveAt Removes an element at a specified index
      * Highly discouraged! Only use if necessary
@@ -164,6 +186,41 @@ struct FixedQueue
     T& NextPos()
     {
         return queue[(index + count) % TSize];
+    }
+
+    /**
+     * @brief CopyTo Copies the elements of this queue to an array.
+     * @param arr The array which will contain the elements of this queue.
+     */
+    void CopyTo(T arr[])
+    {
+        if(count == 0)
+            return;
+
+        int queueEndIndex = (index + count) % TSize;
+        if(queueEndIndex > index)
+        {
+            // there are no partitions, just copy the content
+            std::copy_n(&queue[index], count, &arr[0]);
+        }
+        else
+        {
+            // otherwise: there are two partitions
+            int firstPartitionSize = TSize - index;
+            std::copy_n(&queue[index], firstPartitionSize, &arr[0]);
+            std::copy_n(&queue[0], queueEndIndex, &arr[firstPartitionSize]);
+        }
+    }
+
+    /**
+     * @brief CopyFrom Copies the elements from the given array into this queue.
+     * @param arr The queue will be initialized with the elements of this array.
+     */
+    void CopyFrom(const T arr[], const int size)
+    {
+        index = 0;
+        count = size;
+        std::copy_n(&arr[0], count, &queue[0]);
     }
 
     /**
@@ -426,9 +483,10 @@ public:
     int timeStep = -1;
 
     /**
-     * @brief currentFlameTime The max flameTime of all flames alive. Used for the optimized flame queue.
+     * @brief currentFlameTime The max flameTime of all flames alive.
+     * Used for the optimized flame queue. -1 if flame queue is not optimized.
      */
-    int currentFlameTime = 0;
+    int currentFlameTime = -1;
 
     /**
      * @brief CopyFrom Copies the elements from the given board object to this board.
@@ -442,6 +500,15 @@ public:
     inline void PutItem(int x, int y, Item item)
     {
         items[y][x] = item;
+    }
+
+    /**
+     * @brief Clear Overrides all items on the board with the given item.
+     * @param item The item which will be used to clear the board.
+     */
+    inline void Clear(const Item item = Item::PASSAGE)
+    {
+        std::fill_n(&items[0][0], BOARD_SIZE * BOARD_SIZE, item);
     }
 
     /**
@@ -737,6 +804,16 @@ public:
      * @param gameMode The target gameMode (used to define the teams)
      */
     void ToState(State& state, GameMode gameMode) const;
+
+    /**
+     * @brief Merge Merges another observation into this observation.
+     * @param last The observation of the last step which should be merged into this one.
+     * @param params The observation parameters used to generate both observations (this and the last one).
+     * @param agents Whether to include agents (also removes duplicates)
+     * @param bombs Whether to include bombs (DOES NOT remove duplicates!)
+     * @param itemAge Can be used to keep track of age of all items (#steps since last update)
+     */
+    void Merge(const Observation& last, const ObservationParameters& params, bool agents, bool bombs, int (*itemAge)[BOARD_SIZE][BOARD_SIZE] = nullptr);
 
     // Implement methods
     void Kill(const int agentID) override;

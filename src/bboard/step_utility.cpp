@@ -267,9 +267,10 @@ void TickBombs(Board* board)
     {
         ReduceBombTimer(board->bombs[i]);
     }
+}
 
-    //explode timed-out bombs
-
+void ExplodeBombs(Board* board)
+{
     // always check the current top bomb
     while (board->bombs.count > 0 && BMB_TIME(board->bombs[0]) <= 0)
     {
@@ -735,7 +736,10 @@ bool CompareTimeLeft(const Flame& lhs, const Flame& rhs)
 int OptimizeFlameQueue(Board& board)
 {
     // sort flames
-    std::sort(board.flames.queue, board.flames.queue + board.flames.count, CompareTimeLeft);
+    Flame flames[board.flames.count];
+    board.flames.CopyTo(flames);
+    std::sort(flames, flames + board.flames.count, CompareTimeLeft);
+    board.flames.CopyFrom(flames, board.flames.count);
 
     // modify timeLeft (additive)
     int timeLeft = 0;
