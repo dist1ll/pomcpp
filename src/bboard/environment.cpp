@@ -114,7 +114,7 @@ void Environment::RunGame(int steps, bool asyncAct, bool render, bool renderClea
         Step(asyncAct);
     }
 
-    if (render)
+    if(render)
     {
         Print(renderClear);
         PrintGameResult();
@@ -155,6 +155,11 @@ Move Environment::GetLastMove(int agentID)
     return lastMoves[agentID];
 }
 
+bool Environment::HasActed(int agentID)
+{
+    return hasActed[agentID];
+}
+
 void Environment::Step(bool asyncAct)
 {
     if(IsDone())
@@ -176,6 +181,11 @@ void Environment::Step(bool asyncAct)
             {
                 m[i] = agents[i]->act(state.get());
                 lastMoves[i] = m[i];
+                hasActed[i] = true;
+            }
+            else
+            {
+                hasActed[i] = false;
             }
         }
     }

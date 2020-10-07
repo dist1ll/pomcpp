@@ -844,6 +844,7 @@ private:
     int threadCount = 1;
 
     Move lastMoves[AGENT_COUNT];
+    bool hasActed[AGENT_COUNT];
 
 public:
 
@@ -935,10 +936,16 @@ public:
 
     /**
      * @brief GetLastMove Returns the last move made by the given agent.
-     * (Disregard if agent is dead)
+     * (can be old if the agent was dead, use in combination with HasActed)
+     * @param agentID The id of the agent.
      */
     Move GetLastMove(int agentID);
 
+    /**
+     * @brief HasActed Returns whether the given agent executed a move in the last step.
+     * @param agentID The id of the agent.
+    */
+    bool HasActed(int agentID);
 };
 
 /**
