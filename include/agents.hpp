@@ -72,6 +72,7 @@ struct SimpleAgent : bboard::Agent
     bboard::FixedQueue<bboard::Position, rpCapacity> recentPositions;
 
     bboard::Move act(const bboard::State* state) override;
+    void reset() override;
 
     void PrintDetailedInfo();
 };

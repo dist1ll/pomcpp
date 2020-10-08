@@ -27,6 +27,13 @@ SimpleAgent::SimpleAgent(long seed)
     intDist = std::uniform_int_distribution<int>(0, 4); // no bombs
 }
 
+void SimpleAgent::reset()
+{
+    // reset the internal state
+    moveQueue.count = 0;
+    recentPositions.count = 0;
+}
+
 bool _HasRPLoop(SimpleAgent& me)
 {
     for(int i = 0; i < me.recentPositions.count / 2; i++)

@@ -737,6 +737,11 @@ struct Agent
      * @return A Move (integer, 0-..)
      */
     virtual Move act(const State* state) = 0;
+
+    /**
+     * @brief Reset the state of this agent for a new episode.
+     */
+    virtual void reset();
 };
 
 /**

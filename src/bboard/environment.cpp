@@ -214,6 +214,7 @@ void Environment::SetAgents(std::array<Agent*, AGENT_COUNT> agents)
     for(uint i = 0; i < AGENT_COUNT; i++)
     {
         agents[i]->id = int(i);
+        agents[i]->reset();
     }
 
     this->agents = agents;

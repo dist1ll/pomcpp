@@ -573,6 +573,11 @@ void State::EventBombExploded(Bomb b)
 // bboard namespace //
 //////////////////////
 
+void bboard::Agent::reset()
+{
+    // default reset does nothing
+}
+
 void StartGame(State* state, Agent* agents[AGENT_COUNT], int timeSteps)
 {
     Move moves[4];
