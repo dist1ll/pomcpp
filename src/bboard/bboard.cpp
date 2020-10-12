@@ -597,7 +597,7 @@ void StartGame(State* state, Agent* agents[AGENT_COUNT], int timeSteps)
     }
 }
 
-void PrintState(State* state, bool clearConsole)
+void PrintState(const State* state, bool clearConsole)
 {
     // clears console on linux
     if(clearConsole)
@@ -648,7 +648,7 @@ void PrintState(State* state, bool clearConsole)
     }
 }
 
-void PrintBoard(Board* board, bool clearConsole)
+void PrintBoard(const Board* board, bool clearConsole)
 {
     // clears console on linux
     if(clearConsole)
@@ -683,7 +683,7 @@ void _printArray(const T arr[c])
     std::cout << "]";
 }
 
-void PrintObservation(Observation* obs, bool clearConsole)
+void PrintObservation(const Observation* obs, bool clearConsole)
 {
     PrintBoard(obs, clearConsole);
 
