@@ -542,7 +542,7 @@ public:
      * @brief hasBomb Returns true if a bomb is at the specified
      * position
      */
-    bool HasBomb(int x, int y);
+    bool HasBomb(int x, int y) const;
 
     /**
      * @brief GetBomb Returns a bomb at the specified location or 0 if
@@ -554,7 +554,7 @@ public:
      * @brief GetBombIndex If a bomb is at position (x,y), then
      * returns the index of the bomb in the bomb queue. -1 otherwise
      */
-    int GetBombIndex(int x, int y);
+    int GetBombIndex(int x, int y) const;
 
     /**
      * @brief SpawnFlameItem Spawns a single flame item on the board

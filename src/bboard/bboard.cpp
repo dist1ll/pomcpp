@@ -163,7 +163,7 @@ void Board::ExplodeBombAt(int i)
     EventBombExploded(b);
 }
 
-bool Board::HasBomb(int x, int y)
+bool Board::HasBomb(int x, int y) const
 {
     for(int i = 0; i < bombs.count; i++)
     {
@@ -187,7 +187,7 @@ Bomb* Board::GetBomb(int x, int y)
     return nullptr;
 }
 
-int Board::GetBombIndex(int x, int y)
+int Board::GetBombIndex(int x, int y) const
 {
     for(int i = 0; i < bombs.count; i++)
     {
