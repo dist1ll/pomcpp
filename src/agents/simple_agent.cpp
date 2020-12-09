@@ -75,28 +75,23 @@ Move _Decide(SimpleAgent& me, const State* state)
         {
             return m;
         }
-        else // move towards safe direction
-        {
-            return _MoveSafeOneSpace(me, state);
-        }
-
     }
-
-    if(a.bombCount < a.maxBombCount)
+    else if(a.bombCount < a.maxBombCount)
     {
         //prioritize enemy destruction
         if(IsAdjacentEnemy(*state, me.id, 1))
         {
             return Move::BOMB;
         }
-        // if you're stuck in a loop try to break out by randomly selecting
-        // an action ( we could IDLE but the mirroring of agents is tricky)
-        if(IsAdjacentEnemy(*state, me.id, 7) && _HasRPLoop(me))
-        {
-            return Move(me.rng() % 5);
-        }
+
         if(IsAdjacentEnemy(*state, me.id, 7))
         {
+            // if you're stuck in a loop try to break out by randomly selecting
+            // an action ( we could IDLE but the mirroring of agents is tricky)
+            if(_HasRPLoop(me)) {
+                return Move(me.rng() % 5);
+            }
+
             Move m = MoveTowardsEnemy(*state, me.r, 7);
             Position p = util::DesiredPosition(a.x, a.y, m);
             if(!util::IsOutOfBounds(p.x, p.y) && IS_WALKABLE(state->items[p.y][p.x]) &&
@@ -111,18 +106,10 @@ Move _Decide(SimpleAgent& me, const State* state)
             return Move::BOMB;
         }
     }
-    me.moveQueue.count = 0;
-    SafeDirections(*state, me.moveQueue, a.x, a.y);
-    SortDirections(me.moveQueue, me.recentPositions, a.x, a.y);
 
-    if(me.moveQueue.count == 0)
-    {
-        return Move::IDLE;
-    }
-    else
-    {
-        return me.moveQueue[me.rng() % std::min(2, me.moveQueue.count)];
-    }
+    // TODO: Collect powerups
+
+    return _MoveSafeOneSpace(me, state);
 }
 
 Move SimpleAgent::act(const State* state)
