@@ -55,7 +55,6 @@ struct LazyAgent : bboard::Agent
 struct SimpleAgent : bboard::Agent
 {
     std::mt19937_64 rng;
-    std::uniform_int_distribution<int> intDist;
 
     SimpleAgent();
     SimpleAgent(long seed);

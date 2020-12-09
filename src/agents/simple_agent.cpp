@@ -18,13 +18,11 @@ SimpleAgent::SimpleAgent()
 {
     std::random_device rd;  // non explicit seed
     rng = std::mt19937_64(rd());
-    intDist = std::uniform_int_distribution<int>(0, 4); // no bombs
 }
 
 SimpleAgent::SimpleAgent(long seed)
 {
     rng = std::mt19937_64(seed);
-    intDist = std::uniform_int_distribution<int>(0, 4); // no bombs
 }
 
 void SimpleAgent::reset()
@@ -57,7 +55,7 @@ Move _MoveSafeOneSpace(SimpleAgent& me, const State* state)
     if(me.moveQueue.count == 0)
         return Move::IDLE;
     else
-        return me.moveQueue[me.intDist(me.rng) % std::min(2, me.moveQueue.count)];
+        return me.moveQueue[me.rng() % std::min(2, me.moveQueue.count)];
 }
 
 
@@ -95,7 +93,7 @@ Move _Decide(SimpleAgent& me, const State* state)
         // an action ( we could IDLE but the mirroring of agents is tricky)
         if(IsAdjacentEnemy(*state, me.id, 7) && _HasRPLoop(me))
         {
-            return Move(me.intDist(me.rng) % 4);
+            return Move(me.rng() % 5);
         }
         if(IsAdjacentEnemy(*state, me.id, 7))
         {
@@ -123,9 +121,10 @@ Move _Decide(SimpleAgent& me, const State* state)
     }
     else
     {
-        return me.moveQueue[me.intDist(me.rng) % std::min(2, me.moveQueue.count)];
+        return me.moveQueue[me.rng() % std::min(2, me.moveQueue.count)];
     }
 }
+
 Move SimpleAgent::act(const State* state)
 {
     const AgentInfo& a = state->agents[id];
