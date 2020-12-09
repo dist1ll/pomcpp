@@ -444,17 +444,18 @@ inline T _selectRandomInPlace(T* arr, int count, RNG& rng)
     return b;
 }
 
-void State::Init(GameMode gameMode, long seed, bool randomAgentPositions, int numRigid, int numWood, int numPowerUps, int padding, int breathingRoomSize)
+void State::Init(GameMode gameMode, long boardSeed, long agentPositionSeed, int numRigid, int numWood, int numPowerUps, int padding, int breathingRoomSize)
 {
-    std::mt19937 rng(seed);
+    std::mt19937 rng;
 
     // initialize everything as passages
     std::fill_n(&items[0][0], BOARD_SIZE * BOARD_SIZE, (int)Item::PASSAGE);
 
     // insert agents at their respective positions
     std::array<int, 4> f = {0, 1, 2, 3};
-    if(randomAgentPositions)
+    if(agentPositionSeed != -1)
     {
+        rng.seed(agentPositionSeed);
         std::shuffle(f.begin(), f.end(), rng);
     }
     PutAgentsInCorners(f[0], f[1], f[2], f[3], padding);
@@ -463,6 +464,8 @@ void State::Init(GameMode gameMode, long seed, bool randomAgentPositions, int nu
     SetTeams(agents, gameMode);
 
     // create the board
+
+    rng.seed(boardSeed);
 
     std::vector<Position> woodCoordinates;
     woodCoordinates.reserve(numWood);

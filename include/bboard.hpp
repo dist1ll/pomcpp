@@ -665,15 +665,15 @@ public:
 
     /**
      * @brief Init Initializes the state and puts boxes, rigid objects, powerups and agents on the board.
-     * @param seed The random seed for the item generator.
-     * @param randomAgentPositions Whether to randomly set the agent positions.
+     * @param boardSeed The random seed for the item generator.
+     * @param agentPositionSeed When != -1, randomly set the agent positions using this seed. Otherwise, set the start positions clockwise (0 = top left).
      * @param numRigid The number of rigid blocks on the board.
      * @param numWood The number of wooden blocks on the board.
      * @param numItems The number of powerups on the board (must be <= numWood).
      * @param padding The padding of the agents to the walls.
      * @param breathingRoomSize The size of the "breathing room" between agents.
      */
-    void Init(GameMode gameMode, long seed, bool randomAgentPositions, int numRigid=36, int numWood=36, int numPowerUps=20, int padding=1, int breathingRoomSize=3);
+    void Init(GameMode gameMode, long boardSeed, long agentPositionSeed, int numRigid = 36, int numWood = 36, int numPowerUps = 20, int padding = 1, int breathingRoomSize = 3);
 
     /**
      * @brief HasAgent Returns the index of the agent that occupies
@@ -858,7 +858,7 @@ public:
     /**
      * @brief MakeGame Initializes the state
      */
-    void MakeGame(std::array<Agent*, AGENT_COUNT> a, GameMode gameMode = GameMode::FreeForAll, long seed = 0x1337, bool randomizePositions = false);
+    void MakeGame(std::array<Agent*, AGENT_COUNT> a, GameMode gameMode = GameMode::FreeForAll, long boardSeed = 0x1337, long agentPositionSeed = -1);
 
     /**
      * @brief RunGame simulates some steps in the game.

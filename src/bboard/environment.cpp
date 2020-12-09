@@ -71,7 +71,7 @@ Environment::Environment()
     state = std::make_unique<State>();
 }
 
-void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, GameMode gameMode, long seed, bool randomizePositions)
+void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, GameMode gameMode, long boardSeed, long agentPositionSeed)
 {
     if(hasStarted)
     {
@@ -81,7 +81,7 @@ void Environment::MakeGame(std::array<Agent*, AGENT_COUNT> a, GameMode gameMode,
 
     this->gameMode = gameMode;
 
-    state->Init(gameMode, seed, randomizePositions);
+    state->Init(gameMode, boardSeed, agentPositionSeed);
 
     SetAgents(a);
     hasStarted = true;
