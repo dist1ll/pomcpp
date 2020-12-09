@@ -154,3 +154,63 @@ TEST_CASE("Test Simple Agent", "[live testing]")
         std::cout << "done." << std::endl;
     }
 }
+
+TEST_CASE("SimpleAgent Win Rate Stats", "[stats info]")
+{
+    int numGames = 2000;
+
+    int seed = 42;
+    std::mt19937 rng(seed);
+
+    std::string tst = "Collecting stats for " + std::to_string(numGames) + " live games\n";
+    std::cout << std::endl
+              << FGRN(tst);
+
+    int wins[bboard::AGENT_COUNT];
+    std::fill_n(wins, bboard::AGENT_COUNT, 0);
+    int draws = 0;
+    int notDone = 0;
+    double averageSteps = 0;
+
+    for(bool useRandomAgentPos : {false, true})
+    {
+        std::string name = "Free For All - Random Start Positions = " + std::to_string(useRandomAgentPos);
+        SECTION(name)
+        {
+            std::cout << name << std::endl;
+            for(int i = 0; i < numGames; i++)
+            {
+                std::array<SimpleAgent, 4> r = CreateAgents(rng);
+                bboard::Environment e;
+                long randomAgentPositionSeed = useRandomAgentPos ? rng() : -1;
+                e.MakeGame({&r[0], &r[1], &r[2], &r[3]}, bboard::GameMode::FreeForAll, rng(), randomAgentPositionSeed);
+                e.RunGame(800, false, false);
+
+                bboard::State finalState = e.GetState();
+
+                if (i == 0) {
+                    averageSteps = finalState.timeStep;
+                }
+                else {
+                    averageSteps = (i * averageSteps + finalState.timeStep) / (i + 1);
+                }
+
+                int winner = finalState.winningAgent;
+                if (winner != -1) {
+                    wins[winner]++;
+                }
+                notDone += finalState.finished ? 0 : 1;
+                draws += finalState.isDraw ? 1 : 0;
+            }
+        }
+    }
+
+    std::cout << "Episodes: " << numGames << std::endl;
+    std::cout << "Average steps: " << averageSteps << std::endl;
+    std::cout << "Wins:" << std::endl;
+    for (int i = 0; i < bboard::AGENT_COUNT; i++) {
+        std::cout << "> Agent " << i << ": " << wins[i] << " (" << (float)wins[i] / numGames * 100 << "%)" << std::endl;
+    }
+    std::cout << "Draws: " << draws <<  " (" << (float)draws / numGames * 100 << "%)" << std::endl;
+    std::cout << "Not done: " << notDone <<  " (" << (float)notDone / numGames * 100 << "%)" << std::endl;
+}
