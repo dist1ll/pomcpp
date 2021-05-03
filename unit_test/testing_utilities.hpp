@@ -18,6 +18,11 @@ inline std::array<SimpleAgent, 4> CreateAgents(std::mt19937& rng)
     return {SimpleAgent(rng()), SimpleAgent(rng()), SimpleAgent(rng()), SimpleAgent(rng())};
 }
 
+inline std::array<SimpleUnbiasedAgent, 4> CreateUnbiasedAgents(std::mt19937& rng)
+{
+    return {SimpleUnbiasedAgent(rng()), SimpleUnbiasedAgent(rng()), SimpleUnbiasedAgent(rng()), SimpleUnbiasedAgent(rng())};
+}
+
 template<class T>
 void RecursiveCommas(std::ostream& os, T n)
 {

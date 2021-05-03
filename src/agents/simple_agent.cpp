@@ -9,11 +9,6 @@ using namespace bboard::strategy;
 namespace agents
 {
 
-bool _CheckPos(const State& state, int x, int y)
-{
-    return !util::IsOutOfBounds(x, y) && IS_WALKABLE(state.items[y][x]);
-}
-
 SimpleAgent::SimpleAgent()
 {
     std::random_device rd;  // non explicit seed

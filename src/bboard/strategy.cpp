@@ -123,6 +123,7 @@ Move MoveTowardsSafePlace(const State& state, const RMap& r, int radius)
 {
     int originX = r.source.x;
     int originY = r.source.y;
+    // TODO: Should be y < originY + radius (?)
     for(int y = originY - radius; y < radius; y++)
     {
         for(int x = originX - radius; x < radius; x++)
@@ -165,6 +166,8 @@ Move MoveTowardsEnemy(const State& state, const RMap& r, int radius)
 
     for(int i = 0; i < AGENT_COUNT; i++)
     {
+        // TODO: Skip own id (?)
+
         const AgentInfo& inf = state.agents[i];
 
         if((inf.x == a.x && inf.y == a.y) || inf.dead) continue;

@@ -155,62 +155,86 @@ TEST_CASE("Test Simple Agent", "[live testing]")
     }
 }
 
-TEST_CASE("SimpleAgent Win Rate Stats", "[stats info]")
+TEST_CASE("Win Rate Stats", "[stats info]")
 {
     int numGames = 2000;
 
     int seed = 42;
     std::mt19937 rng(seed);
 
-    std::string tst = "Collecting stats for " + std::to_string(numGames) + " live games\n";
-    std::cout << std::endl
-              << FGRN(tst);
+    std::array<SimpleAgent, 4> simpleAgents = CreateAgents(rng);
+    std::array<SimpleUnbiasedAgent, 4> simpleUnbiasedAgents = CreateUnbiasedAgents(rng);
 
-    int wins[bboard::AGENT_COUNT];
-    std::fill_n(wins, bboard::AGENT_COUNT, 0);
-    int draws = 0;
-    int notDone = 0;
-    double averageSteps = 0;
-
-    for(bool useRandomAgentPos : {false, true})
+    for (auto i : {0, 1})
     {
-        std::string name = "Free For All - Random Start Positions = " + std::to_string(useRandomAgentPos);
-        SECTION(name)
+        std::array<bboard::Agent*, 4> agents;
+        std::string agent_type;
+        switch (i)
         {
-            std::cout << name << std::endl;
-            for(int i = 0; i < numGames; i++)
+        case 0:
+            agent_type += "SimpleAgent";
+            agents = {&simpleAgents[0], &simpleAgents[1], &simpleAgents[2], &simpleAgents[3]};
+            break;
+
+        case 1:
+            agent_type += "SimpleUnbiasedAgent";
+            agents = {&simpleUnbiasedAgents[0], &simpleUnbiasedAgents[1], &simpleUnbiasedAgents[2], &simpleUnbiasedAgents[3]};
+            break;
+        
+        default:
+            throw "Internal test error.";
+            break;
+        }
+
+        int wins[bboard::AGENT_COUNT];
+        std::fill_n(wins, bboard::AGENT_COUNT, 0);
+        int draws = 0;
+        int notDone = 0;
+        double averageSteps = 0;
+
+        for(bool useRandomAgentPos : {false, true})
+        {
+            std::string name = "Free For All (" + agent_type + ") - Random Start Positions = " + std::to_string(useRandomAgentPos);
+            SECTION(name)
             {
-                std::array<SimpleAgent, 4> r = CreateAgents(rng);
-                bboard::Environment e;
-                long randomAgentPositionSeed = useRandomAgentPos ? rng() : -1;
-                e.MakeGame({&r[0], &r[1], &r[2], &r[3]}, bboard::GameMode::FreeForAll, rng(), randomAgentPositionSeed);
-                e.RunGame(800, false, false);
+                std::string tst = "Collecting stats for " + std::to_string(numGames) + " live games (" + agent_type + ")\n";
+                std::cout << std::endl
+                        << FGRN(tst);
 
-                bboard::State finalState = e.GetState();
+                std::cout << name << std::endl;
+                for(int i = 0; i < numGames; i++)
+                {
+                    bboard::Environment e;
+                    long randomAgentPositionSeed = useRandomAgentPos ? rng() : -1;
+                    e.MakeGame(agents, bboard::GameMode::FreeForAll, rng(), randomAgentPositionSeed);
+                    e.RunGame(800, false, false);
 
-                if (i == 0) {
-                    averageSteps = finalState.timeStep;
-                }
-                else {
-                    averageSteps = (i * averageSteps + finalState.timeStep) / (i + 1);
+                    bboard::State finalState = e.GetState();
+
+                    if (i == 0) {
+                        averageSteps = finalState.timeStep;
+                    }
+                    else {
+                        averageSteps = (i * averageSteps + finalState.timeStep) / (i + 1);
+                    }
+
+                    int winner = finalState.winningAgent;
+                    if (winner != -1) {
+                        wins[winner]++;
+                    }
+                    notDone += finalState.finished ? 0 : 1;
+                    draws += finalState.isDraw ? 1 : 0;
                 }
 
-                int winner = finalState.winningAgent;
-                if (winner != -1) {
-                    wins[winner]++;
+                std::cout << "Episodes: " << numGames << std::endl;
+                std::cout << "Average steps: " << averageSteps << std::endl;
+                std::cout << "Wins:" << std::endl;
+                for (int i = 0; i < bboard::AGENT_COUNT; i++) {
+                    std::cout << "> Agent " << i << ": " << wins[i] << " (" << (float)wins[i] / numGames * 100 << "%)" << std::endl;
                 }
-                notDone += finalState.finished ? 0 : 1;
-                draws += finalState.isDraw ? 1 : 0;
+                std::cout << "Draws: " << draws <<  " (" << (float)draws / numGames * 100 << "%)" << std::endl;
+                std::cout << "Not done: " << notDone <<  " (" << (float)notDone / numGames * 100 << "%)" << std::endl;
             }
         }
     }
-
-    std::cout << "Episodes: " << numGames << std::endl;
-    std::cout << "Average steps: " << averageSteps << std::endl;
-    std::cout << "Wins:" << std::endl;
-    for (int i = 0; i < bboard::AGENT_COUNT; i++) {
-        std::cout << "> Agent " << i << ": " << wins[i] << " (" << (float)wins[i] / numGames * 100 << "%)" << std::endl;
-    }
-    std::cout << "Draws: " << draws <<  " (" << (float)draws / numGames * 100 << "%)" << std::endl;
-    std::cout << "Not done: " << notDone <<  " (" << (float)notDone / numGames * 100 << "%)" << std::endl;
 }

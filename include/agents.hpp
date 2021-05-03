@@ -50,7 +50,7 @@ struct LazyAgent : bboard::Agent
 
 
 /**
- * @brief Selects Idle for every action
+ * @brief Handcrafted agent by m2q
  */
 struct SimpleAgent : bboard::Agent
 {
@@ -75,7 +75,23 @@ struct SimpleAgent : bboard::Agent
 
     void PrintDetailedInfo();
 };
-// more agents to be included?
+
+/**
+ * @brief Adds more randomization to SimpleAgent to get equal win rates
+ */
+struct SimpleUnbiasedAgent : SimpleAgent
+{
+    std::array<int, 4> agentAxis;
+    std::array<bboard::Move, bboard::MOVE_COUNT> dirAxis;
+    std::array<int, bboard::BOARD_SIZE> boardAxisX;
+    std::array<int, bboard::BOARD_SIZE> boardAxisY;
+
+    SimpleUnbiasedAgent();
+    SimpleUnbiasedAgent(long seed);
+
+    bboard::Move act(const bboard::State* state) override;
+    void reset() override;
+};
 
 }
 
