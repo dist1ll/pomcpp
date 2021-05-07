@@ -3,6 +3,7 @@
 #include "bboard.hpp"
 #include "agents.hpp"
 #include "strategy.hpp"
+#include <chrono>
 
 #include "testing_utilities.hpp"
 
@@ -157,13 +158,13 @@ TEST_CASE("Test Simple Agent", "[live testing]")
 
 TEST_CASE("Win Rate Stats", "[stats info]")
 {
-    int numGames = 2000;
+    int numGames = 10000;
 
     int seed = 42;
     std::mt19937 rng(seed);
 
-    std::array<SimpleAgent, 4> simpleAgents = CreateAgents(rng);
-    std::array<SimpleUnbiasedAgent, 4> simpleUnbiasedAgents = CreateUnbiasedAgents(rng);
+    auto simpleAgents = CreateAgents(rng);
+    auto simpleUnbiasedAgents = CreateUnbiasedAgents(rng);
 
     for (auto i : {0, 1})
     {
@@ -202,6 +203,7 @@ TEST_CASE("Win Rate Stats", "[stats info]")
                         << FGRN(tst);
 
                 std::cout << name << std::endl;
+                auto tStart = std::chrono::high_resolution_clock::now();
                 for(int i = 0; i < numGames; i++)
                 {
                     bboard::Environment e;
@@ -225,6 +227,8 @@ TEST_CASE("Win Rate Stats", "[stats info]")
                     notDone += finalState.finished ? 0 : 1;
                     draws += finalState.isDraw ? 1 : 0;
                 }
+                auto tEnd = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration<float>(tEnd - tStart).count();
 
                 std::cout << "Episodes: " << numGames << std::endl;
                 std::cout << "Average steps: " << averageSteps << std::endl;
@@ -234,6 +238,7 @@ TEST_CASE("Win Rate Stats", "[stats info]")
                 }
                 std::cout << "Draws: " << draws <<  " (" << (float)draws / numGames * 100 << "%)" << std::endl;
                 std::cout << "Not done: " << notDone <<  " (" << (float)notDone / numGames * 100 << "%)" << std::endl;
+                std::cout << "Elapsed time: " << duration << "[s]" << std::endl;
             }
         }
     }

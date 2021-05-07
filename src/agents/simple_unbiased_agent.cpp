@@ -118,10 +118,10 @@ Move _UMoveTowardsSafePlace(const SimpleUnbiasedAgent &me, const State& state, c
     {
         for(int x : me.boardAxisX)
         {
-            if(y >= radius || y < originY - radius)
+            if(y >= originY + radius || y < originY - radius)
                 break;
 
-            if(x >= radius || x < originX - radius)
+            if(x >= originX + radius || x < originX - radius)
                 break;
 
             if(util::IsOutOfBounds({x, y}) ||
