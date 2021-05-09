@@ -5,6 +5,11 @@ project(pomcpp CXX)
 
 find_package(Threads REQUIRED)
 
+OPTION(TEST_SHOW_GAME_PROGRESS "Shows game progress during some tests using \\r." ON)
+IF(TEST_SHOW_GAME_PROGRESS)
+    ADD_DEFINITIONS(-DTEST_SHOW_GAME_PROGRESS)
+ENDIF(TEST_SHOW_GAME_PROGRESS)
+
 # Main
 
 file(GLOB source_files

@@ -120,7 +120,7 @@ TEST_CASE("Episode Steps", "[performance]")
 
     for(int i = 0; i < numEpisodes; i++)
     {
-        std::array<SimpleAgent, 4> r = CreateAgents(rng);
+        std::array<SimpleAgent, 4> r = CreateAgents<SimpleAgent>(rng);
 
         // create an environment
         bboard::Environment e;

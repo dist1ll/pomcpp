@@ -9,11 +9,6 @@ using namespace bboard::strategy;
 namespace agents
 {
 
-bool _CheckPos(const State& state, int x, int y)
-{
-    return !util::IsOutOfBounds(x, y) && IS_WALKABLE(state.items[y][x]);
-}
-
 SimpleAgent::SimpleAgent()
 {
     std::random_device rd;  // non explicit seed
@@ -59,45 +54,40 @@ Move _MoveSafeOneSpace(SimpleAgent& me, const State* state)
 }
 
 
-Move _Decide(SimpleAgent& me, const State* state)
+Move SimpleAgent::decide(const State* state)
 {
-    const AgentInfo& a = state->agents[me.id];
-    FillRMap(*state, me.r, me.id);
+    const AgentInfo& a = state->agents[id];
+    FillRMap(*state, r, id);
 
-    me.danger = IsInDanger(*state, me.id);
+    danger = IsInDanger(*state, id);
 
-    if(me.danger > 0) // ignore danger if not too high
+    if(danger > 0) // ignore danger if not too high
     {
-        Move m = MoveTowardsSafePlace(*state, me.r, me.danger);
+        Move m = MoveTowardsSafePlace(*state, r, danger);
         Position p = util::DesiredPosition(a.x, a.y, m);
         if(!util::IsOutOfBounds(p.x, p.y) && IS_WALKABLE(state->items[p.y][p.x]) &&
                 _safe_condition(IsInDanger(*state, p.x, p.y), 2))
         {
             return m;
         }
-        else // move towards safe direction
-        {
-            return _MoveSafeOneSpace(me, state);
-        }
-
     }
-
-    if(a.bombCount < a.maxBombCount)
+    else if(a.bombCount < a.maxBombCount)
     {
         //prioritize enemy destruction
-        if(IsAdjacentEnemy(*state, me.id, 1))
+        if(IsAdjacentEnemy(*state, id, 1))
         {
             return Move::BOMB;
         }
-        // if you're stuck in a loop try to break out by randomly selecting
-        // an action ( we could IDLE but the mirroring of agents is tricky)
-        if(IsAdjacentEnemy(*state, me.id, 7) && _HasRPLoop(me))
+
+        if(IsAdjacentEnemy(*state, id, 7))
         {
-            return Move(me.rng() % 5);
-        }
-        if(IsAdjacentEnemy(*state, me.id, 7))
-        {
-            Move m = MoveTowardsEnemy(*state, me.r, 7);
+            // if you're stuck in a loop try to break out by randomly selecting
+            // an action ( we could IDLE but the mirroring of agents is tricky)
+            if(_HasRPLoop(*this)) {
+                return Move(rng() % 5);
+            }
+
+            Move m = MoveTowardsEnemy(*state, r, 7);
             Position p = util::DesiredPosition(a.x, a.y, m);
             if(!util::IsOutOfBounds(p.x, p.y) && IS_WALKABLE(state->items[p.y][p.x]) &&
                     _safe_condition(IsInDanger(*state, p.x, p.y), 5))
@@ -106,29 +96,21 @@ Move _Decide(SimpleAgent& me, const State* state)
             }
         }
 
-        if(IsAdjacentItem(*state, me.id, 1, Item::WOOD))
+        if(IsAdjacentItem(*state, id, 1, Item::WOOD))
         {
             return Move::BOMB;
         }
     }
-    me.moveQueue.count = 0;
-    SafeDirections(*state, me.moveQueue, a.x, a.y);
-    SortDirections(me.moveQueue, me.recentPositions, a.x, a.y);
 
-    if(me.moveQueue.count == 0)
-    {
-        return Move::IDLE;
-    }
-    else
-    {
-        return me.moveQueue[me.rng() % std::min(2, me.moveQueue.count)];
-    }
+    // TODO: Collect powerups
+
+    return _MoveSafeOneSpace(*this, state);
 }
 
 Move SimpleAgent::act(const State* state)
 {
     const AgentInfo& a = state->agents[id];
-    Move m = _Decide(*this, state);
+    Move m = decide(state);
     Position p = util::DesiredPosition(a.x, a.y, m);
 
     if(recentPositions.RemainingCapacity() == 0)
