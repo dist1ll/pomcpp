@@ -70,14 +70,17 @@ struct SimpleAgent : bboard::Agent
     static const int rpCapacity = 4;
     bboard::FixedQueue<bboard::Position, rpCapacity> recentPositions;
 
+    virtual bboard::Move decide(const bboard::State* state);
     bboard::Move act(const bboard::State* state) override;
+
     void reset() override;
 
     void PrintDetailedInfo();
 };
 
 /**
- * @brief Adds more randomization to SimpleAgent to get equal win rates
+ * @brief An improved version of SimpleAgent. Adds more randomization to get equal win rates and collects powerups.
+ * Also includes adjustments of parameters to (hopefully) result in better gameplay.
  */
 struct SimpleUnbiasedAgent : SimpleAgent
 {
@@ -89,7 +92,7 @@ struct SimpleUnbiasedAgent : SimpleAgent
     SimpleUnbiasedAgent();
     SimpleUnbiasedAgent(long seed);
 
-    bboard::Move act(const bboard::State* state) override;
+    bboard::Move decide(const bboard::State* state) override;
     void reset() override;
 };
 

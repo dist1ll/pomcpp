@@ -13,14 +13,16 @@
 
 using namespace agents;
 
-inline std::array<SimpleAgent, 4> CreateAgents(std::mt19937& rng)
+template <typename AgentType=SimpleAgent>
+std::array<AgentType, 4> CreateAgents(std::mt19937& rng)
 {
-    return {SimpleAgent(rng()), SimpleAgent(rng()), SimpleAgent(rng()), SimpleAgent(rng())};
+    return {AgentType(rng()), AgentType(rng()), AgentType(rng()), AgentType(rng())};
 }
 
-inline std::array<SimpleUnbiasedAgent, 4> CreateUnbiasedAgents(std::mt19937& rng)
+template <typename AgentType>
+std::array<bboard::Agent*, 4> ToPointerArray(std::array<AgentType, 4> &agents)
 {
-    return {SimpleUnbiasedAgent(rng()), SimpleUnbiasedAgent(rng()), SimpleUnbiasedAgent(rng()), SimpleUnbiasedAgent(rng())};
+    return {&agents[0], &agents[1], &agents[2], &agents[3]};
 }
 
 template<class T>
