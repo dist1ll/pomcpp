@@ -197,7 +197,9 @@ void playGames(std::array<bboard::Agent*, 4> agents, bboard::GameMode gameMode, 
         notDone += finalState.finished ? 0 : 1;
         draws += finalState.isDraw ? 1 : 0;
 
+#ifdef TEST_SHOW_GAME_PROGRESS
         std::cout  << "\r" << progressPrefix << (int)((float)(i+1) / numGames * 100) << "%" << std::flush;
+#endif
     }
     std::cout << std::endl;
     auto tEnd = std::chrono::high_resolution_clock::now();
