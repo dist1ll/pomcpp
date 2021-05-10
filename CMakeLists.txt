@@ -48,7 +48,7 @@ set(source_files_nomain ${source_files})
 # remove main.cpp from source files
 list(FILTER source_files_nomain EXCLUDE REGEX "main.cpp$")
 
-add_library("${PROJECT_NAME}_lib" ${source_files_nomain})
+add_library("${PROJECT_NAME}_lib" SHARED ${source_files_nomain})
 set_target_properties("${PROJECT_NAME}_lib"
         PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
         
