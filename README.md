@@ -95,8 +95,7 @@ I use a lot:
 | ------- | ------------ |
 | `./pomcpp_test`  | Runs all tests, including a performance report |
 | `./pomcpp_test "[step function]"` | Tests only the step function  |
-| `./pomcpp_test ~"[performance]"` | Runs all test except the performance cases| 
-
+| `./pomcpp_test ~"[agent statistics]" ~"[performance]"` | Runs all test except the performance and agent stat cases |
 
 ## Defining Agents
 
