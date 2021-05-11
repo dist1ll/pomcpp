@@ -1,6 +1,6 @@
 #include "catch.hpp"
 #include "bboard.hpp"
-#include "from_json.h"
+#include "from_json.hpp"
 
 TEST_CASE("Load State", "[json]")
 {

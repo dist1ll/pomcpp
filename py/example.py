@@ -1,30 +1,17 @@
-import ctypes
-import sys
+import pommerman
+import pommerman.agents as agents
+from pommerman.agents.simple_agent import SimpleAgent
+from cppagent import CppAgent
+from util import ffa_evaluate
 
-try:
-    lib = ctypes.cdll.LoadLibrary("./Release/libpomcpp.so")
-except OSError as err:
-    print("Could not load library. Reason: " + str(err))
-    sys.exit(1)
+agent_list = [
+    agents.RandomAgent(),
+    agents.RandomAgent(),
+    agents.RandomAgent(),
+    CppAgent("./Release/libpomcpp.so", "SimpleAgent")
+]
 
+# Make the "Free-For-All" environment using the agent list
+env = pommerman.make('PommeFFACompetition-v0', agent_list)
 
-def get_c_fun(name, argtypes, restype):
-    """
-    Loads a function with the given name from the library and adds the function signature for type checking.
-
-    :param name: The name of the function
-    :param argtypes: The argument types
-    :param restype: The return type
-    """
-    lib_fun = lib[name]
-    lib_fun.restype = restype
-    lib_fun.argtypes = argtypes
-    return lib_fun
-
-
-hello = get_c_fun("hello_world", [ctypes.c_char_p], ctypes.c_int)
-
-str_input = "This is input from python.".encode('utf-8')
-res = hello(str_input)
-
-print(f"Result: {res}")
+ffa_evaluate(env, 20, True, False)
