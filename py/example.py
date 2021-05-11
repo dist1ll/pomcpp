@@ -3,15 +3,36 @@ import pommerman.agents as agents
 from pommerman.agents.simple_agent import SimpleAgent
 from cppagent import CppAgent
 from util import ffa_evaluate
+import pathlib
+from shutil import copyfile
+
+lib_path = "./Release/libpomcpp.so"
+
+def create_lib_copy():
+    if hasattr(create_lib_copy, "calls"):
+        create_lib_copy.calls += 1
+    else:
+        create_lib_copy.calls = 0
+
+    local_lib_path = f"./local_lib_copy_{create_lib_copy.calls}.so"
+    copyfile(lib_path, local_lib_path)
+    return local_lib_path
 
 agent_list = [
-    agents.RandomAgent(),
-    agents.RandomAgent(),
-    agents.RandomAgent(),
-    CppAgent("./Release/libpomcpp.so", "SimpleAgent")
+    agents.SimpleAgent(),
+    agents.SimpleAgent(),
+    CppAgent(create_lib_copy(), "SimpleAgent", seed=16),
+    CppAgent(create_lib_copy(), "SimpleAgent", seed=17),
 ]
 
 # Make the "Free-For-All" environment using the agent list
 env = pommerman.make('PommeFFACompetition-v0', agent_list)
 
-ffa_evaluate(env, 20, True, False)
+use_env_state = True
+
+if use_env_state:
+    for a in agent_list:
+        if isinstance(a, CppAgent):
+            a.use_env_state(env)
+
+ffa_evaluate(env, 10, True, False)

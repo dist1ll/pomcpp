@@ -1,6 +1,8 @@
 import pommerman
 import pommerman.agents as agents
 import pommerman.utility as utility
+from pommerman.constants import Action
+from pommerman.envs.v0 import Pomme
 from clib import CLib
 import time
 import ctypes
@@ -10,6 +12,7 @@ class CppAgent(agents.BaseAgent):
     def __init__(self, library_path, agent_name: str, seed: int = 42):
         super().__init__()
         self.agent_name = agent_name
+        self.env = None
 
         # load interface
 
@@ -27,13 +30,34 @@ class CppAgent(agents.BaseAgent):
         self.sum_encode_time = 0.0
         self.sum_agent_act_time = 0.0
 
+    def use_env_state(self, env: Pomme):
+        self.env = env
+
+    def get_state_json(self):
+        env = self.env
+        state = {
+            'board_size': env._board_size,
+            'step_count': env._step_count,
+            'board': env._board,
+            'agents': env._agents,
+            'bombs': env._bombs,
+            'flames': env._flames,
+            'items': [[k, i] for k, i in env._items.items()],
+            'intended_actions': env._intended_actions
+        }
+        return json.dumps(state, cls=utility.PommermanJSONEncoder)
+
     def act(self, obs, action_space):
         act_start = time.time()
 
-        json_obs = json.dumps(obs, cls=utility.PommermanJSONEncoder)
+        if self.env:
+            json_input = self.get_state_json()
+        else:
+            json_input = json.dumps(obs, cls=utility.PommermanJSONEncoder)
+
         act_encoded = time.time()
 
-        move = self.agent_act(json_obs.encode('utf-8'), False)
+        move = self.agent_act(json_input.encode('utf-8'), self.env is not None)
         act_done = time.time()
 
         diff_encode = (act_encoded - act_start)
@@ -43,6 +67,8 @@ class CppAgent(agents.BaseAgent):
         self.sum_agent_act_time += diff_act
 
         self.total_steps += 1
+
+        # print("Python side: Agent wants to do do move ", move, " = ", Action(move))
 
         return move
 
