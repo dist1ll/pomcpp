@@ -76,6 +76,8 @@ void _agentInfoFromJSON(const nlohmann::json& pyInfo, AgentInfo& info)
 
     // agent_id is defined by the info index
     // info.team and info.bombCount must be set outside this function
+    
+    // WARNING: info.bombCount has to be set before this function is called!!
 
     // Agent positions are stored (row, column)
     info.x = pyInfo["position"][1];
@@ -84,7 +86,7 @@ void _agentInfoFromJSON(const nlohmann::json& pyInfo, AgentInfo& info)
     info.dead = !pyInfo.value("is_alive", true);
 
     info.canKick = pyInfo["can_kick"];
-    info.maxBombCount = pyInfo["ammo"];
+    info.maxBombCount = info.bombCount + pyInfo["ammo"].get<int>();
     info.bombStrength = pyInfo["blast_strength"];
 }
 
@@ -94,8 +96,8 @@ void _bombFromJSON(const nlohmann::json& pyBomb, Bomb& bomb)
 
     SetBombID(bomb, pyBomb["bomber_id"]);
     const nlohmann::json& pos = pyBomb["position"];
-    // Bomb positions are stored (column, row)
-    SetBombPosition(bomb, pos[0], pos[1]);
+    // Bomb positions are stored (row, column) in python => x is [1] and y is [0]
+    SetBombPosition(bomb, pos[1], pos[0]);
     SetBombStrength(bomb, pyBomb["blast_strength"]);
 
     nlohmann::json movingDir = pyBomb["moving_direction"];
@@ -135,6 +137,26 @@ void StateFromJSON(State& state, const std::string& json, GameMode gameMode)
     // set board
     _boardFromJSON(pyState["board"], state);
 
+    // reset bomb count
+    for(uint i = 0; i < bboard::AGENT_COUNT; i++)
+    {
+        AgentInfo& info = state.agents[i];
+        info.bombCount = 0;
+    }
+
+    // set bombs
+    const nlohmann::json& pyBombs = pyState["bombs"];
+    state.bombs.count = 0;
+    for(uint i = 0; i < pyBombs.size(); i++)
+    {
+        Bomb bomb;
+        _bombFromJSON(pyBombs[i], bomb);
+        state.bombs.AddElem(bomb);
+
+        // increment agent bomb count
+        state.agents[BMB_ID(bomb)].bombCount++;
+    }
+
     // set agents
     for(uint i = 0; i < bboard::AGENT_COUNT; i++)
     {
@@ -160,19 +182,6 @@ void StateFromJSON(State& state, const std::string& json, GameMode gameMode)
         {
             throw std::runtime_error("Expected agent, got " + std::to_string(state.items[info.y][info.x]));
         }
-    }
-
-    // set bombs
-    const nlohmann::json& pyBombs = pyState["bombs"];
-    state.bombs.count = 0;
-    for(uint i = 0; i < pyBombs.size(); i++)
-    {
-        Bomb bomb;
-        _bombFromJSON(pyBombs[i], bomb);
-        state.bombs.AddElem(bomb);
-
-        // increment agent bomb count
-        state.agents[BMB_ID(bomb)].bombCount++;
     }
 
     // set flames
