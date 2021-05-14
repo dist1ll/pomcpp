@@ -14,6 +14,7 @@ class CppAgent(agents.BaseAgent):
         self.agent_name = agent_name
         self.env = None
         self.print_json = print_json
+        self.id = None
 
         # load interface
 
@@ -85,7 +86,15 @@ class CppAgent(agents.BaseAgent):
         if game_type != pommerman.constants.GameType.FFA:
             raise ValueError(f"GameType {str(game_type)} is not supported!")
 
+        self.id = id
         self.agent_reset(id)
+
+    def episode_end(self, reward):
+        if self.id is None:
+            raise ValueError("Episode ended before id has been set!")
+
+        # as there is no "real" reset in the agent interface, we use episode_end
+        self.agent_reset(self.id)
 
     def print_time_stats(self):
         print(f"Response times of agent '{self.agent_name}' over {self.total_steps} steps:")
