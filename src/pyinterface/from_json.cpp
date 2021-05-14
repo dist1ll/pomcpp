@@ -98,7 +98,7 @@ void _bombFromJSON(const nlohmann::json& pyBomb, Bomb& bomb)
     const nlohmann::json& pos = pyBomb["position"];
     // Bomb positions are stored (row, column) in python => x is [1] and y is [0]
     SetBombPosition(bomb, pos[1], pos[0]);
-    SetBombStrength(bomb, pyBomb["blast_strength"]);
+    SetBombStrength(bomb, pyBomb["blast_strength"].get<int>() - 1);
 
     nlohmann::json movingDir = pyBomb["moving_direction"];
     if(movingDir.is_null())
@@ -333,7 +333,7 @@ void ObservationFromJSON(Observation& obs, const std::string& json, int agentId)
                 SetBombID(b, AGENT_COUNT);
                 //}
 
-                int blastStrength = (int)pyState["bomb_blast_strength"][y][x].get<float>();
+                int blastStrength = (int)pyState["bomb_blast_strength"][y][x].get<float>() - 1;
                 SetBombStrength(b, blastStrength);
 
                 Direction direction = _mapPyToDir((int)pyState["bomb_moving_direction"][y][x].get<float>());
