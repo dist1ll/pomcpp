@@ -9,10 +9,11 @@ import ctypes
 import json
 
 class CppAgent(agents.BaseAgent):
-    def __init__(self, library_path, agent_name: str, seed: int = 42):
+    def __init__(self, library_path, agent_name: str, seed: int = 42, print_json=False):
         super().__init__()
         self.agent_name = agent_name
         self.env = None
+        self.print_json = print_json
 
         # load interface
 
@@ -52,8 +53,14 @@ class CppAgent(agents.BaseAgent):
 
         if self.env:
             json_input = self.get_state_json()
+            if self.print_json:
+                json_obs = json.dumps(obs, cls=utility.PommermanJSONEncoder)
+                print("State: ", json_input.replace("\"", "\\\""))
+                print("Obs: ", json_obs.replace("\"", "\\\""))
         else:
             json_input = json.dumps(obs, cls=utility.PommermanJSONEncoder)
+            if self.print_json:
+                print("Obs: ", json_input.replace("\"", "\\\""))
 
         act_encoded = time.time()
 

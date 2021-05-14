@@ -122,7 +122,9 @@ void _flameFromJSON(const nlohmann::json& pyFlame, Flame& flame)
     // Flame positions are stored (row, column)
     flame.position.x = pos[1];
     flame.position.y = pos[0];
-    flame.timeLeft = pyFlame["life"];
+    // python flames stay active for one step when their value is 0
+    // in their observation, + 1 is already included
+    flame.timeLeft = pyFlame["life"].get<int>() + 1;
 }
 
 void StateFromJSON(State& state, const std::string& json, GameMode gameMode)
@@ -157,6 +159,8 @@ void StateFromJSON(State& state, const std::string& json, GameMode gameMode)
         state.agents[BMB_ID(bomb)].bombCount++;
     }
 
+    state.aliveAgents = 0;
+
     // set agents
     for(uint i = 0; i < bboard::AGENT_COUNT; i++)
     {
@@ -166,6 +170,11 @@ void StateFromJSON(State& state, const std::string& json, GameMode gameMode)
         _checkKeyValue(pyInfo, "agent_id", i);
 
         _agentInfoFromJSON(pyInfo, info);
+
+        if(!info.dead)
+        {
+            state.aliveAgents++;
+        }
 
         // assign teams
         switch (gameMode)

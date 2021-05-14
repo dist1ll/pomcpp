@@ -22,7 +22,7 @@ agent_list = [
     #agents.SimpleAgent(),
     #agents.SimpleAgent(),
     #agents.SimpleAgent(),
-    CppAgent(create_lib_copy(), "SimpleAgent", seed=14),
+    CppAgent(create_lib_copy(), "SimpleAgent", seed=14, print_json=False),
     CppAgent(create_lib_copy(), "SimpleAgent", seed=15),
     CppAgent(create_lib_copy(), "SimpleAgent", seed=16),
     CppAgent(create_lib_copy(), "SimpleAgent", seed=17),
