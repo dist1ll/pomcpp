@@ -222,7 +222,7 @@ void Observation::ToState(State& state, GameMode gameMode) const
         {
             // we don't know much about this agent and want to ignore it
             // use unique positions out of bounds to be compatible with the destination checks
-            info.x = i;
+            info.x = -i;
             info.y = -1;
             info.won = false;
             info.dead = !isAlive[i];
@@ -235,6 +235,7 @@ void Observation::ToState(State& state, GameMode gameMode) const
             aliveAgents += 1;
         }
     }
+
     state.aliveAgents = aliveAgents;
 
     // search for agents and set their correct positions if available
@@ -247,8 +248,11 @@ void Observation::ToState(State& state, GameMode gameMode) const
             if(item >= Item::AGENT0)
             {
                 int id = item - Item::AGENT0;
-                state.agents[id].x = x;
-                state.agents[id].y = y;
+                // std::cout << "Set agent " << id << " pos to " << y << ", " << x << std::endl;
+                AgentInfo& info = state.agents[id];
+                info.x = x;
+                info.y = y;
+                info.ignore = false;
             }
         }
     }
