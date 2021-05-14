@@ -248,30 +248,31 @@ void ObservationFromJSON(Observation& obs, const std::string& json, int agentId)
     std::fill_n(obs.isAlive, AGENT_COUNT, false);
     for(uint i = 0; i < alive.size(); i++)
     {
-        obs.isAlive[alive[i].get<int>()] = true;
+        obs.isAlive[alive[i].get<int>() - 10] = true;
     }
 
     const nlohmann::json& enemies = pyState["enemies"];
     std::fill_n(obs.isEnemy, AGENT_COUNT, false);
     for(uint i = 0; i < enemies.size(); i++)
     {
-        obs.isEnemy[enemies[i].get<int>()] = true;
+        obs.isEnemy[enemies[i].get<int>() - 10] = true;
     }
 
     // we only observe ourself
     std::fill_n(obs.agentIDMapping, AGENT_COUNT, -1);
     obs.agentIDMapping[agentId] = 0;
     obs.agentInfos.count = 1;
+    
     AgentInfo& info = obs.agentInfos[0];
+    info.bombCount = 0;
 
     // set agent info
     _agentInfoFromJSON(pyState, info);
-    info.dead = obs.isAlive[agentId];
 
     // set board
 
     // try to reconstruct own bombs from given observation
-    std::unordered_set<Position> ownBombs;
+    /*std::unordered_set<Position> ownBombs;
     for(int i = 0; i < obs.bombs.count; i++)
     {
         Bomb& b = obs.bombs[i];
@@ -279,7 +280,7 @@ void ObservationFromJSON(Observation& obs, const std::string& json, int agentId)
         {
             ownBombs.insert({BMB_POS_X(b), BMB_POS_Y(b)});
         }
-    }
+    }*/
 
     obs.bombs.count = 0;
     obs.flames.count = 0;
@@ -302,45 +303,47 @@ void ObservationFromJSON(Observation& obs, const std::string& json, int agentId)
                     obs.flames.count++;
                     break;
                 }
-                case Item::BOMB:
-                {
-                    Bomb& b = obs.bombs.NextPos();
-                    SetBombPosition(b, x, y);
-
-                    // is that necessary?
-                    SetBombFlag(b, false);
-
-                    // WARNING: Bomber Id is not not known! This means based on a single observation,
-                    // we do not know when our ammo fills back up in the future.
-
-                    // because of this, we try to reconstruct our own bombs based on the last observation
-                    // idea: when performing an action, remember agent ids in the last observation struct
-
-                    // TODO: This simple approximation breaks when bombs move. Maybe one could include
-                    // the moving direction to reconstruct agent ids of moving bombs.
-                    if(ownBombs.find({x, y}) != ownBombs.end())
-                    {
-                        SetBombID(b, agentId);
-                    }
-                    else
-                    {
-                        // illegal agent id
-                        SetBombID(b, AGENT_COUNT);
-                    }
-
-                    int blastStrength = (int)pyState["bomb_blast_strength"][y][x].get<float>();
-                    SetBombStrength(b, blastStrength);
-
-                    Direction direction = _mapPyToDir((int)pyState["bomb_moving_direction"][y][x].get<float>());
-                    SetBombDirection(b, direction);
-
-                    int life = (int)pyState["bomb_life"][y][x].get<float>();
-                    SetBombTime(b, life);
-
-                    obs.bombs.count++;
-                    break;
-                }
                 default: break;
+            }
+
+            int life = (int)pyState["bomb_life"][y][x].get<float>();
+            if (life != 0)
+            {
+                Bomb& b = obs.bombs.NextPos();
+                SetBombPosition(b, x, y);
+
+                // is that necessary?
+                SetBombFlag(b, false);
+
+                // WARNING: Bomber Id is not not known! This means based on a single observation,
+                // we do not know when our ammo fills back up in the future.
+
+                // because of this, we try to reconstruct our own bombs based on the last observation
+                // idea: when performing an action, remember agent ids in the last observation struct
+
+                // TODO: This simple approximation breaks when bombs move. Maybe one could include
+                // the moving direction to reconstruct agent ids of moving bombs.
+                /*if(ownBombs.find({x, y}) != ownBombs.end())
+                {
+                    SetBombID(b, agentId);
+                }
+                else
+                {*/
+                // illegal agent id
+                SetBombID(b, AGENT_COUNT);
+                //}
+
+                int blastStrength = (int)pyState["bomb_blast_strength"][y][x].get<float>();
+                SetBombStrength(b, blastStrength);
+
+                Direction direction = _mapPyToDir((int)pyState["bomb_moving_direction"][y][x].get<float>());
+                SetBombDirection(b, direction);
+
+                SetBombTime(b, life);
+
+                // std::cout << "Bomb: Life " << life << ", strength: " << blastStrength << ", dir: " << (int)direction << std::endl;
+
+                obs.bombs.count++;
             }
         }
     }

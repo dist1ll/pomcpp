@@ -3,13 +3,14 @@ from pommerman.envs.v0 import Pomme
 import time
 import numpy as np
 
-def ffa_evaluate(env: Pomme, episodes, verbose, visualize):
+def ffa_evaluate(env: Pomme, episodes, verbose, visualize, stop=False):
     """
     Evaluates the given pommerman environment (already includes the agents).
 
     :param episodes: The number of episodes
     :param verbose: Whether to print verbose status information
     :param visualize: Whether to visualize the execution
+    :param stop: Whether to wait for input after each step
     :return: The results of the evaluation of shape (episodes, 5) where the first column [:, 0] contains the result
              of the match (tie, win, incomplete) and the remaining columns contain the individual (final) rewards.
     """
@@ -33,6 +34,9 @@ def ffa_evaluate(env: Pomme, episodes, verbose, visualize):
             actions = env.act(state)
             state, reward, done, info = env.step(actions)
             step += 1
+
+            if stop:
+                input()
 
         steps[i_episode] = step
 

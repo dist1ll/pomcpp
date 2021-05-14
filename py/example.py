@@ -19,8 +19,11 @@ def create_lib_copy():
     return local_lib_path
 
 agent_list = [
-    agents.SimpleAgent(),
-    agents.SimpleAgent(),
+    #agents.SimpleAgent(),
+    #agents.SimpleAgent(),
+    #agents.SimpleAgent(),
+    CppAgent(create_lib_copy(), "SimpleAgent", seed=14),
+    CppAgent(create_lib_copy(), "SimpleAgent", seed=15),
     CppAgent(create_lib_copy(), "SimpleAgent", seed=16),
     CppAgent(create_lib_copy(), "SimpleAgent", seed=17),
 ]
@@ -28,7 +31,7 @@ agent_list = [
 # Make the "Free-For-All" environment using the agent list
 env = pommerman.make('PommeFFACompetition-v0', agent_list)
 
-use_env_state = True
+use_env_state = False
 
 if use_env_state:
     for a in agent_list:
