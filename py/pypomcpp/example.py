@@ -1,9 +1,8 @@
 import pommerman
 import pommerman.agents as agents
 from pommerman.agents.simple_agent import SimpleAgent
-from cppagent import CppAgent
+from pypomcpp.cppagent import CppAgent
 from util import ffa_evaluate
-import pathlib
 from shutil import copyfile
 
 lib_path = "./Release/libpomcpp.so"

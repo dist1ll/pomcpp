@@ -3,7 +3,7 @@ import pommerman.agents as agents
 import pommerman.utility as utility
 from pommerman.constants import Action
 from pommerman.envs.v0 import Pomme
-from clib import CLib
+from pypomcpp.clib import CLib
 import time
 import ctypes
 import json
