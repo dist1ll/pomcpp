@@ -1,3 +1,5 @@
+**Status**: Archived. The project has been transferred to [pomcpp2](https://github.com/jw3il/pomcpp2).
+
 # Pommerman C++ Environment
 
 [![Build Badge](https://github.com/tomatenbrei/pomcpp/workflows/build/badge.svg)](https://github.com/tomatenbrei/pomcpp/actions?query=workflow%3Abuild) 
