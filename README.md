@@ -1,4 +1,5 @@
 # Pommerman C++ Environment
+*Note: This repository is officially discontinued. The new version [pomcpp2](https://github.com/jw3il/pomcpp2) is being developed by Jannis Weil. His implementation adds new features and fixes several bugs.*
 
 This repository is an open-source re-implementation of the [Pommerman](https://www.pommerman.com/) multi-agent RL environment. Its aim is to provide a blazing fast alternative to the current python backend - ideally to make computationally expensive methods like tree search a feasible. The simulation has no heap allocations. This is how the C++ side currently looks like.
 
@@ -145,6 +146,8 @@ bboard::Move MyNewAgent::act(const bboard::State* state)
 }
 ```
 ## Citing This Repo
+
+If you end up modifiying pomcpp in a significant way, e.g. by adding major functionality, you may change the order of authors and make yourself first author - as long as I'm included in the list of authors. An example of this is [pomcpp2](https://github.com/jw3il/pomcpp2).
 
 ```
 @misc{Alic2018,
